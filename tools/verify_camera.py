@@ -21,7 +21,8 @@ def norm(v):
 
 
 def simulate(rows):
-    p0 = (32053.57, 0.0, 30797.51)
+    # doSetupPlayerCar worldPosition (the car settles to ground on frame 1).
+    p0 = (32053.57, -5.56, 30797.51)
     # doSetupPlayerCar initial camera and then one doCam per enterFrame.
     aim = [p0[0] - 80.0, p0[1] + 50.0, p0[2] + 200.0]
     cam = [p0[0] - 80.0, p0[1] + 50.0, p0[2] - 200.0]
@@ -99,7 +100,11 @@ def main():
         for j, name in enumerate(names):
             diff = abs(exp[j] - float(row[keys[j]]))
             worst[name] = max(worst[name], diff)
-            if diff > 1e-2 and not failed:
+            # Camera positions reach ~60000 units and the game accumulates them
+            # in float32, so the tolerance is absolute for the small range and
+            # height channels and relative for the world-space ones.
+            tol = 1e-3 + 1e-6 * abs(exp[j])
+            if diff > tol and not failed:
                 print(f"FAIL frame {i} {name}: cpp={row[keys[j]]} model={exp[j]:.6f}")
                 failed = True
 

@@ -29,6 +29,11 @@ cmake --build build -j8
 ./build/rr4 --car 4      # any of the six original cars
 ```
 
+The car starts where the original `doSetupPlayerCar` puts it:
+`worldPosition = (32053.57, -5.56, 30797.51)`, `rotation.y = 45`, which is the
+Ferris wheel tile (`TILE_FerrisWheel_000`, the "FERRIS' WHEELS / UNITED AUTO
+SALES" frontage).
+
 Controls:
 
 | Key | Action |
@@ -140,7 +145,10 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
 ## Map and rendering
 
 - All 144 tiles from the original `tileIDList`, each rotated by
-  `tileRotList` (0..3 -> 0/90/180/270 degrees).
+  `tileRotList` (0..3 -> 0/90/180/270 degrees). The map uses the original
+  1-based `onTile = onTileCol + (onTileRow - 1) * 12` indexing and tile centres
+  at `col * 5000 - 2500`, so the tiles, the tall objects and the car spawn all
+  share one coordinate frame.
 - The 37 original tile resources are drawn from their base and objects meshes,
   grouped by material. The 5 x 5 visible-tile window matches the original
   `visTileDist = 2`.
@@ -173,6 +181,51 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
   directional shading and distance fog. Framebuffer is uploaded to an SFML
   texture each frame.
 
+## Original collisions
+
+`doCollisions()` does not use boxes or swept shapes. For each of the four tiles
+around the car (the car's own tile plus the three sharing the nearest tile
+corner) it builds a tile-local `pushOrigin` and calls `doRadialPush()`: the car
+is pushed out of a circle of a per-tile radius centred on that point. The
+clamps that build `pushOrigin` are hand-tuned per tile and depend on the car's
+position inside the tile, the tile's rotation (`tileRotList`), the airport
+radar's spinning `xAxis` and the plane collider, so they are code rather than
+data.
+
+`tools/gen_collisions.py` translates the 2400-line `case tempTileID of` block
+from the decompiled `BehaviorScript 4 - PlayerCar.ls` into
+`src/collision_cases.gen.cpp` mechanically, which keeps all 549 `if`s and 568
+coordinate clamps byte-for-byte faithful. `src/collision.cpp` implements
+`doRadialPush()`:
+
+```
+diff = tilePos + pushOrigin - (carPos + vel * g_FPSFactor)
+if |diff| < radius:
+    push = normalize(diff) * (radius - |diff|)
+    vel -= push / g_FPSFactor
+    rot.z -= push.x * 0.4 / g_FPSFactor
+    rot.x += push.z * 0.4 / g_FPSFactor
+```
+
+with the original damage/Sfx thresholds at `|push| > 5 / 10 / 15 / 20`
+(0.005 / 0.01 / 0.015 / 0.02 damage and Sfx 16..19). Damage feeds the original
+HUD damage bar and the crash sound uses the existing CrashTinkle channel.
+
+The pass runs at the same point in the frame as the original:
+`doControls → doGravity → doFriction → doTireGrip → doCollisions → doBodyRoll →
+doupdate`. `Car::update()` takes a collision hook and calls it between
+`doTireGrip` and `doBodyRoll`, so the pushes act on the current velocity while
+the car is still at its pre-move position; `doupdate` then carries the pushed
+velocity out of the obstacle. `World::updateGround()` (the `doRayCasting` ground
+follow and the map-edge fence) runs after the step. Running collisions after the
+move instead makes the pushed velocity re-trigger on the next frame, which shows
+up as the car bouncing off walls — that ordering is the difference.
+
+The tile grid uses the original indexing: `onTileCol = integer(x / 5000 + 0.5)`,
+tile centres at `col * 5000 - 2500` (the `mVisTileList[]` world position) and
+the flat index `(col - 1) + (row - 1) * 12`. This is why the spawn is on the
+Ferris wheel tile and every tall object sits on its original tile.
+
 ## Verification modes
 
 ```bash
@@ -186,6 +239,9 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
 
 # List the steepest original road surfaces (banked corners, ramps).
 ./build/rr4 --slope-scan
+
+# Hold the throttle from a placed position to observe collision pushes.
+./build/rr4 --drive 240 --place 22500 4500 0
 
 # Measure the software rasterizer.
 ./build/rr4 --bench 360
@@ -259,7 +315,9 @@ Fixed 60 Hz stepping with an accumulator; `g_FPSFactor` is 1.0 per step.
 src/math.hpp        vectors, matrices
 src/assets.*        RR4W pack loader + original mesh/material drawing
 src/renderer.*      software rasterizer
-src/world.*         original tile map, props, height field, collision
+src/world.*         original tile map, props, height field
+src/collision.*     doRadialPush() and the four-tile collision pass
+src/collision_cases.gen.cpp  per-tile clamps generated from the Lingo
 src/car.*           ported car physics and all six original car assemblies
 src/audio.*         original Sfx cast and Director sound channels
 src/hud.*           original camera-overlay HUD from assets/hud/
@@ -271,6 +329,7 @@ assets/sounds/              original Sfx cast members as WAV
 assets/hud/                 original HUD bitmap cast members as RGBA PNG
 tools/extract_sounds.py     extract Sfx cast from the Director dump
 tools/extract_hud.py        extract and decode the HUD bitmaps (BITD/ediM/ALFA)
+tools/gen_collisions.py     translate doCollisions() into collision_cases.gen.cpp
 tools/verify_physics.py     independent check of the ported car step
 tools/verify_camera.py      independent check of doCam()
 work/final_shots/           auto-drive screenshots (evidence)
@@ -293,9 +352,9 @@ The decompiled Lingo and all cast chunks live under `work/dump/` (scripts,
   parts (only five node records parse), so bonnet, boot, door and wheel pivots
   were reconstructed from the cage and the part geometry. They are very close
   but not byte-identical to the Director hierarchy.
-- Collision uses compact AABBs for selected buildings and landmark pedestals.
-  The original tests individual cage rays against the tile mesh; some scenery
-  can therefore still be driven through.
+- Traffic cars, the opponent car and the moving plane are not implemented, so
+  their `doCollisions` entries (traffic push, plane collider) are inactive.
+  Every static tile collider is ported exactly.
 - Canal water is treated as drivable ground in free-drive mode, so the
   autopilot can cut a corner and end up in the canal.
 - Surface tilt is a four-wheel height-field approximation of the original

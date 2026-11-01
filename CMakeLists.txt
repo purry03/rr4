@@ -15,6 +15,8 @@ add_executable(rr4
     src/car.cpp
     src/audio.cpp
     src/hud.cpp
+    src/collision.cpp
+    src/collision_cases.gen.cpp
     src/font.cpp
 )
 

@@ -1,5 +1,6 @@
 #include "world.hpp"
 #include "car.hpp"
+#include "collision.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -156,21 +157,6 @@ void appendSource(std::vector<TileBatch> &batches,
     }
 }
 
-AABB transformedBounds(const AssetMesh &m, const Mat4 &xf) {
-    AABB b;
-    b.min = {1e30f, 1e30f, 1e30f};
-    b.max = {-1e30f, -1e30f, -1e30f};
-    for (int i = 0; i < 8; ++i) {
-        Vec3 p{(i & 1) ? m.max.x : m.min.x,
-               (i & 2) ? m.max.y : m.min.y,
-               (i & 4) ? m.max.z : m.min.z};
-        Vec3 q = xf.transformPoint(p);
-        b.min.x = std::min(b.min.x, q.x); b.min.y = std::min(b.min.y, q.y); b.min.z = std::min(b.min.z, q.z);
-        b.max.x = std::max(b.max.x, q.x); b.max.y = std::max(b.max.y, q.y); b.max.z = std::max(b.max.z, q.z);
-    }
-    return b;
-}
-
 bool assetFile(std::string &out) {
     const char *candidates[] = {
         "assets/rr4_world.bin", "../assets/rr4_world.bin",
@@ -274,7 +260,7 @@ float World::groundHeightAt(float x, float z, float nearY) const {
     int id = kTileID[idx];
     if (id <= 0 || id > 37 || heights[size_t(id)].empty()) return 0.0f;
 
-    Vec3 center = tileCenter(idx % GRID, idx / GRID + 1);
+    Vec3 center = tileCenter(idx % GRID + 1, idx / GRID + 1);
     Vec3 d{x - center.x, 0.0f, z - center.z};
     Mat4 inv = Mat4::rotationY(deg2rad(90.0f * float(kTileRot[idx])));
     Vec3 local = inv.transformVector(d);
@@ -322,54 +308,6 @@ void World::buildProps() {
     add("TrafficBoeing747_001", Mat4::translation({7500, 0, 7500}));
 }
 
-void World::buildColliders() {
-    colliders.clear();
-
-    // Buildings and solid props. Road tiles stay clear so every original lane
-    // remains drivable; the park, financial block, terminal, hangar, fuel
-    // depot and air-port fence are the landmarks with real collision boxes.
-    static const int solidTiles[] = {1, 5, 9, 16, 17, 18, 19, 28};
-    for (int row = 1; row <= GRID; ++row) {
-        for (int col = 0; col < GRID; ++col) {
-            int id = kTileID[col + (row - 1) * GRID];
-            bool solid = false;
-            for (int s : solidTiles) if (s == id) solid = true;
-            if (!solid) continue;
-            Vec3 center = tileCenter(col, row);
-            Mat4 xf = Mat4::translation(center) *
-                      Mat4::rotationY(deg2rad(-90.0f * float(kTileRot[col + (row - 1) * GRID])));
-            const AssetMesh *obj = kObjectsName[id] ? gAssets.mesh(kObjectsName[id]) : nullptr;
-            if (!obj) continue;
-            AABB b = transformedBounds(*obj, xf);
-            if (b.max.y - b.min.y < 250.0f) continue;
-            float fx = b.max.x - b.min.x, fz = b.max.z - b.min.z;
-            if (fx < 50.0f || fz < 50.0f) continue;
-            // Leave an escape corridor for the drivable parts of these tiles.
-            b.min.x += 250.0f; b.max.x -= 250.0f;
-            b.min.z += 250.0f; b.max.z -= 250.0f;
-            if (b.min.x < b.max.x && b.min.z < b.max.z) colliders.push_back(b);
-        }
-    }
-
-    // Tall landmark props use their original world transforms. Their real
-    // collision is a small pedestal, not the enormous billboard/bridge
-    // bounding box, so only a compact core around the base is solid.
-    for (const WorldProp &p : props) {
-        if (p.mesh < 0) continue;
-        const AssetMesh &m = gAssets.meshes[size_t(p.mesh)];
-        if (m.name == "TALLOBJECT_OuterWalls_000") continue;
-        AABB b = transformedBounds(m, p.model);
-        float fx = b.max.x - b.min.x, fz = b.max.z - b.min.z;
-        if (b.max.y - b.min.y < 300.0f || fx < 100.0f || fz < 100.0f) continue;
-        Vec3 c{(b.min.x + b.max.x) * 0.5f, 0.0f, (b.min.z + b.max.z) * 0.5f};
-        float hx = std::min(fx * 0.18f, 500.0f);
-        float hz = std::min(fz * 0.18f, 500.0f);
-        b.min.x = c.x - hx; b.max.x = c.x + hx;
-        b.min.z = c.z - hz; b.max.z = c.z + hz;
-        colliders.push_back(b);
-    }
-}
-
 void World::build() {
     std::string path;
     if (!assetFile(path) || !gAssets.load(path)) {
@@ -380,10 +318,9 @@ void World::build() {
     buildProtos();
     buildHeights();
     buildProps();
-    buildColliders();
     ready = true;
-    std::printf("world: %d tile resources, %zu props, %zu colliders\n",
-                int(protos.size()) - 1, props.size(), colliders.size());
+    std::printf("world: %d tile resources, %zu props\n",
+                int(protos.size()) - 1, props.size());
 }
 
 void World::draw(Renderer &r, const Camera &cam) {
@@ -398,8 +335,8 @@ void World::draw(Renderer &r, const Camera &cam) {
 
     r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
 
-    int pc = int(cam.pos.x / TILE_SIZE + 0.5f);
-    int pr = int(cam.pos.z / TILE_SIZE + 0.5f);
+    int pc = tileColAt(cam.pos.x);
+    int pr = tileRowAt(cam.pos.z);
     const int dist = 2;
 
     // Only reject a tile when its whole square (half-diagonal radius) is
@@ -418,8 +355,8 @@ void World::draw(Renderer &r, const Camera &cam) {
 
     // Pass 1: opaque tile batches.
     for (int row = std::max(1, pr - dist); row <= std::min(GRID, pr + dist); ++row) {
-        for (int col = std::max(0, pc - dist); col <= std::min(GRID - 1, pc + dist); ++col) {
-            int idx = col + (row - 1) * GRID;
+        for (int col = std::max(1, pc - dist); col <= std::min(GRID, pc + dist); ++col) {
+            int idx = (col - 1) + (row - 1) * GRID;
             int id = kTileID[idx];
             if (id <= 0 || id > 37) continue;
             Vec3 center = tileCenter(col, row);
@@ -448,8 +385,8 @@ void World::draw(Renderer &r, const Camera &cam) {
 
     // Pass 2: baked shadow planes and other alpha material batches.
     for (int row = std::max(1, pr - dist); row <= std::min(GRID, pr + dist); ++row) {
-        for (int col = std::max(0, pc - dist); col <= std::min(GRID - 1, pc + dist); ++col) {
-            int idx = col + (row - 1) * GRID;
+        for (int col = std::max(1, pc - dist); col <= std::min(GRID, pc + dist); ++col) {
+            int idx = (col - 1) + (row - 1) * GRID;
             int id = kTileID[idx];
             if (id <= 0 || id > 37) continue;
             Vec3 center = tileCenter(col, row);
@@ -472,43 +409,24 @@ void World::draw(Renderer &r, const Camera &cam) {
 }
 
 void World::resolveCarCollision(Car &car) const {
-    const float radius = 74.0f;
-    for (const AABB &b : colliders) {
-        if (car.pos.y > b.max.y) continue;
-        float cx = clampf(car.pos.x, b.min.x, b.max.x);
-        float cz = clampf(car.pos.z, b.min.z, b.max.z);
-        float dx = car.pos.x - cx;
-        float dz = car.pos.z - cz;
-        float d2 = dx * dx + dz * dz;
-        if (d2 >= radius * radius) continue;
+    // doCollisions(): the original radial pushes for the four nearest tiles.
+    resolveTileCollisions(*this, car);
+}
 
-        if (d2 > 1e-3f) {
-            float d = std::sqrt(d2);
-            Vec3 n(dx / d, 0, dz / d);
-            car.pos += n * (radius - d);
-            float vn = car.vel.dot(n);
-            if (vn < 0) {
-                car.impactSpeed = std::max(car.impactSpeed, -vn);
-                car.vel -= n * (vn * 1.35f);
-            }
-        } else {
-            float px1 = car.pos.x - b.min.x, px2 = b.max.x - car.pos.x;
-            float pz1 = car.pos.z - b.min.z, pz2 = b.max.z - car.pos.z;
-            float m = std::min(std::min(px1, px2), std::min(pz1, pz2));
-            if (m == px1) { car.pos.x = b.min.x - radius; if (car.vel.x > 0) car.vel.x = 0; }
-            else if (m == px2) { car.pos.x = b.max.x + radius; if (car.vel.x < 0) car.vel.x = 0; }
-            else if (m == pz1) { car.pos.z = b.min.z - radius; if (car.vel.z > 0) car.vel.z = 0; }
-            else { car.pos.z = b.max.z + radius; if (car.vel.z < 0) car.vel.z = 0; }
-        }
-    }
-
-    // Keep the car on the 12 x 12 tile map.
-    const float minX = -2300.0f, maxX = 57300.0f;
-    const float minZ = 2700.0f, maxZ = 62300.0f;
-    if (car.pos.x < minX) { car.impactSpeed = std::max(car.impactSpeed, -car.vel.x); car.pos.x = minX; if (car.vel.x < 0) car.vel.x *= -0.25f; }
-    if (car.pos.x > maxX) { car.impactSpeed = std::max(car.impactSpeed, car.vel.x); car.pos.x = maxX; if (car.vel.x > 0) car.vel.x *= -0.25f; }
-    if (car.pos.z < minZ) { car.impactSpeed = std::max(car.impactSpeed, -car.vel.z); car.pos.z = minZ; if (car.vel.z < 0) car.vel.z *= -0.25f; }
-    if (car.pos.z > maxZ) { car.impactSpeed = std::max(car.impactSpeed, car.vel.z); car.pos.z = maxZ; if (car.vel.z > 0) car.vel.z *= -0.25f; }
+// Surface contact, the original doRayCasting() part of enterFrame. Kept apart
+// from resolveCarCollision so the collision pass can run mid-step (before
+// doupdate) while ground snapping still runs after the car has moved.
+void World::updateGround(Car &car) const {
+    // Safety net for leaving the 12 x 12 map; the original is fenced in by the
+    // DistantHill and AirportFence tiles.
+    // The original 12 x 12 map covers [0, 60000] on both axes (tile centres
+    // run from 2500 to 57500). Applied after the step so the clamp is final.
+    const float minX = 0.0f, maxX = 60000.0f;
+    const float minZ = 0.0f, maxZ = 60000.0f;
+    if (car.pos.x < minX) { car.pos.x = minX; if (car.vel.x < 0) car.vel.x = 0; }
+    if (car.pos.x > maxX) { car.pos.x = maxX; if (car.vel.x > 0) car.vel.x = 0; }
+    if (car.pos.z < minZ) { car.pos.z = minZ; if (car.vel.z < 0) car.vel.z = 0; }
+    if (car.pos.z > maxZ) { car.pos.z = maxZ; if (car.vel.z > 0) car.vel.z = 0; }
 
     // Follow the original tile surfaces (banked NurdBurger corners, bridge
     // decks, airport ramps). The original physics does the same with twelve

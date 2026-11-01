@@ -11,6 +11,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/perry/Dev/rr4/src/assets.cpp" "CMakeFiles/rr4.dir/src/assets.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/assets.cpp.o.d"
   "/home/perry/Dev/rr4/src/audio.cpp" "CMakeFiles/rr4.dir/src/audio.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/audio.cpp.o.d"
   "/home/perry/Dev/rr4/src/car.cpp" "CMakeFiles/rr4.dir/src/car.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/car.cpp.o.d"
+  "/home/perry/Dev/rr4/src/collision.cpp" "CMakeFiles/rr4.dir/src/collision.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/collision.cpp.o.d"
+  "/home/perry/Dev/rr4/src/collision_cases.gen.cpp" "CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o.d"
   "/home/perry/Dev/rr4/src/font.cpp" "CMakeFiles/rr4.dir/src/font.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/font.cpp.o.d"
   "/home/perry/Dev/rr4/src/hud.cpp" "CMakeFiles/rr4.dir/src/hud.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/hud.cpp.o.d"
   "/home/perry/Dev/rr4/src/main.cpp" "CMakeFiles/rr4.dir/src/main.cpp.o" "gcc" "CMakeFiles/rr4.dir/src/main.cpp.o.d"

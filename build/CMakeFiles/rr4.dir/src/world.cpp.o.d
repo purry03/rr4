@@ -175,13 +175,15 @@ CMakeFiles/rr4.dir/src/world.cpp.o: /home/perry/Dev/rr4/src/world.cpp \
  /usr/include/c++/15/bits/enable_special_members.h \
  /usr/include/c++/15/bits/node_handle.h \
  /usr/include/c++/15/bits/erase_if.h /usr/include/c++/15/array \
- /home/perry/Dev/rr4/src/car.hpp /usr/include/c++/15/filesystem \
+ /home/perry/Dev/rr4/src/car.hpp /usr/include/c++/15/functional \
+ /usr/include/c++/15/bits/std_function.h /usr/include/c++/15/typeinfo \
+ /home/perry/Dev/rr4/src/collision.hpp /usr/include/c++/15/filesystem \
  /usr/include/c++/15/bits/fs_fwd.h /usr/include/c++/15/system_error \
  /usr/include/x86_64-linux-gnu/c++/15/bits/error_constants.h \
  /usr/include/c++/15/stdexcept /usr/include/c++/15/exception \
  /usr/include/c++/15/bits/exception_ptr.h \
  /usr/include/c++/15/bits/cxxabi_init_exception.h \
- /usr/include/c++/15/typeinfo /usr/include/c++/15/bits/nested_exception.h \
+ /usr/include/c++/15/bits/nested_exception.h \
  /usr/include/c++/15/bits/chrono.h /usr/include/c++/15/ratio \
  /usr/include/c++/15/ctime /usr/include/time.h \
  /usr/include/x86_64-linux-gnu/bits/time.h \

@@ -102,7 +102,8 @@ void buildCarAssets() {
                        packRGBA(214, 92, 40), packRGBA(214, 92, 40)};
 }
 
-void Car::update(const CarInput &in, float factor) {
+void Car::update(const CarInput &in, float factor,
+                 const std::function<void(Car &)> &collide) {
     const bool wasAir = midAir;
     landImpact = 0.0f;
     impactSpeed = 0.0f;
@@ -168,6 +169,14 @@ void Car::update(const CarInput &in, float factor) {
     if (grip.length() > 1.0f * factor) grip = grip.normalized() * (1.0f * factor);
     if (!midAir) vel -= grip;
 
+    // ---- doCollisions -----------------------------------------------------
+    // Runs before doBodyRoll and doupdate. The radial pushes act on this
+    // frame's velocity while the car still sits at its pre-move position, so
+    // doupdate() then carries the pushed velocity out of the obstacle. If the
+    // pass ran after the move, the push would be applied to the next frame and
+    // the car would visibly bounce off walls every frame.
+    if (collide) collide(*this);
+
     // ---- doBodyRoll -------------------------------------------------------
     // diffVector = prevVelVector - velVector, horizontal, capped at 1.
     Vec3 diff = prevVel_ - vel;
@@ -195,7 +204,8 @@ void Car::update(const CarInput &in, float factor) {
         midAir = true;
     }
 
-    // Map bounds and building collisions are resolved by World after the step.
+    // Tile collisions run mid-step through the `collide` hook above; ground
+    // contact and the map edge fence follow in World::updateGround().
 
     // ---- doAnims (tire rotation) -----------------------------------------
     // rollVel = normalized(vel*1.6) . zAxis * |vel*1.6|, then the original

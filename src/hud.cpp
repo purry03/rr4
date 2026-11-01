@@ -103,14 +103,18 @@ void drawHud(Renderer &r, const Car &car, bool muted) {
     s.draw(r, gHud.timer[timer[4]], 772.0f, 30.0f, 0.5f);
 
     // Overlays.ls: damage bar at (0,8), red fill at -254 + 254 * damage.
-    // Free drive does not accumulate damage yet, so the fill stays offscreen.
-    float damage = 0.0f;
+    // The original eases displayDamagePercent 20% per frame.
+    static float displayDamage = 0.0f;
+    displayDamage += (clampf(car.damage, 0.0f, 1.0f) - displayDamage) * 0.2f;
+    float damage = displayDamage;
     s.draw(r, gHud.damageBar, 0.0f, 8.0f);
     s.draw(r, gHud.damageRed, -254.0f + damage * 254.0f, 8.0f);
     s.draw(r, gHud.skull, 214.0f, 0.0f);
 
     // boost fill anchor: 800 - 250 * g_BoostPercent.
-    float boost = clampf(car.boostMeter, 0.0f, 1.0f);
+    static float displayBoost = 1.0f;
+    displayBoost += (clampf(car.boostMeter, 0.0f, 1.0f) - displayBoost) * 0.2f;
+    float boost = displayBoost;
     s.draw(r, gHud.boostBar, 544.0f, 8.0f);
     s.draw(r, gHud.boostYellow, 800.0f - boost * 250.0f, 8.0f);
     s.draw(r, gHud.boostLogo, 505.0f, 2.0f);

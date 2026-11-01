@@ -166,8 +166,17 @@ CMakeFiles/rr4.dir/src/hud.cpp.o: /home/perry/Dev/rr4/src/hud.cpp \
  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
  /usr/include/c++/15/bits/charconv.h \
  /usr/include/c++/15/bits/basic_string.tcc \
- /home/perry/Dev/rr4/src/car.hpp /usr/include/SFML/Graphics.hpp \
- /usr/include/SFML/Graphics/BlendMode.hpp \
+ /home/perry/Dev/rr4/src/car.hpp /usr/include/c++/15/functional \
+ /usr/include/c++/15/bits/std_function.h /usr/include/c++/15/typeinfo \
+ /usr/include/c++/15/unordered_map \
+ /usr/include/c++/15/bits/unordered_map.h \
+ /usr/include/c++/15/bits/hashtable.h \
+ /usr/include/c++/15/bits/hashtable_policy.h \
+ /usr/include/c++/15/ext/aligned_buffer.h \
+ /usr/include/c++/15/bits/enable_special_members.h \
+ /usr/include/c++/15/bits/node_handle.h \
+ /usr/include/c++/15/bits/erase_if.h /usr/include/c++/15/array \
+ /usr/include/SFML/Graphics.hpp /usr/include/SFML/Graphics/BlendMode.hpp \
  /usr/include/SFML/Graphics/Export.hpp /usr/include/SFML/Config.hpp \
  /usr/include/SFML/Graphics/CircleShape.hpp \
  /usr/include/SFML/Graphics/Shape.hpp \
@@ -182,13 +191,12 @@ CMakeFiles/rr4.dir/src/hud.cpp.o: /home/perry/Dev/rr4/src/hud.cpp \
  /usr/include/c++/15/optional /usr/include/c++/15/exception \
  /usr/include/c++/15/bits/exception_ptr.h \
  /usr/include/c++/15/bits/cxxabi_init_exception.h \
- /usr/include/c++/15/typeinfo /usr/include/c++/15/bits/nested_exception.h \
- /usr/include/c++/15/bits/enable_special_members.h \
+ /usr/include/c++/15/bits/nested_exception.h \
  /usr/include/SFML/Graphics/Rect.inl \
  /usr/include/SFML/Graphics/RenderStates.hpp \
  /usr/include/SFML/Graphics/CoordinateType.hpp \
  /usr/include/SFML/Graphics/StencilMode.hpp \
- /usr/include/SFML/Graphics/Transform.hpp /usr/include/c++/15/array \
+ /usr/include/SFML/Graphics/Transform.hpp \
  /usr/include/SFML/Graphics/Transform.inl \
  /usr/include/SFML/Graphics/Transformable.hpp \
  /usr/include/SFML/Graphics/VertexArray.hpp \
@@ -243,7 +251,6 @@ CMakeFiles/rr4.dir/src/hud.cpp.o: /home/perry/Dev/rr4/src/hud.cpp \
  /usr/include/c++/15/bits/shared_ptr.h \
  /usr/include/c++/15/bits/shared_ptr_base.h \
  /usr/include/c++/15/bits/allocated_ptr.h \
- /usr/include/c++/15/ext/aligned_buffer.h \
  /usr/include/c++/15/ext/concurrence.h \
  /usr/include/c++/15/bits/shared_ptr_atomic.h \
  /usr/include/c++/15/bits/atomic_base.h \
@@ -290,12 +297,7 @@ CMakeFiles/rr4.dir/src/hud.cpp.o: /home/perry/Dev/rr4/src/hud.cpp \
  /usr/include/c++/15/bits/istream.tcc \
  /usr/include/c++/15/bits/sstream.tcc /usr/include/c++/15/codecvt \
  /usr/include/c++/15/bits/fs_dir.h /usr/include/c++/15/bits/fs_ops.h \
- /usr/include/c++/15/unordered_map \
- /usr/include/c++/15/bits/unordered_map.h \
- /usr/include/c++/15/bits/hashtable.h \
- /usr/include/c++/15/bits/hashtable_policy.h \
- /usr/include/c++/15/bits/node_handle.h \
- /usr/include/c++/15/bits/erase_if.h /usr/include/SFML/Graphics/Image.hpp \
+ /usr/include/SFML/Graphics/Image.hpp \
  /usr/include/SFML/Graphics/RectangleShape.hpp \
  /usr/include/SFML/Graphics/RenderTarget.hpp \
  /usr/include/SFML/Graphics/View.hpp \

@@ -201,6 +201,54 @@ src/car.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/car.cpp.s
 .PHONY : src/car.cpp.s
 
+src/collision.o: src/collision.cpp.o
+.PHONY : src/collision.o
+
+# target to build an object file
+src/collision.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision.cpp.o
+.PHONY : src/collision.cpp.o
+
+src/collision.i: src/collision.cpp.i
+.PHONY : src/collision.i
+
+# target to preprocess a source file
+src/collision.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision.cpp.i
+.PHONY : src/collision.cpp.i
+
+src/collision.s: src/collision.cpp.s
+.PHONY : src/collision.s
+
+# target to generate assembly for a file
+src/collision.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision.cpp.s
+.PHONY : src/collision.cpp.s
+
+src/collision_cases.gen.o: src/collision_cases.gen.cpp.o
+.PHONY : src/collision_cases.gen.o
+
+# target to build an object file
+src/collision_cases.gen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o
+.PHONY : src/collision_cases.gen.cpp.o
+
+src/collision_cases.gen.i: src/collision_cases.gen.cpp.i
+.PHONY : src/collision_cases.gen.i
+
+# target to preprocess a source file
+src/collision_cases.gen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.i
+.PHONY : src/collision_cases.gen.cpp.i
+
+src/collision_cases.gen.s: src/collision_cases.gen.cpp.s
+.PHONY : src/collision_cases.gen.s
+
+# target to generate assembly for a file
+src/collision_cases.gen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s
+.PHONY : src/collision_cases.gen.cpp.s
+
 src/font.o: src/font.cpp.o
 .PHONY : src/font.o
 
@@ -339,6 +387,12 @@ help:
 	@echo "... src/car.o"
 	@echo "... src/car.i"
 	@echo "... src/car.s"
+	@echo "... src/collision.o"
+	@echo "... src/collision.i"
+	@echo "... src/collision.s"
+	@echo "... src/collision_cases.gen.o"
+	@echo "... src/collision_cases.gen.i"
+	@echo "... src/collision_cases.gen.s"
 	@echo "... src/font.o"
 	@echo "... src/font.i"
 	@echo "... src/font.s"

@@ -140,9 +140,9 @@ bool saveFrame(Renderer &r, const fs::path &path) {
 struct Waypoint { float x, z; };
 
 const Waypoint kWaypoints[] = {
-    {52000, 31000}, {55000, 30000}, {55000, 12000}, {51000, 10000},
-    {24000, 12000}, {16000, 10000}, {15000, 14000}, {15000, 44000},
-    {30000, 45000}, {31000, 42000}, {32000, 32000},
+    {36000, 26500}, {54500, 28500}, {57500, 26500}, {57500, 12500},
+    {53500, 10500}, {26500, 12500}, {18500, 10500}, {17500, 16500},
+    {17500, 46500}, {32500, 47500}, {33500, 44500}, {34500, 35500},
 };
 
 float wrapAngle(float a) {
@@ -206,6 +206,7 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
         car.pos = {px, 0.0f, pz};
         car.yaw = deg2rad(pyaw);
         world.resolveCarCollision(car);
+        world.updateGround(car);
     }
     ChaseCam chase;
     chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
@@ -226,8 +227,8 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
 
     for (int frame = 0; frame <= totalFrames; ++frame) {
         CarInput in = autoInput(car, wpIndex, frame, stuckFrames);
-        car.update(in, 1.0f);
-        world.resolveCarCollision(car);
+        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
+        world.updateGround(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
 
         if (frame % 60 == 0) {
@@ -300,8 +301,8 @@ int runCamTrace(int frames, int carId) {
                 "range,height,aimX,aimY,aimZ,camX,camY,camZ\n");
     for (int f = 0; f <= frames; ++f) {
         CarInput in = autoInput(car, wpIndex, f, stuckFrames);
-        car.update(in, 1.0f);
-        world.resolveCarCollision(car);
+        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
+        world.updateGround(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         std::printf("%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
                     "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
@@ -329,8 +330,8 @@ int runBench(int frames, int carId) {
     auto t0 = std::chrono::steady_clock::now();
     for (int i = 0; i < frames; ++i) {
         CarInput in = autoInput(car, wpIndex, i, stuckFrames);
-        car.update(in, 1.0f);
-        world.resolveCarCollision(car);
+        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
+        world.updateGround(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         renderFrame(r, world, car, chase, 60.0f);
     }
@@ -376,6 +377,36 @@ int runAudioTest(int carId) {
     return 0;
 }
 
+// Development aid: hold the throttle from a placed position so tile collision
+// pushes can be observed without the waypoint autopilot steering away.
+int runDrive(int frames, float x, float z, float yawDeg, int carId) {
+    World world;
+    world.build();
+    buildCarAssets();
+    Car car;
+    car.setCar(carId);
+    car.pos = {x, 0.0f, z};
+    car.yaw = deg2rad(yawDeg);
+    world.resolveCarCollision(car);
+    world.updateGround(car);
+    ChaseCam chase;
+    chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+    std::printf("frame,posX,posY,posZ,yawDeg,speed,damage,impact,tile\n");
+    for (int f = 1; f <= frames; ++f) {
+        CarInput in;
+        in.up = true;
+        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
+        world.updateGround(car);
+        chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+        if (f % 10 == 0 || f == frames)
+            std::printf("%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.2f,%d\n", f,
+                        car.pos.x, car.pos.y, car.pos.z,
+                        car.yaw * 180.0f / PI, car.speedKmh, car.damage,
+                        car.impactSpeed, world.tileIDAt(car.pos.x, car.pos.z));
+    }
+    return 0;
+}
+
 // Development aid: report the settled ground height and surface tilt at one
 // spot, so pitch/roll signs can be checked against a known bank.
 int runProbe(float x, float z, float yawDeg, int carId) {
@@ -385,7 +416,8 @@ int runProbe(float x, float z, float yawDeg, int carId) {
     car.setCar(carId);
     car.pos = {x, 0.0f, z};
     car.yaw = deg2rad(yawDeg);
-    for (int i = 0; i < 60; ++i) world.resolveCarCollision(car);
+    world.resolveCarCollision(car);
+    for (int i = 0; i < 60; ++i) world.updateGround(car);
     int id = world.tileIDAt(car.pos.x, car.pos.z);
     std::printf("probe x=%.1f z=%.1f yaw=%.1f car=%d tile=%02d %s y=%.2f pitch=%+.2f roll=%+.2f\n",
                 car.pos.x, car.pos.z, yawDeg, carId, id, tileName(id),
@@ -423,7 +455,7 @@ int runSlopeScan() {
             car.pos = {float(x), 0.0f, float(z)};
             car.yaw = 0.0f;
             car.surfacePitchDeg = car.surfaceRollDeg = 0.0f;
-            world.resolveCarCollision(car);
+            world.updateGround(car);
             float score = std::max(std::fabs(car.surfacePitchDeg),
                                    std::fabs(car.surfaceRollDeg));
             if (score > 1.0f && score < 4.0f) hits.push_back({float(x), float(z), car.pos.y,
@@ -461,6 +493,7 @@ int main(int argc, char **argv) {
     float placeX = 0.0f, placeZ = 0.0f, placeYaw = 0.0f;
     int shotEvery = 300;
     int carId = 1; // original default save owns MeanieCropper (car #1)
+    int driveFrames = 0;
 
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
@@ -485,6 +518,8 @@ int main(int argc, char **argv) {
             carId = std::atoi(argv[++i]);
         } else if (a == "--shot-every" && i + 1 < argc) {
             shotEvery = std::atoi(argv[++i]);
+        } else if (a == "--drive" && i + 1 < argc) {
+            driveFrames = std::atoi(argv[++i]);
         } else if (a == "--slope-scan") {
             slopeScan = true;
         } else if (a == "--place" && i + 3 < argc) {
@@ -500,6 +535,7 @@ int main(int argc, char **argv) {
         }
     }
 
+    if (driveFrames > 0) return runDrive(driveFrames, placeX, placeZ, placeYaw, carId);
     if (slopeScan) return runSlopeScan();
     if (probe) return runProbe(probeX, probeZ, probeYaw, carId);
     if (audioTest) return runAudioTest(carId);
@@ -530,6 +566,7 @@ int main(int argc, char **argv) {
         car.pos = {placeX, 0.0f, placeZ};
         car.yaw = deg2rad(placeYaw);
         world.resolveCarCollision(car);
+        world.updateGround(car);
     }
     ChaseCam chase;
     chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
@@ -579,8 +616,8 @@ int main(int argc, char **argv) {
         while (accumulator >= step && steps < 5) {
             // enterFrame order: doEngineSounds -> doControls/... -> doCam.
             audio.tickEngine(in.up);
-            car.update(in, 1.0f);
-            world.resolveCarCollision(car);
+            car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
+            world.updateGround(car);
             audio.tickCar(car, in);
             chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
             accumulator -= step;

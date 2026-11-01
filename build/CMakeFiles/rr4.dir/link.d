@@ -9,6 +9,8 @@ rr4: \
   CMakeFiles/rr4.dir/src/car.cpp.o \
   CMakeFiles/rr4.dir/src/audio.cpp.o \
   CMakeFiles/rr4.dir/src/hud.cpp.o \
+  CMakeFiles/rr4.dir/src/collision.cpp.o \
+  CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o \
   CMakeFiles/rr4.dir/src/font.cpp.o \
   /usr/lib/x86_64-linux-gnu/libsfml-graphics.so.3.0.2 \
   /usr/lib/x86_64-linux-gnu/libsfml-window.so.3.0.2 \
@@ -88,6 +90,10 @@ CMakeFiles/rr4.dir/src/car.cpp.o:
 CMakeFiles/rr4.dir/src/audio.cpp.o:
 
 CMakeFiles/rr4.dir/src/hud.cpp.o:
+
+CMakeFiles/rr4.dir/src/collision.cpp.o:
+
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o:
 
 CMakeFiles/rr4.dir/src/font.cpp.o:
 

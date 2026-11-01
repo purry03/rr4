@@ -170,10 +170,38 @@ CMakeFiles/rr4.dir/src/hud.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/hud.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/hud.cpp -o CMakeFiles/rr4.dir/src/hud.cpp.s
 
+CMakeFiles/rr4.dir/src/collision.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/collision.cpp.o: /home/perry/Dev/rr4/src/collision.cpp
+CMakeFiles/rr4.dir/src/collision.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/rr4.dir/src/collision.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/collision.cpp.o -MF CMakeFiles/rr4.dir/src/collision.cpp.o.d -o CMakeFiles/rr4.dir/src/collision.cpp.o -c /home/perry/Dev/rr4/src/collision.cpp
+
+CMakeFiles/rr4.dir/src/collision.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/collision.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/collision.cpp > CMakeFiles/rr4.dir/src/collision.cpp.i
+
+CMakeFiles/rr4.dir/src/collision.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/collision.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/collision.cpp -o CMakeFiles/rr4.dir/src/collision.cpp.s
+
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o: /home/perry/Dev/rr4/src/collision_cases.gen.cpp
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o -MF CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o.d -o CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o -c /home/perry/Dev/rr4/src/collision_cases.gen.cpp
+
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/collision_cases.gen.cpp > CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.i
+
+CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/collision_cases.gen.cpp -o CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s
+
 CMakeFiles/rr4.dir/src/font.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/font.cpp.o: /home/perry/Dev/rr4/src/font.cpp
 CMakeFiles/rr4.dir/src/font.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/rr4.dir/src/font.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/rr4.dir/src/font.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/font.cpp.o -MF CMakeFiles/rr4.dir/src/font.cpp.o.d -o CMakeFiles/rr4.dir/src/font.cpp.o -c /home/perry/Dev/rr4/src/font.cpp
 
 CMakeFiles/rr4.dir/src/font.cpp.i: cmake_force
@@ -193,6 +221,8 @@ rr4_OBJECTS = \
 "CMakeFiles/rr4.dir/src/car.cpp.o" \
 "CMakeFiles/rr4.dir/src/audio.cpp.o" \
 "CMakeFiles/rr4.dir/src/hud.cpp.o" \
+"CMakeFiles/rr4.dir/src/collision.cpp.o" \
+"CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o" \
 "CMakeFiles/rr4.dir/src/font.cpp.o"
 
 # External object files for target rr4
@@ -205,6 +235,8 @@ rr4: CMakeFiles/rr4.dir/src/world.cpp.o
 rr4: CMakeFiles/rr4.dir/src/car.cpp.o
 rr4: CMakeFiles/rr4.dir/src/audio.cpp.o
 rr4: CMakeFiles/rr4.dir/src/hud.cpp.o
+rr4: CMakeFiles/rr4.dir/src/collision.cpp.o
+rr4: CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o
 rr4: CMakeFiles/rr4.dir/src/font.cpp.o
 rr4: CMakeFiles/rr4.dir/build.make
 rr4: CMakeFiles/rr4.dir/compiler_depend.ts
@@ -213,7 +245,7 @@ rr4: /usr/lib/x86_64-linux-gnu/libsfml-window.so.3.0.2
 rr4: /usr/lib/x86_64-linux-gnu/libsfml-audio.so.3.0.2
 rr4: /usr/lib/x86_64-linux-gnu/libsfml-system.so.3.0.2
 rr4: CMakeFiles/rr4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable rr4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable rr4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/rr4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

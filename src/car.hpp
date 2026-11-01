@@ -2,6 +2,8 @@
 #include "math.hpp"
 #include "renderer.hpp"
 
+#include <functional>
+
 namespace rr4 {
 
 struct CarInput {
@@ -40,7 +42,7 @@ const CarConfig &carConfig(int id); // id 1..6
 // Car::setCar() to switch to any of the six original shells.
 struct Car {
     int carId = 1;
-    Vec3 pos{32053.57f, 0.0f, 30797.51f};
+    Vec3 pos{32053.57f, -5.56f, 30797.51f};
     float yaw = deg2rad(45.0f);       // mPlayerCar.transform.rotation.y
     Vec3 vel;                          // velVector
     float steer = 0.0f;                // steer, -40..40
@@ -49,6 +51,7 @@ struct Car {
     float rotXDeg = 0.0f;              // rotVector.x (pitch, degrees)
     float rotZDeg = 0.0f;              // rotVector.z (roll, degrees)
     float boostMeter = 1.0f;           // g_BoostPercent
+    float damage = 0.0f;               // g_DamagePercent
     bool midAir = false;
     float wheelSpin = 0.0f;            // accumulated tire rotation, degrees
     float surfacePitchDeg = 0.0f;      // doRayCasting slope response, degrees
@@ -62,7 +65,11 @@ struct Car {
     bool useGroundMap = false;
 
     // mechanics
-    void update(const CarInput &in, float factor);
+    // `collide` is the original doCollisions pass. It runs inside the step,
+    // after doTireGrip and before doBodyRoll, because the original enterFrame
+    // order is ... doTireGrip -> doCollisions -> doBodyRoll -> doupdate.
+    void update(const CarInput &in, float factor,
+                const std::function<void(Car &)> &collide = {});
     void setCar(int id);
     Vec3 forward() const { return Vec3(std::sin(yaw), 0, std::cos(yaw)); }
     Vec3 rightAxis() const { return Vec3(std::cos(yaw), 0, -std::sin(yaw)); }
