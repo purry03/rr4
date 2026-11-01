@@ -1,0 +1,17 @@
+on beginSprite
+  [  0] ret
+end
+
+on exitFrame
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  8] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 10] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 12] getobjprop 38 ........................... <sprite(the currentSpriteNum).locV>
+  [ 14] pushint8 1 .............................. <1>
+  [ 16] sub ..................................... <sprite(the currentSpriteNum).locV - 1>
+  [ 17] setobjprop 38 ........................... sprite(the currentSpriteNum).locV = sprite(the currentSpriteNum).locV - 1
+  [ 19] ret
+end

@@ -1,0 +1,59 @@
+property fps, startTicks, frameCounter, FPSReadOutTexture
+global g_FPSFactor, g_FPSFactorDec, g_FPSFactorFrac
+
+on beginSprite
+  [  0] pushfloat32 1.0 ......................... <1.0>
+  [  5] setglobal 315 ........................... g_FPSFactor = 1.0
+  [  8] pusharglist 0 ........................... <>
+  [ 10] thebuiltin 181 .......................... <the ticks>
+  [ 12] setprop 729 ............................. startTicks = the ticks
+  [ 15] pushzero ................................ <0>
+  [ 16] setprop 730 ............................. frameCounter = 0
+  [ 19] ret
+end
+
+on enterFrame
+  [  0] getprop 730 ............................. <frameCounter>
+  [  3] pushint8 1 .............................. <1>
+  [  5] add ..................................... <frameCounter + 1>
+  [  6] setprop 730 ............................. frameCounter = frameCounter + 1
+  [  9] getprop 730 ............................. <frameCounter>
+  [ 12] pushint8 60 ............................. <60>
+  [ 14] eq ...................................... <frameCounter = 60>
+  [ 15] jmpifz [ 99] ............................ if frameCounter = 60 then
+  [ 18] pusharglist 0 ........................... <>
+  [ 20] thebuiltin 181 .......................... <the ticks>
+  [ 22] getprop 729 ............................. <startTicks>
+  [ 25] sub ..................................... <the ticks - startTicks>
+  [ 26] pushfloat32 60.0 ........................ <60.0>
+  [ 31] div ..................................... <(the ticks - startTicks) / 60.0>
+  [ 32] setglobal 315 ........................... g_FPSFactor = (the ticks - startTicks) / 60.0
+  [ 35] getglobal 315 ........................... <g_FPSFactor>
+  [ 38] pushint8 4 .............................. <4>
+  [ 40] gt ...................................... <g_FPSFactor > 4>
+  [ 41] jmpifz [ 49] ............................ if g_FPSFactor > 4 then
+  [ 44] pushint8 4 .............................. <4>
+  [ 46] setglobal 315 ........................... g_FPSFactor = 4
+  [ 49] pushint8 60 ............................. <60>
+  [ 51] getglobal 315 ........................... <g_FPSFactor>
+  [ 54] div ..................................... <60 / g_FPSFactor>
+  [ 55] pusharglist 1 ........................... <60 / g_FPSFactor>
+  [ 57] extcall 731 ............................. <string(60 / g_FPSFactor)>
+  [ 60] setlocal 0 .............................. tempResult = string(60 / g_FPSFactor)
+  [ 62] getglobal 315 ........................... <g_FPSFactor>
+  [ 65] pushfloat32 0.5 ......................... <0.5>
+  [ 70] sub ..................................... <g_FPSFactor - 0.5>
+  [ 71] pusharglist 1 ........................... <g_FPSFactor - 0.5>
+  [ 73] extcall 208 ............................. <integer(g_FPSFactor - 0.5)>
+  [ 75] setglobal 489 ........................... g_FPSFactorDec = integer(g_FPSFactor - 0.5)
+  [ 78] getglobal 315 ........................... <g_FPSFactor>
+  [ 81] getglobal 489 ........................... <g_FPSFactorDec>
+  [ 84] sub ..................................... <g_FPSFactor - g_FPSFactorDec>
+  [ 85] setglobal 490 ........................... g_FPSFactorFrac = g_FPSFactor - g_FPSFactorDec
+  [ 88] pushzero ................................ <0>
+  [ 89] setprop 730 ............................. frameCounter = 0
+  [ 92] pusharglist 0 ........................... <>
+  [ 94] thebuiltin 181 .......................... <the ticks>
+  [ 96] setprop 729 ............................. startTicks = the ticks
+  [ 99] ret
+end

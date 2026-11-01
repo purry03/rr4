@@ -1,0 +1,12 @@
+global g_NextFrame
+
+on exitFrame me
+  [  0] getglobal 47 ............................ <g_NextFrame>
+  [  2] pushint8 1 .............................. <1>
+  [  4] add ..................................... <g_NextFrame + 1>
+  [  5] setglobal 47 ............................ g_NextFrame = g_NextFrame + 1
+  [  7] getglobal 47 ............................ <g_NextFrame>
+  [  9] pusharglistnoret 1 ...................... <g_NextFrame>
+  [ 11] extcall 65 .............................. go(g_NextFrame)
+  [ 13] ret
+end

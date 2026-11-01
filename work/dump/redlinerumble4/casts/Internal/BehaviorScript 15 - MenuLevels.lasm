@@ -1,0 +1,1738 @@
+property cam, startTicks, BitzerState, mBitzer, loopCounter, blinkStartTicks, blinkInterval, changeAnimStartTicks, animState, lookOffset, mBackdrop, oStartButton, theMouseDown, prevMouseDown, prevMouseOver, animLength, oTabList, tabPrevMouseOverList, iScoreList, oSubmitButton, oBackButton, flashCounter, backButtonPrevMouseOver, submitButtonPrevMouseOver
+global g_Muted, g_NextFrame, g_FadeToBlack, g_NextFramePlease, g_MissionID, g_LevelScoreList, g_LevelPassedList, g_TotalPoints, g_PrevTotalPoints, g_AddOnList, g_SaveGameName
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setlocal 0 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] getlocal 0 .............................. <w>
+  [ 12] pusharglistnoret 1 ...................... <w>
+  [ 14] objcall 149 ............................. w.resetWorld()
+  [ 16] pushzero ................................ <0>
+  [ 17] setprop 886 ............................. BitzerState = 0
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 860 ............................. loopCounter = 0
+  [ 24] getlocal 0 .............................. <w>
+  [ 26] pushint8 1 .............................. <1>
+  [ 28] pusharglist 2 ........................... <w, 1>
+  [ 30] objcall 153 ............................. <w.model(1)>
+  [ 32] setprop 887 ............................. mBitzer = w.model(1)
+  [ 35] getlocal 0 .............................. <w>
+  [ 37] pushcons 0 .............................. <"BitzerSaluteMotion">
+  [ 39] pushint8 21 ............................. <21>
+  [ 41] pushcons 1 .............................. <"Motions">
+  [ 43] pusharglist 2 ........................... <21, "Motions">
+  [ 45] extcall 5 ............................... <member(21, "Motions")>
+  [ 47] pushsymb 863 ............................ <#motion>
+  [ 50] pushint8 2 .............................. <2>
+  [ 52] pusharglist 3 ........................... <member(21, "Motions"), #motion, 2>
+  [ 54] objcall 18 .............................. <member(21, "Motions").motion[2]>
+  [ 56] getobjprop 864 .......................... <member(21, "Motions").motion[2].name>
+  [ 59] pushint8 21 ............................. <21>
+  [ 61] pushcons 1 .............................. <"Motions">
+  [ 63] pusharglist 2 ........................... <21, "Motions">
+  [ 65] extcall 5 ............................... <member(21, "Motions")>
+  [ 67] pusharglistnoret 4 ...................... <w, "BitzerSaluteMotion", member(21, "Motions").motion[2].name, member(21, "Motions")>
+  [ 69] objcall 865 ............................. w.cloneMotionFromCastmember("BitzerSaluteMotion", member(21, "Motions").motion[2].name, member(21, "Motions"))
+  [ 72] getlocal 0 .............................. <w>
+  [ 74] pushcons 2 .............................. <"BitzerClipBoardMotion">
+  [ 76] pushint8 22 ............................. <22>
+  [ 78] pushcons 1 .............................. <"Motions">
+  [ 80] pusharglist 2 ........................... <22, "Motions">
+  [ 82] extcall 5 ............................... <member(22, "Motions")>
+  [ 84] pushsymb 863 ............................ <#motion>
+  [ 87] pushint8 2 .............................. <2>
+  [ 89] pusharglist 3 ........................... <member(22, "Motions"), #motion, 2>
+  [ 91] objcall 18 .............................. <member(22, "Motions").motion[2]>
+  [ 93] getobjprop 864 .......................... <member(22, "Motions").motion[2].name>
+  [ 96] pushint8 22 ............................. <22>
+  [ 98] pushcons 1 .............................. <"Motions">
+  [100] pusharglist 2 ........................... <22, "Motions">
+  [102] extcall 5 ............................... <member(22, "Motions")>
+  [104] pusharglistnoret 4 ...................... <w, "BitzerClipBoardMotion", member(22, "Motions").motion[2].name, member(22, "Motions")>
+  [106] objcall 865 ............................. w.cloneMotionFromCastmember("BitzerClipBoardMotion", member(22, "Motions").motion[2].name, member(22, "Motions"))
+  [109] getlocal 0 .............................. <w>
+  [111] pushcons 3 .............................. <"BitzerTeaTimeMotion">
+  [113] pushint8 23 ............................. <23>
+  [115] pushcons 1 .............................. <"Motions">
+  [117] pusharglist 2 ........................... <23, "Motions">
+  [119] extcall 5 ............................... <member(23, "Motions")>
+  [121] pushsymb 863 ............................ <#motion>
+  [124] pushint8 2 .............................. <2>
+  [126] pusharglist 3 ........................... <member(23, "Motions"), #motion, 2>
+  [128] objcall 18 .............................. <member(23, "Motions").motion[2]>
+  [130] getobjprop 864 .......................... <member(23, "Motions").motion[2].name>
+  [133] pushint8 23 ............................. <23>
+  [135] pushcons 1 .............................. <"Motions">
+  [137] pusharglist 2 ........................... <23, "Motions">
+  [139] extcall 5 ............................... <member(23, "Motions")>
+  [141] pusharglistnoret 4 ...................... <w, "BitzerTeaTimeMotion", member(23, "Motions").motion[2].name, member(23, "Motions")>
+  [143] objcall 865 ............................. w.cloneMotionFromCastmember("BitzerTeaTimeMotion", member(23, "Motions").motion[2].name, member(23, "Motions"))
+  [146] pusharglist 0 ........................... <>
+  [148] thebuiltin 181 .......................... <the ticks>
+  [150] setprop 870 ............................. changeAnimStartTicks = the ticks
+  [153] pushint8 50 ............................. <50>
+  [155] setprop 888 ............................. animLength = 50
+  [158] pushzero ................................ <0>
+  [159] setprop 871 ............................. animState = 0
+  [162] pushzero ................................ <0>
+  [163] pushzero ................................ <0>
+  [164] pushzero ................................ <0>
+  [165] pusharglist 3 ........................... <0, 0, 0>
+  [167] extcall 151 ............................. <vector(0, 0, 0)>
+  [169] setprop 872 ............................. lookOffset = vector(0, 0, 0)
+  [172] getprop 887 ............................. <mBitzer>
+  [175] pushzero ................................ <0>
+  [176] pushint16 180 ........................... <180>
+  [179] pushzero ................................ <0>
+  [180] pusharglistnoret 4 ...................... <mBitzer, 0, 180, 0>
+  [182] objcall 374 ............................. mBitzer.rotate(0, 180, 0)
+  [185] getprop 887 ............................. <mBitzer>
+  [188] pushint8 100 ............................ <100>
+  [190] inv ..................................... <-100>
+  [191] pushzero ................................ <0>
+  [192] pushzero ................................ <0>
+  [193] pusharglist 3 ........................... <-100, 0, 0>
+  [195] extcall 151 ............................. <vector(-100, 0, 0)>
+  [197] setobjprop 287 .......................... mBitzer.worldPosition = vector(-100, 0, 0)
+  [200] pusharglist 0 ........................... <>
+  [202] thebuiltin 181 .......................... <the ticks>
+  [204] setprop 873 ............................. blinkStartTicks = the ticks
+  [207] pushint8 100 ............................ <100>
+  [209] setprop 874 ............................. blinkInterval = 100
+  [212] pushzero ................................ <0>
+  [213] setprop 875 ............................. prevMouseOver = 0
+  [216] pushzero ................................ <0>
+  [217] setprop 889 ............................. backButtonPrevMouseOver = 0
+  [220] pushzero ................................ <0>
+  [221] setprop 890 ............................. submitButtonPrevMouseOver = 0
+  [224] pushint8 1 .............................. <1>
+  [226] pusharglist 1 ........................... <1>
+  [228] extcall 3 ............................... <sprite(1)>
+  [230] getobjprop 7 ............................ <sprite(1).camera>
+  [232] setprop 6 ............................... cam = sprite(1).camera
+  [234] getprop 6 ............................... <cam>
+  [236] pushint8 20 ............................. <20>
+  [238] setobjprop 610 .......................... cam.fieldOfView = 20
+  [241] getprop 6 ............................... <cam>
+  [243] getchainedprop 311 ...................... <cam.transform>
+  [246] pushint8 5 .............................. <5>
+  [248] inv ..................................... <-5>
+  [249] pushint8 12 ............................. <12>
+  [251] pushzero ................................ <0>
+  [252] pusharglist 3 ........................... <-5, 12, 0>
+  [254] extcall 151 ............................. <vector(-5, 12, 0)>
+  [256] setobjprop 312 .......................... cam.transform.rotation = vector(-5, 12, 0)
+  [259] getprop 6 ............................... <cam>
+  [261] pushzero ................................ <0>
+  [262] pushint8 70 ............................. <70>
+  [264] pushint16 300 ........................... <300>
+  [267] pusharglist 3 ........................... <0, 70, 300>
+  [269] extcall 151 ............................. <vector(0, 70, 300)>
+  [271] setobjprop 287 .......................... cam.worldPosition = vector(0, 70, 300)
+  [274] pusharglist 0 ........................... <[]>
+  [276] pushlist ................................ <[]>
+  [277] setprop 891 ............................. iScoreList = []
+  [280] pushint8 1 .............................. <1>
+  [282] setlocal 1
+  [284] getlocal 1
+  [286] pushint8 10 ............................. <10>
+  [288] lteq
+  [289] jmpifz [627] ............................ repeat with i = 1 to 10
+  [292] getprop 891 ............................. <iScoreList>
+  [295] pushint16 256 ........................... <256>
+  [298] pushint8 32 ............................. <32>
+  [300] pushint8 32 ............................. <32>
+  [302] pusharglist 3 ........................... <256, 32, 32>
+  [304] extcall 736 ............................. <image(256, 32, 32)>
+  [307] pusharglistnoret 2 ...................... <iScoreList, image(256, 32, 32)>
+  [309] objcall 365 ............................. iScoreList.add(image(256, 32, 32))
+  [312] getprop 891 ............................. <iScoreList>
+  [315] getlocal 1 .............................. <i>
+  [317] pusharglist 2 ........................... <iScoreList, i>
+  [319] objcall 53 .............................. <iScoreList[i]>
+  [321] pushint8 1 .............................. <1>
+  [323] setobjprop 892 .......................... iScoreList[i].useAlpha = 1
+  [326] getglobal 93 ............................ <g_LevelScoreList>
+  [328] getlocal 1 .............................. <i>
+  [330] pusharglist 2 ........................... <g_LevelScoreList, i>
+  [332] objcall 53 .............................. <g_LevelScoreList[i]>
+  [334] pusharglist 1 ........................... <g_LevelScoreList[i]>
+  [336] extcall 731 ............................. <string(g_LevelScoreList[i])>
+  [339] setlocal 2 .............................. tempString = string(g_LevelScoreList[i])
+  [341] getlocal 2 .............................. <tempString>
+  [343] pushsymb 893 ............................ <#char>
+  [346] pusharglist 2 ........................... <tempString, #char>
+  [348] objcall 17 .............................. <tempString.char.count>
+  [350] pushint8 6 .............................. <6>
+  [352] lt ...................................... <tempString.char.count < 6>
+  [353] jmpifz [365] ............................ repeat while tempString.char.count < 6
+  [356] pushcons 4 .............................. <"0">
+  [358] getlocal 2 .............................. <tempString>
+  [360] joinstr ................................. <"0" & tempString>
+  [361] setlocal 2 .............................. tempString = "0" & tempString
+  [363] endrepeat [341]
+  [365] pushint8 1 .............................. <1>
+  [367] setlocal 3
+  [369] getlocal 3
+  [371] pushint8 6 .............................. <6>
+  [373] lteq
+  [374] jmpifz [477] ............................ repeat with j = 1 to 6
+  [377] pushint8 24 ............................. <24>
+  [379] getlocal 3 .............................. <j>
+  [381] pushint8 1 .............................. <1>
+  [383] sub ..................................... <j - 1>
+  [384] mul ..................................... <24 * (j - 1)>
+  [385] pushzero ................................ <0>
+  [386] pushint8 24 ............................. <24>
+  [388] getlocal 3 .............................. <j>
+  [390] pushint8 1 .............................. <1>
+  [392] sub ..................................... <j - 1>
+  [393] mul ..................................... <24 * (j - 1)>
+  [394] pushint8 24 ............................. <24>
+  [396] add ..................................... <(24 * (j - 1)) + 24>
+  [397] pushint8 32 ............................. <32>
+  [399] pusharglist 4 ........................... <24 * (j - 1), 0, (24 * (j - 1)) + 24, 32>
+  [401] extcall 24 .............................. <rect(24 * (j - 1), 0, (24 * (j - 1)) + 24, 32)>
+  [403] setlocal 4 .............................. dRect = rect(24 * (j - 1), 0, (24 * (j - 1)) + 24, 32)
+  [405] pushint8 4 .............................. <4>
+  [407] pushzero ................................ <0>
+  [408] pushint8 28 ............................. <28>
+  [410] pushint8 32 ............................. <32>
+  [412] pusharglist 4 ........................... <4, 0, 28, 32>
+  [414] extcall 24 .............................. <rect(4, 0, 28, 32)>
+  [416] setlocal 5 .............................. sRect = rect(4, 0, 28, 32)
+  [418] getlocal 2 .............................. <tempString>
+  [420] pushsymb 893 ............................ <#char>
+  [423] getlocal 3 .............................. <j>
+  [425] pusharglist 3 ........................... <tempString, #char, j>
+  [427] objcall 304 ............................. <tempString.char[j]>
+  [430] pusharglist 1 ........................... <tempString.char[j]>
+  [432] extcall 208 ............................. <integer(tempString.char[j])>
+  [434] setlocal 6 .............................. tempDigit = integer(tempString.char[j])
+  [436] getprop 891 ............................. <iScoreList>
+  [439] getlocal 1 .............................. <i>
+  [441] pusharglist 2 ........................... <iScoreList, i>
+  [443] objcall 53 .............................. <iScoreList[i]>
+  [445] pushint8 25 ............................. <25>
+  [447] getlocal 6 .............................. <tempDigit>
+  [449] add ..................................... <25 + tempDigit>
+  [450] pushcons 5 .............................. <"Textures">
+  [452] pusharglist 2 ........................... <25 + tempDigit, "Textures">
+  [454] extcall 5 ............................... <member(25 + tempDigit, "Textures")>
+  [456] getobjprop 736 .......................... <member(25 + tempDigit, "Textures").image>
+  [459] getlocal 4 .............................. <dRect>
+  [461] getlocal 5 .............................. <sRect>
+  [463] pusharglistnoret 4 ...................... <iScoreList[i], member(25 + tempDigit, "Textures").image, dRect, sRect>
+  [465] objcall 754 ............................. iScoreList[i].copyPixels(member(25 + tempDigit, "Textures").image, dRect, sRect)
+  [468] pushint8 1
+  [470] getlocal 3
+  [472] add
+  [473] setlocal 3
+  [475] endrepeat [369]
+  [477] pushint8 24 ............................. <24>
+  [479] pushint8 7 .............................. <7>
+  [481] pushint8 1 .............................. <1>
+  [483] sub ..................................... <7 - 1>
+  [484] mul ..................................... <24 * (7 - 1)>
+  [485] pushzero ................................ <0>
+  [486] pushint16 256 ........................... <256>
+  [489] pushint8 32 ............................. <32>
+  [491] pusharglist 4 ........................... <24 * (7 - 1), 0, 256, 32>
+  [493] extcall 24 .............................. <rect(24 * (7 - 1), 0, 256, 32)>
+  [495] setlocal 4 .............................. dRect = rect(24 * (7 - 1), 0, 256, 32)
+  [497] pushzero ................................ <0>
+  [498] pushzero ................................ <0>
+  [499] pushint8 1 .............................. <1>
+  [501] pushint8 1 .............................. <1>
+  [503] pusharglist 4 ........................... <0, 0, 1, 1>
+  [505] extcall 24 .............................. <rect(0, 0, 1, 1)>
+  [507] setlocal 5 .............................. sRect = rect(0, 0, 1, 1)
+  [509] getlocal 2 .............................. <tempString>
+  [511] pushsymb 893 ............................ <#char>
+  [514] getlocal 3 .............................. <j>
+  [516] pusharglist 3 ........................... <tempString, #char, j>
+  [518] objcall 304 ............................. <tempString.char[j]>
+  [521] pusharglist 1 ........................... <tempString.char[j]>
+  [523] extcall 208 ............................. <integer(tempString.char[j])>
+  [525] setlocal 6 .............................. tempDigit = integer(tempString.char[j])
+  [527] getprop 891 ............................. <iScoreList>
+  [530] getlocal 1 .............................. <i>
+  [532] pusharglist 2 ........................... <iScoreList, i>
+  [534] objcall 53 .............................. <iScoreList[i]>
+  [536] pushint8 25 ............................. <25>
+  [538] getlocal 6 .............................. <tempDigit>
+  [540] add ..................................... <25 + tempDigit>
+  [541] pushcons 5 .............................. <"Textures">
+  [543] pusharglist 2 ........................... <25 + tempDigit, "Textures">
+  [545] extcall 5 ............................... <member(25 + tempDigit, "Textures")>
+  [547] getobjprop 736 .......................... <member(25 + tempDigit, "Textures").image>
+  [550] getlocal 4 .............................. <dRect>
+  [552] getlocal 5 .............................. <sRect>
+  [554] pusharglistnoret 4 ...................... <iScoreList[i], member(25 + tempDigit, "Textures").image, dRect, sRect>
+  [556] objcall 754 ............................. iScoreList[i].copyPixels(member(25 + tempDigit, "Textures").image, dRect, sRect)
+  [559] getlocal 0 .............................. <w>
+  [561] pushcons 6 .............................. <"Score">
+  [563] getlocal 1 .............................. <i>
+  [565] joinstr ................................. <"Score" & i>
+  [566] pushcons 7 .............................. <"Texture">
+  [568] joinstr ................................. <"Score" & i & "Texture">
+  [569] pushsymb 738 ............................ <#fromImageObject>
+  [572] getprop 891 ............................. <iScoreList>
+  [575] getlocal 1 .............................. <i>
+  [577] pusharglist 2 ........................... <iScoreList, i>
+  [579] objcall 53 .............................. <iScoreList[i]>
+  [581] pusharglist 4 ........................... <w, "Score" & i & "Texture", #fromImageObject, iScoreList[i]>
+  [583] objcall 10 .............................. <w.newTexture("Score" & i & "Texture", #fromImageObject, iScoreList[i])>
+  [585] setlocal 7 .............................. tempTexture = w.newTexture("Score" & i & "Texture", #fromImageObject, iScoreList[i])
+  [587] getlocal 7 .............................. <tempTexture>
+  [589] pushsymb 11 ............................. <#rgba8888>
+  [591] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [593] getprop 6 ............................... <cam>
+  [595] getlocal 7 .............................. <tempTexture>
+  [597] pushint16 300 ........................... <300>
+  [600] pushint8 14 ............................. <14>
+  [602] pushint8 36 ............................. <36>
+  [604] getlocal 1 .............................. <i>
+  [606] mul ..................................... <36 * i>
+  [607] add ..................................... <14 + (36 * i)>
+  [608] pusharglist 2 ........................... <300, 14 + (36 * i)>
+  [610] extcall 13 .............................. <point(300, 14 + (36 * i))>
+  [612] pushzero ................................ <0>
+  [613] pusharglistnoret 4 ...................... <cam, tempTexture, point(300, 14 + (36 * i)), 0>
+  [615] objcall 14 .............................. cam.addOverlay(tempTexture, point(300, 14 + (36 * i)), 0)
+  [617] pushint8 1
+  [619] getlocal 1
+  [621] add
+  [622] setlocal 1
+  [624] endrepeat [284]
+  [627] getprop 891 ............................. <iScoreList>
+  [630] pushint8 1 .............................. <1>
+  [632] pusharglist 2 ........................... <iScoreList, 1>
+  [634] objcall 53 .............................. <iScoreList[1]>
+  [636] pusharglist 1 ........................... <iScoreList[1]>
+  [638] objcall 283 ............................. <iScoreList[1].duplicate()>
+  [641] setlocal 8 .............................. iTotal = iScoreList[1].duplicate()
+  [643] pushzero ................................ <0>
+  [644] setlocal 9 .............................. tempTotal = 0
+  [646] pushint8 1 .............................. <1>
+  [648] setlocal 1
+  [650] getlocal 1
+  [652] getglobal 93 ............................ <g_LevelScoreList>
+  [654] getobjprop 17 ........................... <g_LevelScoreList.count>
+  [656] lteq
+  [657] jmpifz [686] ............................ repeat with i = 1 to g_LevelScoreList.count
+  [660] getlocal 9 .............................. <tempTotal>
+  [662] getglobal 93 ............................ <g_LevelScoreList>
+  [664] getlocal 1 .............................. <i>
+  [666] pusharglist 2 ........................... <g_LevelScoreList, i>
+  [668] objcall 53 .............................. <g_LevelScoreList[i]>
+  [670] pusharglist 1 ........................... <g_LevelScoreList[i]>
+  [672] extcall 208 ............................. <integer(g_LevelScoreList[i])>
+  [674] add ..................................... <tempTotal + integer(g_LevelScoreList[i])>
+  [675] setlocal 9 .............................. tempTotal = tempTotal + integer(g_LevelScoreList[i])
+  [677] pushint8 1
+  [679] getlocal 1
+  [681] add
+  [682] setlocal 1
+  [684] endrepeat [650]
+  [686] getlocal 9 .............................. <tempTotal>
+  [688] setglobal 894 ........................... g_TotalPoints = tempTotal
+  [691] getglobal 895 ........................... <g_PrevTotalPoints>
+  [694] getglobal 894 ........................... <g_TotalPoints>
+  [697] nteq .................................... <g_PrevTotalPoints <> g_TotalPoints>
+  [698] jmpifz [812] ............................ if g_PrevTotalPoints <> g_TotalPoints then
+  [701] pushcons 8 .............................. <EMPTY>
+  [703] setlocal 10 ............................. tempSaveString = EMPTY
+  [705] pushint8 1 .............................. <1>
+  [707] setlocal 1
+  [709] getlocal 1
+  [711] pushint8 10 ............................. <10>
+  [713] lteq
+  [714] jmpifz [766] ............................ repeat with i = 1 to 10
+  [717] getlocal 1 .............................. <i>
+  [719] pushint8 1 .............................. <1>
+  [721] eq ...................................... <i = 1>
+  [722] jmpifz [741] ............................ if i = 1 then
+  [725] getlocal 10 ............................. <tempSaveString>
+  [727] getglobal 92 ............................ <g_LevelPassedList>
+  [729] getlocal 1 .............................. <i>
+  [731] pusharglist 2 ........................... <g_LevelPassedList, i>
+  [733] objcall 53 .............................. <g_LevelPassedList[i]>
+  [735] joinstr ................................. <tempSaveString & g_LevelPassedList[i]>
+  [736] setlocal 10 ............................. tempSaveString = tempSaveString & g_LevelPassedList[i]
+  [738] jmp [757] ............................... next repeat
+  [741] getlocal 10 ............................. <tempSaveString>
+  [743] pushcons 9 .............................. <",">
+  [745] joinstr ................................. <tempSaveString & ",">
+  [746] getglobal 92 ............................ <g_LevelPassedList>
+  [748] getlocal 1 .............................. <i>
+  [750] pusharglist 2 ........................... <g_LevelPassedList, i>
+  [752] objcall 53 .............................. <g_LevelPassedList[i]>
+  [754] joinstr ................................. <tempSaveString & "," & g_LevelPassedList[i]>
+  [755] setlocal 10 ............................. tempSaveString = tempSaveString & "," & g_LevelPassedList[i]
+  [757] pushint8 1
+  [759] getlocal 1
+  [761] add
+  [762] setlocal 1
+  [764] endrepeat [709]
+  [766] pushint8 1 .............................. <1>
+  [768] setlocal 1
+  [770] getlocal 1
+  [772] pushint8 6 .............................. <6>
+  [774] lteq
+  [775] jmpifz [804] ............................ repeat with i = 1 to 6
+  [778] getlocal 10 ............................. <tempSaveString>
+  [780] pushcons 9 .............................. <",">
+  [782] joinstr ................................. <tempSaveString & ",">
+  [783] getglobal 896 ........................... <g_AddOnList>
+  [786] getlocal 1 .............................. <i>
+  [788] pusharglist 2 ........................... <g_AddOnList, i>
+  [790] objcall 53 .............................. <g_AddOnList[i]>
+  [792] joinstr ................................. <tempSaveString & "," & g_AddOnList[i]>
+  [793] setlocal 10 ............................. tempSaveString = tempSaveString & "," & g_AddOnList[i]
+  [795] pushint8 1
+  [797] getlocal 1
+  [799] add
+  [800] setlocal 1
+  [802] endrepeat [770]
+  [804] getglobal 67 ............................ <g_SaveGameName>
+  [806] getlocal 10 ............................. <tempSaveString>
+  [808] pusharglistnoret 2 ...................... <g_SaveGameName, tempSaveString>
+  [810] extcall 79 .............................. setPref(g_SaveGameName, tempSaveString)
+  [812] getlocal 9 .............................. <tempTotal>
+  [814] pusharglist 1 ........................... <tempTotal>
+  [816] extcall 731 ............................. <string(tempTotal)>
+  [819] setlocal 2 .............................. tempString = string(tempTotal)
+  [821] getlocal 2 .............................. <tempString>
+  [823] pushsymb 893 ............................ <#char>
+  [826] pusharglist 2 ........................... <tempString, #char>
+  [828] objcall 17 .............................. <tempString.char.count>
+  [830] pushint8 6 .............................. <6>
+  [832] lt ...................................... <tempString.char.count < 6>
+  [833] jmpifz [845] ............................ repeat while tempString.char.count < 6
+  [836] pushcons 4 .............................. <"0">
+  [838] getlocal 2 .............................. <tempString>
+  [840] joinstr ................................. <"0" & tempString>
+  [841] setlocal 2 .............................. tempString = "0" & tempString
+  [843] endrepeat [821]
+  [845] pushcons 10 ............................. <"Points">
+  [847] pushcons 5 .............................. <"Textures">
+  [849] pusharglist 2 ........................... <"Points", "Textures">
+  [851] extcall 5 ............................... <member("Points", "Textures")>
+  [853] getlocal 2 .............................. <tempString>
+  [855] setobjprop 156 .......................... member("Points", "Textures").text = tempString
+  [857] pushint8 1 .............................. <1>
+  [859] setlocal 3
+  [861] getlocal 3
+  [863] pushint8 6 .............................. <6>
+  [865] lteq
+  [866] jmpifz [962] ............................ repeat with j = 1 to 6
+  [869] pushint8 24 ............................. <24>
+  [871] getlocal 3 .............................. <j>
+  [873] pushint8 1 .............................. <1>
+  [875] sub ..................................... <j - 1>
+  [876] mul ..................................... <24 * (j - 1)>
+  [877] pushzero ................................ <0>
+  [878] pushint8 24 ............................. <24>
+  [880] getlocal 3 .............................. <j>
+  [882] pushint8 1 .............................. <1>
+  [884] sub ..................................... <j - 1>
+  [885] mul ..................................... <24 * (j - 1)>
+  [886] pushint8 24 ............................. <24>
+  [888] add ..................................... <(24 * (j - 1)) + 24>
+  [889] pushint8 32 ............................. <32>
+  [891] pusharglist 4 ........................... <24 * (j - 1), 0, (24 * (j - 1)) + 24, 32>
+  [893] extcall 24 .............................. <rect(24 * (j - 1), 0, (24 * (j - 1)) + 24, 32)>
+  [895] setlocal 4 .............................. dRect = rect(24 * (j - 1), 0, (24 * (j - 1)) + 24, 32)
+  [897] pushint8 4 .............................. <4>
+  [899] pushzero ................................ <0>
+  [900] pushint8 28 ............................. <28>
+  [902] pushint8 32 ............................. <32>
+  [904] pusharglist 4 ........................... <4, 0, 28, 32>
+  [906] extcall 24 .............................. <rect(4, 0, 28, 32)>
+  [908] setlocal 5 .............................. sRect = rect(4, 0, 28, 32)
+  [910] getlocal 2 .............................. <tempString>
+  [912] pushsymb 893 ............................ <#char>
+  [915] getlocal 3 .............................. <j>
+  [917] pusharglist 3 ........................... <tempString, #char, j>
+  [919] objcall 304 ............................. <tempString.char[j]>
+  [922] pusharglist 1 ........................... <tempString.char[j]>
+  [924] extcall 208 ............................. <integer(tempString.char[j])>
+  [926] setlocal 6 .............................. tempDigit = integer(tempString.char[j])
+  [928] getlocal 8 .............................. <iTotal>
+  [930] pushint8 25 ............................. <25>
+  [932] getlocal 6 .............................. <tempDigit>
+  [934] add ..................................... <25 + tempDigit>
+  [935] pushcons 5 .............................. <"Textures">
+  [937] pusharglist 2 ........................... <25 + tempDigit, "Textures">
+  [939] extcall 5 ............................... <member(25 + tempDigit, "Textures")>
+  [941] getobjprop 736 .......................... <member(25 + tempDigit, "Textures").image>
+  [944] getlocal 4 .............................. <dRect>
+  [946] getlocal 5 .............................. <sRect>
+  [948] pusharglistnoret 4 ...................... <iTotal, member(25 + tempDigit, "Textures").image, dRect, sRect>
+  [950] objcall 754 ............................. iTotal.copyPixels(member(25 + tempDigit, "Textures").image, dRect, sRect)
+  [953] pushint8 1
+  [955] getlocal 3
+  [957] add
+  [958] setlocal 3
+  [960] endrepeat [861]
+  [962] getlocal 0 .............................. <w>
+  [964] pushcons 11 ............................. <"TotalTexture">
+  [966] pushsymb 738 ............................ <#fromImageObject>
+  [969] getlocal 8 .............................. <iTotal>
+  [971] pusharglist 4 ........................... <w, "TotalTexture", #fromImageObject, iTotal>
+  [973] objcall 10 .............................. <w.newTexture("TotalTexture", #fromImageObject, iTotal)>
+  [975] setlocal 7 .............................. tempTexture = w.newTexture("TotalTexture", #fromImageObject, iTotal)
+  [977] getlocal 7 .............................. <tempTexture>
+  [979] pushsymb 11 ............................. <#rgba8888>
+  [981] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [983] getprop 6 ............................... <cam>
+  [985] getlocal 7 .............................. <tempTexture>
+  [987] pushint16 300 ........................... <300>
+  [990] pushint16 430 ........................... <430>
+  [993] pusharglist 2 ........................... <300, 430>
+  [995] extcall 13 .............................. <point(300, 430)>
+  [997] pushzero ................................ <0>
+  [998] pusharglistnoret 4 ...................... <cam, tempTexture, point(300, 430), 0>
+  [1000] objcall 14 ............................. cam.addOverlay(tempTexture, point(300, 430), 0)
+  [1002] getlocal 0 ............................. <w>
+  [1004] pushcons 12 ............................ <"BitzerTitleTexture">
+  [1006] pushsymb 9 ............................. <#fromCastMember>
+  [1008] pushint8 54 ............................ <54>
+  [1010] pushcons 5 ............................. <"Textures">
+  [1012] pusharglist 2 .......................... <54, "Textures">
+  [1014] extcall 5 .............................. <member(54, "Textures")>
+  [1016] pusharglist 4 .......................... <w, "BitzerTitleTexture", #fromCastMember, member(54, "Textures")>
+  [1018] objcall 10 ............................. <w.newTexture("BitzerTitleTexture", #fromCastMember, member(54, "Textures"))>
+  [1020] setlocal 7 ............................. tempTexture = w.newTexture("BitzerTitleTexture", #fromCastMember, member(54, "Textures"))
+  [1022] getlocal 7 ............................. <tempTexture>
+  [1024] pushsymb 11 ............................ <#rgba8888>
+  [1026] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1028] getprop 6 .............................. <cam>
+  [1030] getlocal 7 ............................. <tempTexture>
+  [1032] pushint8 30 ............................ <30>
+  [1034] pushint8 10 ............................ <10>
+  [1036] pusharglist 2 .......................... <30, 10>
+  [1038] extcall 13 ............................. <point(30, 10)>
+  [1040] pushzero ............................... <0>
+  [1041] pusharglistnoret 4 ..................... <cam, tempTexture, point(30, 10), 0>
+  [1043] objcall 14 ............................. cam.addOverlay(tempTexture, point(30, 10), 0)
+  [1045] pusharglist 0 .......................... <[]>
+  [1047] pushlist ............................... <[]>
+  [1048] setprop 897 ............................ oTabList = []
+  [1051] pusharglist 0 .......................... <[]>
+  [1053] pushlist ............................... <[]>
+  [1054] setprop 898 ............................ tabPrevMouseOverList = []
+  [1057] pushint8 1 ............................. <1>
+  [1059] setlocal 1
+  [1061] getlocal 1
+  [1063] pushint8 10 ............................ <10>
+  [1065] lteq
+  [1066] jmpifz [1225] .......................... repeat with i = 1 to 10
+  [1069] getlocal 0 ............................. <w>
+  [1071] pushcons 13 ............................ <"tab">
+  [1073] getlocal 1 ............................. <i>
+  [1075] joinstr ................................ <"tab" & i>
+  [1076] pushcons 7 ............................. <"Texture">
+  [1078] joinstr ................................ <"tab" & i & "Texture">
+  [1079] pushsymb 9 ............................. <#fromCastMember>
+  [1081] pushint8 54 ............................ <54>
+  [1083] getlocal 1 ............................. <i>
+  [1085] add .................................... <54 + i>
+  [1086] pushcons 5 ............................. <"Textures">
+  [1088] pusharglist 2 .......................... <54 + i, "Textures">
+  [1090] extcall 5 .............................. <member(54 + i, "Textures")>
+  [1092] pusharglist 4 .......................... <w, "tab" & i & "Texture", #fromCastMember, member(54 + i, "Textures")>
+  [1094] objcall 10 ............................. <w.newTexture("tab" & i & "Texture", #fromCastMember, member(54 + i, "Textures"))>
+  [1096] setlocal 7 ............................. tempTexture = w.newTexture("tab" & i & "Texture", #fromCastMember, member(54 + i, "Textures"))
+  [1098] getlocal 7 ............................. <tempTexture>
+  [1100] pushsymb 11 ............................ <#rgba8888>
+  [1102] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1104] getprop 6 .............................. <cam>
+  [1106] getlocal 7 ............................. <tempTexture>
+  [1108] pushint16 160 .......................... <160>
+  [1111] pushint8 30 ............................ <30>
+  [1113] pushint8 36 ............................ <36>
+  [1115] getlocal 1 ............................. <i>
+  [1117] mul .................................... <36 * i>
+  [1118] add .................................... <30 + (36 * i)>
+  [1119] pusharglist 2 .......................... <160, 30 + (36 * i)>
+  [1121] extcall 13 ............................. <point(160, 30 + (36 * i))>
+  [1123] pushzero ............................... <0>
+  [1124] pusharglistnoret 4 ..................... <cam, tempTexture, point(160, 30 + (36 * i)), 0>
+  [1126] objcall 14 ............................. cam.addOverlay(tempTexture, point(160, 30 + (36 * i)), 0)
+  [1128] getprop 897 ............................ <oTabList>
+  [1131] getprop 6 .............................. <cam>
+  [1133] pushsymb 16 ............................ <#overlay>
+  [1135] pusharglist 2 .......................... <cam, #overlay>
+  [1137] objcall 17 ............................. <cam.overlay.count>
+  [1139] pusharglistnoret 2 ..................... <oTabList, cam.overlay.count>
+  [1141] objcall 365 ............................ oTabList.add(cam.overlay.count)
+  [1144] getprop 6 .............................. <cam>
+  [1146] pushsymb 16 ............................ <#overlay>
+  [1148] getprop 897 ............................ <oTabList>
+  [1151] getlocal 1 ............................. <i>
+  [1153] pusharglist 2 .......................... <oTabList, i>
+  [1155] objcall 53 ............................. <oTabList[i]>
+  [1157] pusharglist 3 .......................... <cam, #overlay, oTabList[i]>
+  [1159] objcall 18 ............................. <cam.overlay[oTabList[i]]>
+  [1161] pushint16 128 .......................... <128>
+  [1164] pushint8 16 ............................ <16>
+  [1166] pusharglist 2 .......................... <128, 16>
+  [1168] extcall 13 ............................. <point(128, 16)>
+  [1170] setobjprop 877 ......................... cam.overlay[oTabList[i]].regPoint = point(128, 16)
+  [1173] getprop 898 ............................ <tabPrevMouseOverList>
+  [1176] pushzero ............................... <0>
+  [1177] pusharglistnoret 2 ..................... <tabPrevMouseOverList, 0>
+  [1179] objcall 365 ............................ tabPrevMouseOverList.add(0)
+  [1182] getglobal 92 ........................... <g_LevelPassedList>
+  [1184] getlocal 1 ............................. <i>
+  [1186] pusharglist 2 .......................... <g_LevelPassedList, i>
+  [1188] objcall 53 ............................. <g_LevelPassedList[i]>
+  [1190] pushzero ............................... <0>
+  [1191] eq ..................................... <g_LevelPassedList[i] = 0>
+  [1192] jmpifz [1216] .......................... if g_LevelPassedList[i] = 0 then
+  [1195] getprop 6 .............................. <cam>
+  [1197] pushsymb 16 ............................ <#overlay>
+  [1199] getprop 897 ............................ <oTabList>
+  [1202] getlocal 1 ............................. <i>
+  [1204] pusharglist 2 .......................... <oTabList, i>
+  [1206] objcall 53 ............................. <oTabList[i]>
+  [1208] pusharglist 3 .......................... <cam, #overlay, oTabList[i]>
+  [1210] objcall 18 ............................. <cam.overlay[oTabList[i]]>
+  [1212] pushint8 30 ............................ <30>
+  [1214] setobjprop 20 .......................... cam.overlay[oTabList[i]].blend = 30
+  [1216] pushint8 1
+  [1218] getlocal 1
+  [1220] add
+  [1221] setlocal 1
+  [1223] endrepeat [1061]
+  [1225] getlocal 0 ............................. <w>
+  [1227] pushcons 14 ............................ <"LPlateTexture">
+  [1229] pushsymb 9 ............................. <#fromCastMember>
+  [1231] pushint8 66 ............................ <66>
+  [1233] pushcons 5 ............................. <"Textures">
+  [1235] pusharglist 2 .......................... <66, "Textures">
+  [1237] extcall 5 .............................. <member(66, "Textures")>
+  [1239] pusharglist 4 .......................... <w, "LPlateTexture", #fromCastMember, member(66, "Textures")>
+  [1241] objcall 10 ............................. <w.newTexture("LPlateTexture", #fromCastMember, member(66, "Textures"))>
+  [1243] setlocal 11 ............................ tempTexture1 = w.newTexture("LPlateTexture", #fromCastMember, member(66, "Textures"))
+  [1245] getlocal 11 ............................ <tempTexture1>
+  [1247] pushsymb 661 ........................... <#rgba8880>
+  [1250] setobjprop 12 .......................... tempTexture1.renderFormat = #rgba8880
+  [1252] getlocal 0 ............................. <w>
+  [1254] pushcons 15 ............................ <"PPlateTexture">
+  [1256] pushsymb 9 ............................. <#fromCastMember>
+  [1258] pushint8 67 ............................ <67>
+  [1260] pushcons 5 ............................. <"Textures">
+  [1262] pusharglist 2 .......................... <67, "Textures">
+  [1264] extcall 5 .............................. <member(67, "Textures")>
+  [1266] pusharglist 4 .......................... <w, "PPlateTexture", #fromCastMember, member(67, "Textures")>
+  [1268] objcall 10 ............................. <w.newTexture("PPlateTexture", #fromCastMember, member(67, "Textures"))>
+  [1270] setlocal 12 ............................ tempTexture2 = w.newTexture("PPlateTexture", #fromCastMember, member(67, "Textures"))
+  [1272] getlocal 12 ............................ <tempTexture2>
+  [1274] pushsymb 661 ........................... <#rgba8880>
+  [1277] setobjprop 12 .......................... tempTexture2.renderFormat = #rgba8880
+  [1279] getlocal 0 ............................. <w>
+  [1281] pushcons 16 ............................ <"LockedPlateTexture">
+  [1283] pushsymb 9 ............................. <#fromCastMember>
+  [1285] pushint8 68 ............................ <68>
+  [1287] pushcons 5 ............................. <"Textures">
+  [1289] pusharglist 2 .......................... <68, "Textures">
+  [1291] extcall 5 .............................. <member(68, "Textures")>
+  [1293] pusharglist 4 .......................... <w, "LockedPlateTexture", #fromCastMember, member(68, "Textures")>
+  [1295] objcall 10 ............................. <w.newTexture("LockedPlateTexture", #fromCastMember, member(68, "Textures"))>
+  [1297] setlocal 13 ............................ tempTexture3 = w.newTexture("LockedPlateTexture", #fromCastMember, member(68, "Textures"))
+  [1299] getlocal 13 ............................ <tempTexture3>
+  [1301] pushsymb 661 ........................... <#rgba8880>
+  [1304] setobjprop 12 .......................... tempTexture3.renderFormat = #rgba8880
+  [1306] pushint8 1 ............................. <1>
+  [1308] setlocal 1
+  [1310] getlocal 1
+  [1312] pushint8 10 ............................ <10>
+  [1314] lteq
+  [1315] jmpifz [1438] .......................... repeat with i = 1 to 10
+  [1318] getglobal 92 ........................... <g_LevelPassedList>
+  [1320] getlocal 1 ............................. <i>
+  [1322] pusharglist 2 .......................... <g_LevelPassedList, i>
+  [1324] objcall 53 ............................. <g_LevelPassedList[i]>
+  [1326] peek 0 ................................. case g_LevelPassedList[i] of
+  [1328] pushzero ............................... <0>
+  [1329] eq
+  [1330] jmpifz [1360] .......................... (case) 0:
+  [1333] getprop 6 .............................. <cam>
+  [1335] getlocal 13 ............................ <tempTexture3>
+  [1337] pushint16 460 .......................... <460>
+  [1340] pushint8 12 ............................ <12>
+  [1342] pushint8 36 ............................ <36>
+  [1344] getlocal 1 ............................. <i>
+  [1346] mul .................................... <36 * i>
+  [1347] add .................................... <12 + (36 * i)>
+  [1348] pusharglist 2 .......................... <460, 12 + (36 * i)>
+  [1350] extcall 13 ............................. <point(460, 12 + (36 * i))>
+  [1352] pushzero ............................... <0>
+  [1353] pusharglistnoret 4 ..................... <cam, tempTexture3, point(460, 12 + (36 * i)), 0>
+  [1355] objcall 14 ............................. cam.addOverlay(tempTexture3, point(460, 12 + (36 * i)), 0)
+  [1357] jmp [1427]
+  [1360] peek 0
+  [1362] pushint8 1 ............................. <1>
+  [1364] eq
+  [1365] jmpifz [1395] .......................... (case) 1:
+  [1368] getprop 6 .............................. <cam>
+  [1370] getlocal 11 ............................ <tempTexture1>
+  [1372] pushint16 460 .......................... <460>
+  [1375] pushint8 12 ............................ <12>
+  [1377] pushint8 36 ............................ <36>
+  [1379] getlocal 1 ............................. <i>
+  [1381] mul .................................... <36 * i>
+  [1382] add .................................... <12 + (36 * i)>
+  [1383] pusharglist 2 .......................... <460, 12 + (36 * i)>
+  [1385] extcall 13 ............................. <point(460, 12 + (36 * i))>
+  [1387] pushzero ............................... <0>
+  [1388] pusharglistnoret 4 ..................... <cam, tempTexture1, point(460, 12 + (36 * i)), 0>
+  [1390] objcall 14 ............................. cam.addOverlay(tempTexture1, point(460, 12 + (36 * i)), 0)
+  [1392] jmp [1427]
+  [1395] peek 0
+  [1397] pushint8 2 ............................. <2>
+  [1399] eq
+  [1400] jmpifz [1427] .......................... (case) 2:
+  [1403] getprop 6 .............................. <cam>
+  [1405] getlocal 12 ............................ <tempTexture2>
+  [1407] pushint16 460 .......................... <460>
+  [1410] pushint8 12 ............................ <12>
+  [1412] pushint8 36 ............................ <36>
+  [1414] getlocal 1 ............................. <i>
+  [1416] mul .................................... <36 * i>
+  [1417] add .................................... <12 + (36 * i)>
+  [1418] pusharglist 2 .......................... <460, 12 + (36 * i)>
+  [1420] extcall 13 ............................. <point(460, 12 + (36 * i))>
+  [1422] pushzero ............................... <0>
+  [1423] pusharglistnoret 4 ..................... <cam, tempTexture2, point(460, 12 + (36 * i)), 0>
+  [1425] objcall 14 ............................. cam.addOverlay(tempTexture2, point(460, 12 + (36 * i)), 0)
+  [1427] pop 1 .................................. end case
+  [1429] pushint8 1
+  [1431] getlocal 1
+  [1433] add
+  [1434] setlocal 1
+  [1436] endrepeat [1310]
+  [1438] getlocal 0 ............................. <w>
+  [1440] pushcons 17 ............................ <"BackButtonTexture">
+  [1442] pushsymb 9 ............................. <#fromCastMember>
+  [1444] pushint8 98 ............................ <98>
+  [1446] pushcons 5 ............................. <"Textures">
+  [1448] pusharglist 2 .......................... <98, "Textures">
+  [1450] extcall 5 .............................. <member(98, "Textures")>
+  [1452] pusharglist 4 .......................... <w, "BackButtonTexture", #fromCastMember, member(98, "Textures")>
+  [1454] objcall 10 ............................. <w.newTexture("BackButtonTexture", #fromCastMember, member(98, "Textures"))>
+  [1456] setlocal 7 ............................. tempTexture = w.newTexture("BackButtonTexture", #fromCastMember, member(98, "Textures"))
+  [1458] getlocal 7 ............................. <tempTexture>
+  [1460] pushsymb 11 ............................ <#rgba8888>
+  [1462] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1464] getprop 6 .............................. <cam>
+  [1466] getlocal 7 ............................. <tempTexture>
+  [1468] pushint8 42 ............................ <42>
+  [1470] pushint16 453 .......................... <453>
+  [1473] pusharglist 2 .......................... <42, 453>
+  [1475] extcall 13 ............................. <point(42, 453)>
+  [1477] pushzero ............................... <0>
+  [1478] pusharglistnoret 4 ..................... <cam, tempTexture, point(42, 453), 0>
+  [1480] objcall 14 ............................. cam.addOverlay(tempTexture, point(42, 453), 0)
+  [1482] getprop 6 .............................. <cam>
+  [1484] pushsymb 16 ............................ <#overlay>
+  [1486] pusharglist 2 .......................... <cam, #overlay>
+  [1488] objcall 17 ............................. <cam.overlay.count>
+  [1490] setprop 899 ............................ oBackButton = cam.overlay.count
+  [1493] getmovieprop 62 ........................ <the runMode>
+  [1495] pushcons 18 ............................ <"Projector">
+  [1497] containsstr ............................ <the runMode contains "Projector">
+  [1498] jmpifz [1559] .......................... if the runMode contains "Projector" then / else
+  [1501] getlocal 0 ............................. <w>
+  [1503] pushcons 19 ............................ <"GoToShockwaveTexture">
+  [1505] pushsymb 9 ............................. <#fromCastMember>
+  [1507] pushint16 154 .......................... <154>
+  [1510] pushcons 5 ............................. <"Textures">
+  [1512] pusharglist 2 .......................... <154, "Textures">
+  [1514] extcall 5 .............................. <member(154, "Textures")>
+  [1516] pusharglist 4 .......................... <w, "GoToShockwaveTexture", #fromCastMember, member(154, "Textures")>
+  [1518] objcall 10 ............................. <w.newTexture("GoToShockwaveTexture", #fromCastMember, member(154, "Textures"))>
+  [1520] setlocal 7 ............................. tempTexture = w.newTexture("GoToShockwaveTexture", #fromCastMember, member(154, "Textures"))
+  [1522] getlocal 7 ............................. <tempTexture>
+  [1524] pushsymb 11 ............................ <#rgba8888>
+  [1526] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1528] getprop 6 .............................. <cam>
+  [1530] getlocal 7 ............................. <tempTexture>
+  [1532] pushint16 454 .......................... <454>
+  [1535] pushint16 412 .......................... <412>
+  [1538] pusharglist 2 .......................... <454, 412>
+  [1540] extcall 13 ............................. <point(454, 412)>
+  [1542] pushzero ............................... <0>
+  [1543] pusharglistnoret 4 ..................... <cam, tempTexture, point(454, 412), 0>
+  [1545] objcall 14 ............................. cam.addOverlay(tempTexture, point(454, 412), 0)
+  [1547] getprop 898 ............................ <tabPrevMouseOverList>
+  [1550] pushzero ............................... <0>
+  [1551] pusharglistnoret 2 ..................... <tabPrevMouseOverList, 0>
+  [1553] objcall 365 ............................ tabPrevMouseOverList.add(0)
+  [1556] jmp [1661]
+  [1559] getlocal 0 ............................. <w>
+  [1561] pushcons 20 ............................ <"SubmitButtonTexture">
+  [1563] pushsymb 9 ............................. <#fromCastMember>
+  [1565] pushint8 65 ............................ <65>
+  [1567] pushcons 5 ............................. <"Textures">
+  [1569] pusharglist 2 .......................... <65, "Textures">
+  [1571] extcall 5 .............................. <member(65, "Textures")>
+  [1573] pusharglist 4 .......................... <w, "SubmitButtonTexture", #fromCastMember, member(65, "Textures")>
+  [1575] objcall 10 ............................. <w.newTexture("SubmitButtonTexture", #fromCastMember, member(65, "Textures"))>
+  [1577] setlocal 7 ............................. tempTexture = w.newTexture("SubmitButtonTexture", #fromCastMember, member(65, "Textures"))
+  [1579] getlocal 7 ............................. <tempTexture>
+  [1581] pushsymb 11 ............................ <#rgba8888>
+  [1583] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1585] getprop 6 .............................. <cam>
+  [1587] getlocal 7 ............................. <tempTexture>
+  [1589] pushint16 207 .......................... <207>
+  [1592] pushint16 443 .......................... <443>
+  [1595] pusharglist 2 .......................... <207, 443>
+  [1597] extcall 13 ............................. <point(207, 443)>
+  [1599] pushzero ............................... <0>
+  [1600] pusharglistnoret 4 ..................... <cam, tempTexture, point(207, 443), 0>
+  [1602] objcall 14 ............................. cam.addOverlay(tempTexture, point(207, 443), 0)
+  [1604] getprop 6 .............................. <cam>
+  [1606] pushsymb 16 ............................ <#overlay>
+  [1608] pusharglist 2 .......................... <cam, #overlay>
+  [1610] objcall 17 ............................. <cam.overlay.count>
+  [1612] setprop 900 ............................ oSubmitButton = cam.overlay.count
+  [1615] getprop 6 .............................. <cam>
+  [1617] pushsymb 16 ............................ <#overlay>
+  [1619] getprop 900 ............................ <oSubmitButton>
+  [1622] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1624] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1626] pushint8 100 ........................... <100>
+  [1628] pushint8 16 ............................ <16>
+  [1630] pusharglist 2 .......................... <100, 16>
+  [1632] extcall 13 ............................. <point(100, 16)>
+  [1634] setobjprop 877 ......................... cam.overlay[oSubmitButton].regPoint = point(100, 16)
+  [1637] getprop 6 .............................. <cam>
+  [1639] pushsymb 16 ............................ <#overlay>
+  [1641] getprop 900 ............................ <oSubmitButton>
+  [1644] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1646] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1648] pushint8 40 ............................ <40>
+  [1650] setobjprop 20 .......................... cam.overlay[oSubmitButton].blend = 40
+  [1652] getprop 898 ............................ <tabPrevMouseOverList>
+  [1655] pushzero ............................... <0>
+  [1656] pusharglistnoret 2 ..................... <tabPrevMouseOverList, 0>
+  [1658] objcall 365 ............................ tabPrevMouseOverList.add(0)
+  [1661] getlocal 0 ............................. <w>
+  [1663] pushcons 21 ............................ <"menuBackdropTexture">
+  [1665] pushsymb 9 ............................. <#fromCastMember>
+  [1667] pushint8 53 ............................ <53>
+  [1669] pushcons 5 ............................. <"Textures">
+  [1671] pusharglist 2 .......................... <53, "Textures">
+  [1673] extcall 5 .............................. <member(53, "Textures")>
+  [1675] pusharglist 4 .......................... <w, "menuBackdropTexture", #fromCastMember, member(53, "Textures")>
+  [1677] objcall 10 ............................. <w.newTexture("menuBackdropTexture", #fromCastMember, member(53, "Textures"))>
+  [1679] setlocal 7 ............................. tempTexture = w.newTexture("menuBackdropTexture", #fromCastMember, member(53, "Textures"))
+  [1681] getlocal 7 ............................. <tempTexture>
+  [1683] pushsymb 11 ............................ <#rgba8888>
+  [1685] setobjprop 12 .......................... tempTexture.renderFormat = #rgba8888
+  [1687] getlocal 0 ............................. <w>
+  [1689] pushcons 22 ............................ <"MenuBackdropResource">
+  [1691] pushsymb 878 ........................... <#plane>
+  [1694] pushsymb 879 ........................... <#both>
+  [1697] pusharglist 4 .......................... <w, "MenuBackdropResource", #plane, #both>
+  [1699] objcall 629 ............................ <w.newModelResource("MenuBackdropResource", #plane, #both)>
+  [1702] setlocal 14 ............................ nmr = w.newModelResource("MenuBackdropResource", #plane, #both)
+  [1704] getlocal 0 ............................. <w>
+  [1706] pushcons 23 ............................ <"MenuBackdropModel">
+  [1708] getlocal 14 ............................ <nmr>
+  [1710] pusharglist 3 .......................... <w, "MenuBackdropModel", nmr>
+  [1712] objcall 630 ............................ <w.newModel("MenuBackdropModel", nmr)>
+  [1715] setprop 880 ............................ mBackdrop = w.newModel("MenuBackdropModel", nmr)
+  [1718] getprop 880 ............................ <mBackdrop>
+  [1721] pushint16 180 .......................... <180>
+  [1724] pushzero ............................... <0>
+  [1725] pushzero ............................... <0>
+  [1726] pusharglistnoret 4 ..................... <mBackdrop, 180, 0, 0>
+  [1728] objcall 374 ............................ mBackdrop.rotate(180, 0, 0)
+  [1731] getprop 880 ............................ <mBackdrop>
+  [1734] pushsymb 303 ........................... <#shaderList>
+  [1737] pushint8 1 ............................. <1>
+  [1739] pusharglist 3 .......................... <mBackdrop, #shaderList, 1>
+  [1741] objcall 18 ............................. <mBackdrop.shaderList[1]>
+  [1743] getlocal 7 ............................. <tempTexture>
+  [1745] setobjprop 369 ......................... mBackdrop.shaderList[1].texture = tempTexture
+  [1748] getprop 880 ............................ <mBackdrop>
+  [1751] pushint16 300 .......................... <300>
+  [1754] pushint16 300 .......................... <300>
+  [1757] pushint16 300 .......................... <300>
+  [1760] pusharglistnoret 4 ..................... <mBackdrop, 300, 300, 300>
+  [1762] objcall 19 ............................. mBackdrop.scale(300, 300, 300)
+  [1764] getprop 880 ............................ <mBackdrop>
+  [1767] pushint8 100 ........................... <100>
+  [1769] inv .................................... <-100>
+  [1770] pushint8 60 ............................ <60>
+  [1772] pushint8 100 ........................... <100>
+  [1774] inv .................................... <-100>
+  [1775] pusharglist 3 .......................... <-100, 60, -100>
+  [1777] extcall 151 ............................ <vector(-100, 60, -100)>
+  [1779] setobjprop 287 ......................... mBackdrop.worldPosition = vector(-100, 60, -100)
+  [1782] getprop 880 ............................ <mBackdrop>
+  [1785] pushsymb 303 ........................... <#shaderList>
+  [1788] pushint8 1 ............................. <1>
+  [1790] pusharglist 3 .......................... <mBackdrop, #shaderList, 1>
+  [1792] objcall 18 ............................. <mBackdrop.shaderList[1]>
+  [1794] getchainedprop 307 ..................... <mBackdrop.shaderList[1].textureTransform>
+  [1797] pushcons 24 ............................ <0.20000000000000001>
+  [1799] pushcons 24 ............................ <0.20000000000000001>
+  [1801] pushcons 24 ............................ <0.20000000000000001>
+  [1803] pusharglistnoret 4 ..................... <mBackdrop.shaderList[1].textureTransform, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001>
+  [1805] objcall 19 ............................. mBackdrop.shaderList[1].textureTransform.scale(0.20000000000000001, 0.20000000000000001, 0.20000000000000001)
+  [1807] getglobal 25 ........................... <g_Muted>
+  [1809] pushzero ............................... <0>
+  [1810] eq ..................................... <g_Muted = 0>
+  [1811] jmpifz [1828] .......................... if g_Muted = 0 then
+  [1814] pushint8 1 ............................. <1>
+  [1816] pushint8 17 ............................ <17>
+  [1818] pushcons 25 ............................ <"Sfx">
+  [1820] pusharglist 2 .......................... <17, "Sfx">
+  [1822] extcall 5 .............................. <member(17, "Sfx")>
+  [1824] pusharglistnoret 2 ..................... <1, member(17, "Sfx")>
+  [1826] extcall 42 ............................. puppetSound(1, member(17, "Sfx"))
+  [1828] pusharglist 0 .......................... <>
+  [1830] thebuiltin 181 ......................... <the ticks>
+  [1832] setprop 729 ............................ startTicks = the ticks
+  [1835] getmovieprop 4 ......................... <the currentSpriteNum>
+  [1837] pusharglist 1 .......................... <the currentSpriteNum>
+  [1839] extcall 3 .............................. <sprite(the currentSpriteNum)>
+  [1841] pushint16 400 .......................... <400>
+  [1844] pushint16 240 .......................... <240>
+  [1847] pusharglist 2 .......................... <400, 240>
+  [1849] extcall 13 ............................. <point(400, 240)>
+  [1851] setobjprop 386 ......................... sprite(the currentSpriteNum).loc = point(400, 240)
+  [1854] ret
+end
+
+on exitFrame
+  [  0] getglobal 25 ............................ <g_Muted>
+  [  2] pushzero ................................ <0>
+  [  3] eq ...................................... <g_Muted = 0>
+  [  4] pushint8 1 .............................. <1>
+  [  6] pusharglist 1 ........................... <1>
+  [  8] extcall 40 .............................. <sound(1)>
+  [ 10] getobjprop 5 ............................ <sound(1).member>
+  [ 12] pushint8 17 ............................. <17>
+  [ 14] pushcons 25 ............................. <"Sfx">
+  [ 16] pusharglist 2 ........................... <17, "Sfx">
+  [ 18] extcall 5 ............................... <member(17, "Sfx")>
+  [ 20] nteq .................................... <sound(1).member <> member(17, "Sfx")>
+  [ 21] and ..................................... <(g_Muted = 0) and (sound(1).member <> member(17, "Sfx"))>
+  [ 22] getglobal 69 ............................ <g_NextFramePlease>
+  [ 24] getglobal 47 ............................ <g_NextFrame>
+  [ 26] eq ...................................... <g_NextFramePlease = g_NextFrame>
+  [ 27] and ..................................... <(g_Muted = 0) and (sound(1).member <> member(17, "Sfx")) and (g_NextFramePlease = g_NextFrame)>
+  [ 28] jmpifz [ 45] ............................ if (g_Muted = 0) and (sound(1).member <> member(17, "Sfx")) and (g_NextFramePlease = g_NextFrame) then
+  [ 31] pushint8 1 .............................. <1>
+  [ 33] pushint8 17 ............................. <17>
+  [ 35] pushcons 25 ............................. <"Sfx">
+  [ 37] pusharglist 2 ........................... <17, "Sfx">
+  [ 39] extcall 5 ............................... <member(17, "Sfx")>
+  [ 41] pusharglistnoret 2 ...................... <1, member(17, "Sfx")>
+  [ 43] extcall 42 .............................. puppetSound(1, member(17, "Sfx"))
+  [ 45] pusharglist 0 ........................... <>
+  [ 47] thebuiltin 34 ........................... <the mouseDown>
+  [ 49] setprop 881 ............................. theMouseDown = the mouseDown
+  [ 52] pushint8 1 .............................. <1>
+  [ 54] setlocal 0
+  [ 56] getlocal 0
+  [ 58] getprop 897 ............................. <oTabList>
+  [ 61] getobjprop 17 ........................... <oTabList.count>
+  [ 63] lteq
+  [ 64] jmpifz [445] ............................ repeat with i = 1 to oTabList.count
+  [ 67] getglobal 92 ............................ <g_LevelPassedList>
+  [ 69] getlocal 0 .............................. <i>
+  [ 71] pusharglist 2 ........................... <g_LevelPassedList, i>
+  [ 73] objcall 53 .............................. <g_LevelPassedList[i]>
+  [ 75] pushzero ................................ <0>
+  [ 76] nteq .................................... <g_LevelPassedList[i] <> 0>
+  [ 77] jmpifz [435] ............................ if g_LevelPassedList[i] <> 0 then
+  [ 80] getmovieprop 30 ......................... <the mouseLoc>
+  [ 82] getprop 6 ............................... <cam>
+  [ 84] pushsymb 16 ............................. <#overlay>
+  [ 86] getprop 897 ............................. <oTabList>
+  [ 89] getlocal 0 .............................. <i>
+  [ 91] pusharglist 2 ........................... <oTabList, i>
+  [ 93] objcall 53 .............................. <oTabList[i]>
+  [ 95] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [ 97] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [ 99] getobjprop 386 .......................... <cam.overlay[oTabList[i]].loc>
+  [102] sub ..................................... <the mouseLoc - cam.overlay[oTabList[i]].loc>
+  [103] setlocal 1 .............................. tempDiff = the mouseLoc - cam.overlay[oTabList[i]].loc
+  [105] getlocal 1 .............................. <tempDiff>
+  [107] getobjprop 37 ........................... <tempDiff.locH>
+  [109] pusharglist 1 ........................... <tempDiff.locH>
+  [111] extcall 36 .............................. <abs(tempDiff.locH)>
+  [113] pushint16 128 ........................... <128>
+  [116] lt ...................................... <abs(tempDiff.locH) < 128>
+  [117] getlocal 1 .............................. <tempDiff>
+  [119] getobjprop 38 ........................... <tempDiff.locV>
+  [121] pusharglist 1 ........................... <tempDiff.locV>
+  [123] extcall 36 .............................. <abs(tempDiff.locV)>
+  [125] pushint8 18 ............................. <18>
+  [127] lt ...................................... <abs(tempDiff.locV) < 18>
+  [128] and ..................................... <(abs(tempDiff.locH) < 128) and (abs(tempDiff.locV) < 18)>
+  [129] jmpifz [375] ............................ if (abs(tempDiff.locH) < 128) and (abs(tempDiff.locV) < 18) then
+  [132] getprop 898 ............................. <tabPrevMouseOverList>
+  [135] getlocal 0 .............................. <i>
+  [137] pusharglist 2 ........................... <tabPrevMouseOverList, i>
+  [139] objcall 53 .............................. <tabPrevMouseOverList[i]>
+  [141] pushzero ................................ <0>
+  [142] eq ...................................... <tabPrevMouseOverList[i] = 0>
+  [143] jmpifz [167] ............................ if tabPrevMouseOverList[i] = 0 then
+  [146] getglobal 25 ............................ <g_Muted>
+  [148] pushzero ................................ <0>
+  [149] eq ...................................... <g_Muted = 0>
+  [150] jmpifz [167] ............................ if g_Muted = 0 then
+  [153] pushint8 2 .............................. <2>
+  [155] pushint8 24 ............................. <24>
+  [157] pushcons 25 ............................. <"Sfx">
+  [159] pusharglist 2 ........................... <24, "Sfx">
+  [161] extcall 5 ............................... <member(24, "Sfx")>
+  [163] pusharglistnoret 2 ...................... <2, member(24, "Sfx")>
+  [165] extcall 42 .............................. puppetSound(2, member(24, "Sfx"))
+  [167] getprop 898 ............................. <tabPrevMouseOverList>
+  [170] getlocal 0 .............................. <i>
+  [172] pushint8 1 .............................. <1>
+  [174] pusharglistnoret 3 ...................... <tabPrevMouseOverList, i, 1>
+  [176] objcall 193 ............................. tabPrevMouseOverList[i] = 1
+  [178] getprop 881 ............................. <theMouseDown>
+  [181] pushint8 1 .............................. <1>
+  [183] eq ...................................... <theMouseDown = 1>
+  [184] jmpifz [249] ............................ if theMouseDown = 1 then / else
+  [187] getprop 6 ............................... <cam>
+  [189] pushsymb 16 ............................. <#overlay>
+  [191] getprop 897 ............................. <oTabList>
+  [194] getlocal 0 .............................. <i>
+  [196] pusharglist 2 ........................... <oTabList, i>
+  [198] objcall 53 .............................. <oTabList[i]>
+  [200] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [202] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [204] pushcons 26 ............................. <0.90000000000000002>
+  [206] setobjprop 19 ........................... cam.overlay[oTabList[i]].scale = 0.90000000000000002
+  [208] getprop 6 ............................... <cam>
+  [210] pushsymb 16 ............................. <#overlay>
+  [212] getprop 897 ............................. <oTabList>
+  [215] getlocal 0 .............................. <i>
+  [217] pusharglist 2 ........................... <oTabList, i>
+  [219] objcall 53 .............................. <oTabList[i]>
+  [221] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [223] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [225] pushint16 128 ........................... <128>
+  [228] pushint8 16 ............................. <16>
+  [230] pusharglist 2 ........................... <128, 16>
+  [232] extcall 13 .............................. <point(128, 16)>
+  [234] pushint8 14 ............................. <14>
+  [236] pushint8 2 .............................. <2>
+  [238] pusharglist 2 ........................... <14, 2>
+  [240] extcall 13 .............................. <point(14, 2)>
+  [242] sub ..................................... <point(128, 16) - point(14, 2)>
+  [243] setobjprop 877 .......................... cam.overlay[oTabList[i]].regPoint = point(128, 16) - point(14, 2)
+  [246] jmp [310]
+  [249] getprop 6 ............................... <cam>
+  [251] pushsymb 16 ............................. <#overlay>
+  [253] getprop 897 ............................. <oTabList>
+  [256] getlocal 0 .............................. <i>
+  [258] pusharglist 2 ........................... <oTabList, i>
+  [260] objcall 53 .............................. <oTabList[i]>
+  [262] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [264] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [266] pushcons 27 ............................. <1.10000000000000009>
+  [268] setobjprop 19 ........................... cam.overlay[oTabList[i]].scale = 1.10000000000000009
+  [270] getprop 6 ............................... <cam>
+  [272] pushsymb 16 ............................. <#overlay>
+  [274] getprop 897 ............................. <oTabList>
+  [277] getlocal 0 .............................. <i>
+  [279] pusharglist 2 ........................... <oTabList, i>
+  [281] objcall 53 .............................. <oTabList[i]>
+  [283] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [285] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [287] pushint16 128 ........................... <128>
+  [290] pushint8 16 ............................. <16>
+  [292] pusharglist 2 ........................... <128, 16>
+  [294] extcall 13 .............................. <point(128, 16)>
+  [296] pushint8 14 ............................. <14>
+  [298] inv ..................................... <-14>
+  [299] pushint8 2 .............................. <2>
+  [301] inv ..................................... <-2>
+  [302] pusharglist 2 ........................... <-14, -2>
+  [304] extcall 13 .............................. <point(-14, -2)>
+  [306] sub ..................................... <point(128, 16) - point(-14, -2)>
+  [307] setobjprop 877 .......................... cam.overlay[oTabList[i]].regPoint = point(128, 16) - point(-14, -2)
+  [310] getprop 881 ............................. <theMouseDown>
+  [313] pushzero ................................ <0>
+  [314] eq ...................................... <theMouseDown = 0>
+  [315] getprop 35 .............................. <prevMouseDown>
+  [317] pushint8 1 .............................. <1>
+  [319] eq ...................................... <prevMouseDown = 1>
+  [320] and ..................................... <(theMouseDown = 0) and (prevMouseDown = 1)>
+  [321] jmpifz [372] ............................ if (theMouseDown = 0) and (prevMouseDown = 1) then
+  [324] pushint8 15 ............................. <15>
+  [326] setglobal 69 ............................ g_NextFramePlease = 15
+  [328] getlocal 0 .............................. <i>
+  [330] setglobal 70 ............................ g_MissionID = i
+  [332] pushint8 1 .............................. <1>
+  [334] setglobal 728 ........................... g_FadeToBlack = 1
+  [337] getglobal 25 ............................ <g_Muted>
+  [339] pushzero ................................ <0>
+  [340] eq ...................................... <g_Muted = 0>
+  [341] jmpifz [372] ............................ if g_Muted = 0 then
+  [344] pushint8 1 .............................. <1>
+  [346] pushint8 25 ............................. <25>
+  [348] pushcons 25 ............................. <"Sfx">
+  [350] pusharglist 2 ........................... <25, "Sfx">
+  [352] extcall 5 ............................... <member(25, "Sfx")>
+  [354] pusharglistnoret 2 ...................... <1, member(25, "Sfx")>
+  [356] extcall 42 .............................. puppetSound(1, member(25, "Sfx"))
+  [358] pushint8 2 .............................. <2>
+  [360] pushzero ................................ <0>
+  [361] pusharglistnoret 2 ...................... <2, 0>
+  [363] extcall 42 .............................. puppetSound(2, 0)
+  [365] pushint8 3 .............................. <3>
+  [367] pushzero ................................ <0>
+  [368] pusharglistnoret 2 ...................... <3, 0>
+  [370] extcall 42 .............................. puppetSound(3, 0)
+  [372] jmp [435] ............................... next repeat
+  [375] getprop 898 ............................. <tabPrevMouseOverList>
+  [378] getlocal 0 .............................. <i>
+  [380] pushzero ................................ <0>
+  [381] pusharglistnoret 3 ...................... <tabPrevMouseOverList, i, 0>
+  [383] objcall 193 ............................. tabPrevMouseOverList[i] = 0
+  [385] getprop 6 ............................... <cam>
+  [387] pushsymb 16 ............................. <#overlay>
+  [389] getprop 897 ............................. <oTabList>
+  [392] getlocal 0 .............................. <i>
+  [394] pusharglist 2 ........................... <oTabList, i>
+  [396] objcall 53 .............................. <oTabList[i]>
+  [398] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [400] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [402] pushint8 1 .............................. <1>
+  [404] setobjprop 19 ........................... cam.overlay[oTabList[i]].scale = 1
+  [406] getprop 6 ............................... <cam>
+  [408] pushsymb 16 ............................. <#overlay>
+  [410] getprop 897 ............................. <oTabList>
+  [413] getlocal 0 .............................. <i>
+  [415] pusharglist 2 ........................... <oTabList, i>
+  [417] objcall 53 .............................. <oTabList[i]>
+  [419] pusharglist 3 ........................... <cam, #overlay, oTabList[i]>
+  [421] objcall 18 .............................. <cam.overlay[oTabList[i]]>
+  [423] pushint16 128 ........................... <128>
+  [426] pushint8 16 ............................. <16>
+  [428] pusharglist 2 ........................... <128, 16>
+  [430] extcall 13 .............................. <point(128, 16)>
+  [432] setobjprop 877 .......................... cam.overlay[oTabList[i]].regPoint = point(128, 16)
+  [435] pushint8 1
+  [437] getlocal 0
+  [439] add
+  [440] setlocal 0
+  [442] endrepeat [ 56]
+  [445] getmovieprop 30 ......................... <the mouseLoc>
+  [447] getprop 6 ............................... <cam>
+  [449] pushsymb 16 ............................. <#overlay>
+  [451] getprop 899 ............................. <oBackButton>
+  [454] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [456] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [458] getobjprop 386 .......................... <cam.overlay[oBackButton].loc>
+  [461] sub ..................................... <the mouseLoc - cam.overlay[oBackButton].loc>
+  [462] setlocal 1 .............................. tempDiff = the mouseLoc - cam.overlay[oBackButton].loc
+  [464] getlocal 1 .............................. <tempDiff>
+  [466] getobjprop 37 ........................... <tempDiff.locH>
+  [468] pusharglist 1 ........................... <tempDiff.locH>
+  [470] extcall 36 .............................. <abs(tempDiff.locH)>
+  [472] pushint8 32 ............................. <32>
+  [474] lt ...................................... <abs(tempDiff.locH) < 32>
+  [475] getlocal 1 .............................. <tempDiff>
+  [477] getobjprop 38 ........................... <tempDiff.locV>
+  [479] pusharglist 1 ........................... <tempDiff.locV>
+  [481] extcall 36 .............................. <abs(tempDiff.locV)>
+  [483] pushint8 16 ............................. <16>
+  [485] lt ...................................... <abs(tempDiff.locV) < 16>
+  [486] and ..................................... <(abs(tempDiff.locH) < 32) and (abs(tempDiff.locV) < 16)>
+  [487] jmpifz [697] ............................ if (abs(tempDiff.locH) < 32) and (abs(tempDiff.locV) < 16) then / else
+  [490] getprop 889 ............................. <backButtonPrevMouseOver>
+  [493] pushzero ................................ <0>
+  [494] eq ...................................... <backButtonPrevMouseOver = 0>
+  [495] jmpifz [519] ............................ if backButtonPrevMouseOver = 0 then
+  [498] getglobal 25 ............................ <g_Muted>
+  [500] pushzero ................................ <0>
+  [501] eq ...................................... <g_Muted = 0>
+  [502] jmpifz [519] ............................ if g_Muted = 0 then
+  [505] pushint8 2 .............................. <2>
+  [507] pushint8 24 ............................. <24>
+  [509] pushcons 25 ............................. <"Sfx">
+  [511] pusharglist 2 ........................... <24, "Sfx">
+  [513] extcall 5 ............................... <member(24, "Sfx")>
+  [515] pusharglistnoret 2 ...................... <2, member(24, "Sfx")>
+  [517] extcall 42 .............................. puppetSound(2, member(24, "Sfx"))
+  [519] pushint8 1 .............................. <1>
+  [521] setprop 889 ............................. backButtonPrevMouseOver = 1
+  [524] getprop 881 ............................. <theMouseDown>
+  [527] pushint8 1 .............................. <1>
+  [529] eq ...................................... <theMouseDown = 1>
+  [530] jmpifz [582] ............................ if theMouseDown = 1 then / else
+  [533] getprop 6 ............................... <cam>
+  [535] pushsymb 16 ............................. <#overlay>
+  [537] getprop 899 ............................. <oBackButton>
+  [540] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [542] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [544] pushcons 26 ............................. <0.90000000000000002>
+  [546] setobjprop 19 ........................... cam.overlay[oBackButton].scale = 0.90000000000000002
+  [548] getprop 6 ............................... <cam>
+  [550] pushsymb 16 ............................. <#overlay>
+  [552] getprop 899 ............................. <oBackButton>
+  [555] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [557] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [559] pushint8 32 ............................. <32>
+  [561] pushint8 8 .............................. <8>
+  [563] pusharglist 2 ........................... <32, 8>
+  [565] extcall 13 .............................. <point(32, 8)>
+  [567] pushint8 3 .............................. <3>
+  [569] pushint8 2 .............................. <2>
+  [571] pusharglist 2 ........................... <3, 2>
+  [573] extcall 13 .............................. <point(3, 2)>
+  [575] sub ..................................... <point(32, 8) - point(3, 2)>
+  [576] setobjprop 877 .......................... cam.overlay[oBackButton].regPoint = point(32, 8) - point(3, 2)
+  [579] jmp [630]
+  [582] getprop 6 ............................... <cam>
+  [584] pushsymb 16 ............................. <#overlay>
+  [586] getprop 899 ............................. <oBackButton>
+  [589] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [591] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [593] pushcons 27 ............................. <1.10000000000000009>
+  [595] setobjprop 19 ........................... cam.overlay[oBackButton].scale = 1.10000000000000009
+  [597] getprop 6 ............................... <cam>
+  [599] pushsymb 16 ............................. <#overlay>
+  [601] getprop 899 ............................. <oBackButton>
+  [604] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [606] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [608] pushint8 32 ............................. <32>
+  [610] pushint8 8 .............................. <8>
+  [612] pusharglist 2 ........................... <32, 8>
+  [614] extcall 13 .............................. <point(32, 8)>
+  [616] pushint8 3 .............................. <3>
+  [618] inv ..................................... <-3>
+  [619] pushint8 2 .............................. <2>
+  [621] inv ..................................... <-2>
+  [622] pusharglist 2 ........................... <-3, -2>
+  [624] extcall 13 .............................. <point(-3, -2)>
+  [626] sub ..................................... <point(32, 8) - point(-3, -2)>
+  [627] setobjprop 877 .......................... cam.overlay[oBackButton].regPoint = point(32, 8) - point(-3, -2)
+  [630] getprop 881 ............................. <theMouseDown>
+  [633] pushzero ................................ <0>
+  [634] eq ...................................... <theMouseDown = 0>
+  [635] getprop 35 .............................. <prevMouseDown>
+  [637] pushint8 1 .............................. <1>
+  [639] eq ...................................... <prevMouseDown = 1>
+  [640] and ..................................... <(theMouseDown = 0) and (prevMouseDown = 1)>
+  [641] jmpifz [694] ............................ if (theMouseDown = 0) and (prevMouseDown = 1) then / else
+  [644] pushint8 5 .............................. <5>
+  [646] setglobal 69 ............................ g_NextFramePlease = 5
+  [648] pushint8 1 .............................. <1>
+  [650] setglobal 728 ........................... g_FadeToBlack = 1
+  [653] pushzero ................................ <0>
+  [654] setlocal 2 .............................. startButtonFlashing = 0
+  [656] getglobal 25 ............................ <g_Muted>
+  [658] pushzero ................................ <0>
+  [659] eq ...................................... <g_Muted = 0>
+  [660] jmpifz [691] ............................ if g_Muted = 0 then
+  [663] pushint8 1 .............................. <1>
+  [665] pushint8 25 ............................. <25>
+  [667] pushcons 25 ............................. <"Sfx">
+  [669] pusharglist 2 ........................... <25, "Sfx">
+  [671] extcall 5 ............................... <member(25, "Sfx")>
+  [673] pusharglistnoret 2 ...................... <1, member(25, "Sfx")>
+  [675] extcall 42 .............................. puppetSound(1, member(25, "Sfx"))
+  [677] pushint8 2 .............................. <2>
+  [679] pushzero ................................ <0>
+  [680] pusharglistnoret 2 ...................... <2, 0>
+  [682] extcall 42 .............................. puppetSound(2, 0)
+  [684] pushint8 3 .............................. <3>
+  [686] pushzero ................................ <0>
+  [687] pusharglistnoret 2 ...................... <3, 0>
+  [689] extcall 42 .............................. puppetSound(3, 0)
+  [691] jmp [694]
+  [694] jmp [738]
+  [697] pushzero ................................ <0>
+  [698] setprop 889 ............................. backButtonPrevMouseOver = 0
+  [701] getprop 6 ............................... <cam>
+  [703] pushsymb 16 ............................. <#overlay>
+  [705] getprop 899 ............................. <oBackButton>
+  [708] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [710] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [712] pushint8 1 .............................. <1>
+  [714] setobjprop 19 ........................... cam.overlay[oBackButton].scale = 1
+  [716] getprop 6 ............................... <cam>
+  [718] pushsymb 16 ............................. <#overlay>
+  [720] getprop 899 ............................. <oBackButton>
+  [723] pusharglist 3 ........................... <cam, #overlay, oBackButton>
+  [725] objcall 18 .............................. <cam.overlay[oBackButton]>
+  [727] pushint8 32 ............................. <32>
+  [729] pushint8 8 .............................. <8>
+  [731] pusharglist 2 ........................... <32, 8>
+  [733] extcall 13 .............................. <point(32, 8)>
+  [735] setobjprop 877 .......................... cam.overlay[oBackButton].regPoint = point(32, 8)
+  [738] getmovieprop 62 ......................... <the runMode>
+  [740] not ..................................... <not (the runMode)>
+  [741] pushcons 18 ............................. <"Projector">
+  [743] containsstr ............................. <not (the runMode) contains "Projector">
+  [744] jmpifz [1162] ........................... if not (the runMode) contains "Projector" then
+  [747] getmovieprop 30 ......................... <the mouseLoc>
+  [749] getprop 6 ............................... <cam>
+  [751] pushsymb 16 ............................. <#overlay>
+  [753] getprop 900 ............................. <oSubmitButton>
+  [756] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [758] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [760] getobjprop 386 .......................... <cam.overlay[oSubmitButton].loc>
+  [763] sub ..................................... <the mouseLoc - cam.overlay[oSubmitButton].loc>
+  [764] setlocal 1 .............................. tempDiff = the mouseLoc - cam.overlay[oSubmitButton].loc
+  [766] getlocal 1 .............................. <tempDiff>
+  [768] getobjprop 37 ........................... <tempDiff.locH>
+  [770] pusharglist 1 ........................... <tempDiff.locH>
+  [772] extcall 36 .............................. <abs(tempDiff.locH)>
+  [774] pushint8 100 ............................ <100>
+  [776] lt ...................................... <abs(tempDiff.locH) < 100>
+  [777] getlocal 1 .............................. <tempDiff>
+  [779] getobjprop 38 ........................... <tempDiff.locV>
+  [781] pusharglist 1 ........................... <tempDiff.locV>
+  [783] extcall 36 .............................. <abs(tempDiff.locV)>
+  [785] pushint8 18 ............................. <18>
+  [787] lt ...................................... <abs(tempDiff.locV) < 18>
+  [788] and ..................................... <(abs(tempDiff.locH) < 100) and (abs(tempDiff.locV) < 18)>
+  [789] getglobal 894 ........................... <g_TotalPoints>
+  [792] pushzero ................................ <0>
+  [793] gt ...................................... <g_TotalPoints > 0>
+  [794] and ..................................... <(abs(tempDiff.locH) < 100) and (abs(tempDiff.locV) < 18) and (g_TotalPoints > 0)>
+  [795] getglobal 894 ........................... <g_TotalPoints>
+  [798] getglobal 895 ........................... <g_PrevTotalPoints>
+  [801] nteq .................................... <g_TotalPoints <> g_PrevTotalPoints>
+  [802] and ..................................... <(abs(tempDiff.locH) < 100) and (abs(tempDiff.locV) < 18) and (g_TotalPoints > 0) and (g_TotalPoints <> g_PrevTotalPoints)>
+  [803] jmpifz [1047] ........................... if (abs(tempDiff.locH) < 100) and (abs(tempDiff.locV) < 18) and (g_TotalPoints > 0) and (g_TotalPoints <> g_PrevTotalPoints) then / else
+  [806] getprop 890 ............................. <submitButtonPrevMouseOver>
+  [809] pushzero ................................ <0>
+  [810] eq ...................................... <submitButtonPrevMouseOver = 0>
+  [811] jmpifz [835] ............................ if submitButtonPrevMouseOver = 0 then
+  [814] getglobal 25 ............................ <g_Muted>
+  [816] pushzero ................................ <0>
+  [817] eq ...................................... <g_Muted = 0>
+  [818] jmpifz [835] ............................ if g_Muted = 0 then
+  [821] pushint8 2 .............................. <2>
+  [823] pushint8 24 ............................. <24>
+  [825] pushcons 25 ............................. <"Sfx">
+  [827] pusharglist 2 ........................... <24, "Sfx">
+  [829] extcall 5 ............................... <member(24, "Sfx")>
+  [831] pusharglistnoret 2 ...................... <2, member(24, "Sfx")>
+  [833] extcall 42 .............................. puppetSound(2, member(24, "Sfx"))
+  [835] pushint8 1 .............................. <1>
+  [837] setprop 890 ............................. submitButtonPrevMouseOver = 1
+  [840] getprop 6 ............................... <cam>
+  [842] pushsymb 16 ............................. <#overlay>
+  [844] getprop 900 ............................. <oSubmitButton>
+  [847] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [849] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [851] pushint8 100 ............................ <100>
+  [853] setobjprop 20 ........................... cam.overlay[oSubmitButton].blend = 100
+  [855] getprop 881 ............................. <theMouseDown>
+  [858] pushint8 1 .............................. <1>
+  [860] eq ...................................... <theMouseDown = 1>
+  [861] jmpifz [913] ............................ if theMouseDown = 1 then / else
+  [864] getprop 6 ............................... <cam>
+  [866] pushsymb 16 ............................. <#overlay>
+  [868] getprop 900 ............................. <oSubmitButton>
+  [871] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [873] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [875] pushcons 26 ............................. <0.90000000000000002>
+  [877] setobjprop 19 ........................... cam.overlay[oSubmitButton].scale = 0.90000000000000002
+  [879] getprop 6 ............................... <cam>
+  [881] pushsymb 16 ............................. <#overlay>
+  [883] getprop 900 ............................. <oSubmitButton>
+  [886] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [888] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [890] pushint8 100 ............................ <100>
+  [892] pushint8 16 ............................. <16>
+  [894] pusharglist 2 ........................... <100, 16>
+  [896] extcall 13 .............................. <point(100, 16)>
+  [898] pushint8 14 ............................. <14>
+  [900] pushint8 2 .............................. <2>
+  [902] pusharglist 2 ........................... <14, 2>
+  [904] extcall 13 .............................. <point(14, 2)>
+  [906] sub ..................................... <point(100, 16) - point(14, 2)>
+  [907] setobjprop 877 .......................... cam.overlay[oSubmitButton].regPoint = point(100, 16) - point(14, 2)
+  [910] jmp [961]
+  [913] getprop 6 ............................... <cam>
+  [915] pushsymb 16 ............................. <#overlay>
+  [917] getprop 900 ............................. <oSubmitButton>
+  [920] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [922] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [924] pushcons 27 ............................. <1.10000000000000009>
+  [926] setobjprop 19 ........................... cam.overlay[oSubmitButton].scale = 1.10000000000000009
+  [928] getprop 6 ............................... <cam>
+  [930] pushsymb 16 ............................. <#overlay>
+  [932] getprop 900 ............................. <oSubmitButton>
+  [935] pusharglist 3 ........................... <cam, #overlay, oSubmitButton>
+  [937] objcall 18 .............................. <cam.overlay[oSubmitButton]>
+  [939] pushint8 100 ............................ <100>
+  [941] pushint8 16 ............................. <16>
+  [943] pusharglist 2 ........................... <100, 16>
+  [945] extcall 13 .............................. <point(100, 16)>
+  [947] pushint8 14 ............................. <14>
+  [949] inv ..................................... <-14>
+  [950] pushint8 2 .............................. <2>
+  [952] inv ..................................... <-2>
+  [953] pusharglist 2 ........................... <-14, -2>
+  [955] extcall 13 .............................. <point(-14, -2)>
+  [957] sub ..................................... <point(100, 16) - point(-14, -2)>
+  [958] setobjprop 877 .......................... cam.overlay[oSubmitButton].regPoint = point(100, 16) - point(-14, -2)
+  [961] getprop 881 ............................. <theMouseDown>
+  [964] pushzero ................................ <0>
+  [965] eq ...................................... <theMouseDown = 0>
+  [966] getprop 35 .............................. <prevMouseDown>
+  [968] pushint8 1 .............................. <1>
+  [970] eq ...................................... <prevMouseDown = 1>
+  [971] and ..................................... <(theMouseDown = 0) and (prevMouseDown = 1)>
+  [972] jmpifz [1044] ........................... if (theMouseDown = 0) and (prevMouseDown = 1) then
+  [975] pushcons 28 ............................. <"SUBMIT CALLED!">
+  [977] pusharglistnoret 1 ...................... <"SUBMIT CALLED!">
+  [979] extcall 39 .............................. put "SUBMIT CALLED!"
+  [981] getmovieprop 4 .......................... <the currentSpriteNum>
+  [983] pushsymb 769 ............................ <#InitList>
+  [986] pushcons 29 ............................. <"shaunthesheep">
+  [988] pushcons 30 ............................. <"Lamb Rover 4x4">
+  [990] pusharglistnoret 4 ...................... <the currentSpriteNum, #InitList, "shaunthesheep", "Lamb Rover 4x4">
+  [992] extcall 805 ............................. sendSprite(the currentSpriteNum, #InitList, "shaunthesheep", "Lamb Rover 4x4")
+  [995] getmovieprop 4 .......................... <the currentSpriteNum>
+  [997] pushsymb 771 ............................ <#branchToScores>
+  [1000] pusharglistnoret 2 ..................... <the currentSpriteNum, #branchToScores>
+  [1002] extcall 805 ............................ sendSprite(the currentSpriteNum, #branchToScores)
+  [1005] pushint8 10 ............................ <10>
+  [1007] setlocal 3 ............................. g_PrevFrame = 10
+  [1009] getglobal 25 ........................... <g_Muted>
+  [1011] pushzero ............................... <0>
+  [1012] eq ..................................... <g_Muted = 0>
+  [1013] jmpifz [1044] .......................... if g_Muted = 0 then
+  [1016] pushint8 1 ............................. <1>
+  [1018] pushint8 25 ............................ <25>
+  [1020] pushcons 25 ............................ <"Sfx">
+  [1022] pusharglist 2 .......................... <25, "Sfx">
+  [1024] extcall 5 .............................. <member(25, "Sfx")>
+  [1026] pusharglistnoret 2 ..................... <1, member(25, "Sfx")>
+  [1028] extcall 42 ............................. puppetSound(1, member(25, "Sfx"))
+  [1030] pushint8 2 ............................. <2>
+  [1032] pushzero ............................... <0>
+  [1033] pusharglistnoret 2 ..................... <2, 0>
+  [1035] extcall 42 ............................. puppetSound(2, 0)
+  [1037] pushint8 3 ............................. <3>
+  [1039] pushzero ............................... <0>
+  [1040] pusharglistnoret 2 ..................... <3, 0>
+  [1042] extcall 42 ............................. puppetSound(3, 0)
+  [1044] jmp [1162]
+  [1047] pushzero ............................... <0>
+  [1048] setprop 890 ............................ submitButtonPrevMouseOver = 0
+  [1051] getprop 6 .............................. <cam>
+  [1053] pushsymb 16 ............................ <#overlay>
+  [1055] getprop 900 ............................ <oSubmitButton>
+  [1058] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1060] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1062] pushint8 1 ............................. <1>
+  [1064] setobjprop 19 .......................... cam.overlay[oSubmitButton].scale = 1
+  [1066] getprop 6 .............................. <cam>
+  [1068] pushsymb 16 ............................ <#overlay>
+  [1070] getprop 900 ............................ <oSubmitButton>
+  [1073] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1075] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1077] pushint8 100 ........................... <100>
+  [1079] pushint8 16 ............................ <16>
+  [1081] pusharglist 2 .......................... <100, 16>
+  [1083] extcall 13 ............................. <point(100, 16)>
+  [1085] setobjprop 877 ......................... cam.overlay[oSubmitButton].regPoint = point(100, 16)
+  [1088] getglobal 895 .......................... <g_PrevTotalPoints>
+  [1091] getglobal 894 .......................... <g_TotalPoints>
+  [1094] lt ..................................... <g_PrevTotalPoints < g_TotalPoints>
+  [1095] jmpifz [1162] .......................... if g_PrevTotalPoints < g_TotalPoints then
+  [1098] getprop 861 ............................ <flashCounter>
+  [1101] pushint8 1 ............................. <1>
+  [1103] add .................................... <flashCounter + 1>
+  [1104] setprop 861 ............................ flashCounter = flashCounter + 1
+  [1107] getprop 861 ............................ <flashCounter>
+  [1110] pushint8 10 ............................ <10>
+  [1112] gt ..................................... <flashCounter > 10>
+  [1113] jmpifz [1120] .......................... if flashCounter > 10 then
+  [1116] pushzero ............................... <0>
+  [1117] setprop 861 ............................ flashCounter = 0
+  [1120] getprop 861 ............................ <flashCounter>
+  [1123] pushint8 6 ............................. <6>
+  [1125] lteq ................................... <flashCounter <= 6>
+  [1126] jmpifz [1147] .......................... if flashCounter <= 6 then / else
+  [1129] getprop 6 .............................. <cam>
+  [1131] pushsymb 16 ............................ <#overlay>
+  [1133] getprop 900 ............................ <oSubmitButton>
+  [1136] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1138] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1140] pushint8 100 ........................... <100>
+  [1142] setobjprop 20 .......................... cam.overlay[oSubmitButton].blend = 100
+  [1144] jmp [1162]
+  [1147] getprop 6 .............................. <cam>
+  [1149] pushsymb 16 ............................ <#overlay>
+  [1151] getprop 900 ............................ <oSubmitButton>
+  [1154] pusharglist 3 .......................... <cam, #overlay, oSubmitButton>
+  [1156] objcall 18 ............................. <cam.overlay[oSubmitButton]>
+  [1158] pushint8 40 ............................ <40>
+  [1160] setobjprop 20 .......................... cam.overlay[oSubmitButton].blend = 40
+  [1162] getprop 880 ............................ <mBackdrop>
+  [1165] pushsymb 303 ........................... <#shaderList>
+  [1168] pushint8 1 ............................. <1>
+  [1170] pusharglist 3 .......................... <mBackdrop, #shaderList, 1>
+  [1172] objcall 18 ............................. <mBackdrop.shaderList[1]>
+  [1174] getchainedprop 307 ..................... <mBackdrop.shaderList[1].textureTransform>
+  [1177] pushcons 31 ............................ <0.001>
+  [1179] inv .................................... <-0.001>
+  [1180] pushcons 31 ............................ <0.001>
+  [1182] inv .................................... <-0.001>
+  [1183] pushzero ............................... <0>
+  [1184] pusharglistnoret 4 ..................... <mBackdrop.shaderList[1].textureTransform, -0.001, -0.001, 0>
+  [1186] objcall 314 ............................ mBackdrop.shaderList[1].textureTransform.translate(-0.001, -0.001, 0)
+  [1189] getprop 887 ............................ <mBitzer>
+  [1192] getprop 887 ............................ <mBitzer>
+  [1195] getobjprop 287 ......................... <mBitzer.worldPosition>
+  [1198] pushcons 26 ............................ <0.90000000000000002>
+  [1200] mul .................................... <mBitzer.worldPosition * 0.90000000000000002>
+  [1201] setobjprop 287 ......................... mBitzer.worldPosition = mBitzer.worldPosition * 0.90000000000000002
+  [1204] pusharglist 0 .......................... <>
+  [1206] thebuiltin 181 ......................... <the ticks>
+  [1208] getprop 870 ............................ <changeAnimStartTicks>
+  [1211] sub .................................... <the ticks - changeAnimStartTicks>
+  [1212] getprop 888 ............................ <animLength>
+  [1215] gt ..................................... <(the ticks - changeAnimStartTicks) > animLength>
+  [1216] jmpifz [1488] .......................... if (the ticks - changeAnimStartTicks) > animLength then
+  [1219] getprop 871 ............................ <animState>
+  [1222] pushint8 1 ............................. <1>
+  [1224] add .................................... <animState + 1>
+  [1225] setprop 871 ............................ animState = animState + 1
+  [1228] pusharglist 0 .......................... <>
+  [1230] thebuiltin 181 ......................... <the ticks>
+  [1232] setprop 870 ............................ changeAnimStartTicks = the ticks
+  [1235] getprop 871 ............................ <animState>
+  [1238] pushint8 3 ............................. <3>
+  [1240] gt ..................................... <animState > 3>
+  [1241] jmpifz [1249] .......................... if animState > 3 then
+  [1244] pushint8 1 ............................. <1>
+  [1246] setprop 871 ............................ animState = 1
+  [1249] getprop 871 ............................ <animState>
+  [1252] peek 0 ................................. case animState of
+  [1254] pushint8 1 ............................. <1>
+  [1256] eq
+  [1257] jmpifz [1327] .......................... (case) 1:
+  [1260] getprop 887 ............................ <mBitzer>
+  [1263] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1266] pushint16 200 .......................... <200>
+  [1269] setobjprop 867 ......................... mBitzer.bonesPlayer.blendTime = 200
+  [1272] getprop 887 ............................ <mBitzer>
+  [1275] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1278] pushcons 0 ............................. <"BitzerSaluteMotion">
+  [1280] pushint8 1 ............................. <1>
+  [1282] pusharglistnoret 3 ..................... <mBitzer.bonesPlayer, "BitzerSaluteMotion", 1>
+  [1284] objcall 868 ............................ mBitzer.bonesPlayer.queue("BitzerSaluteMotion", 1)
+  [1287] getprop 887 ............................ <mBitzer>
+  [1290] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1293] pusharglistnoret 1 ..................... <mBitzer.bonesPlayer>
+  [1295] objcall 869 ............................ mBitzer.bonesPlayer.playNext()
+  [1298] getglobal 25 ........................... <g_Muted>
+  [1300] pushzero ............................... <0>
+  [1301] eq ..................................... <g_Muted = 0>
+  [1302] jmpifz [1319] .......................... if g_Muted = 0 then
+  [1305] pushint8 3 ............................. <3>
+  [1307] pushint8 26 ............................ <26>
+  [1309] pushcons 25 ............................ <"Sfx">
+  [1311] pusharglist 2 .......................... <26, "Sfx">
+  [1313] extcall 5 .............................. <member(26, "Sfx")>
+  [1315] pusharglistnoret 2 ..................... <3, member(26, "Sfx")>
+  [1317] extcall 42 ............................. puppetSound(3, member(26, "Sfx"))
+  [1319] pushint8 100 ........................... <100>
+  [1321] setprop 888 ............................ animLength = 100
+  [1324] jmp [1486]
+  [1327] peek 0
+  [1329] pushint8 2 ............................. <2>
+  [1331] eq
+  [1332] jmpifz [1403] .......................... (case) 2:
+  [1335] getprop 887 ............................ <mBitzer>
+  [1338] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1341] pushint16 300 .......................... <300>
+  [1344] setobjprop 867 ......................... mBitzer.bonesPlayer.blendTime = 300
+  [1347] getprop 887 ............................ <mBitzer>
+  [1350] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1353] pushcons 2 ............................. <"BitzerClipBoardMotion">
+  [1355] pushint8 1 ............................. <1>
+  [1357] pusharglistnoret 3 ..................... <mBitzer.bonesPlayer, "BitzerClipBoardMotion", 1>
+  [1359] objcall 868 ............................ mBitzer.bonesPlayer.queue("BitzerClipBoardMotion", 1)
+  [1362] getprop 887 ............................ <mBitzer>
+  [1365] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1368] pusharglistnoret 1 ..................... <mBitzer.bonesPlayer>
+  [1370] objcall 869 ............................ mBitzer.bonesPlayer.playNext()
+  [1373] getglobal 25 ........................... <g_Muted>
+  [1375] pushzero ............................... <0>
+  [1376] eq ..................................... <g_Muted = 0>
+  [1377] jmpifz [1394] .......................... if g_Muted = 0 then
+  [1380] pushint8 3 ............................. <3>
+  [1382] pushint8 27 ............................ <27>
+  [1384] pushcons 25 ............................ <"Sfx">
+  [1386] pusharglist 2 .......................... <27, "Sfx">
+  [1388] extcall 5 .............................. <member(27, "Sfx")>
+  [1390] pusharglistnoret 2 ..................... <3, member(27, "Sfx")>
+  [1392] extcall 42 ............................. puppetSound(3, member(27, "Sfx"))
+  [1394] pushint16 400 .......................... <400>
+  [1397] setprop 888 ............................ animLength = 400
+  [1400] jmp [1486]
+  [1403] peek 0
+  [1405] pushint8 3 ............................. <3>
+  [1407] eq
+  [1408] jmpifz [1486] .......................... (case) 3:
+  [1411] getprop 887 ............................ <mBitzer>
+  [1414] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1417] pushint16 300 .......................... <300>
+  [1420] setobjprop 867 ......................... mBitzer.bonesPlayer.blendTime = 300
+  [1423] getprop 887 ............................ <mBitzer>
+  [1426] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1429] pushcons 3 ............................. <"BitzerTeaTimeMotion">
+  [1431] pushint8 1 ............................. <1>
+  [1433] pusharglistnoret 3 ..................... <mBitzer.bonesPlayer, "BitzerTeaTimeMotion", 1>
+  [1435] objcall 868 ............................ mBitzer.bonesPlayer.queue("BitzerTeaTimeMotion", 1)
+  [1438] getprop 887 ............................ <mBitzer>
+  [1441] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1444] pusharglistnoret 1 ..................... <mBitzer.bonesPlayer>
+  [1446] objcall 869 ............................ mBitzer.bonesPlayer.playNext()
+  [1449] pushzero ............................... <0>
+  [1450] pushzero ............................... <0>
+  [1451] pushzero ............................... <0>
+  [1452] pusharglist 3 .......................... <0, 0, 0>
+  [1454] extcall 151 ............................ <vector(0, 0, 0)>
+  [1456] setprop 872 ............................ lookOffset = vector(0, 0, 0)
+  [1459] getglobal 25 ........................... <g_Muted>
+  [1461] pushzero ............................... <0>
+  [1462] eq ..................................... <g_Muted = 0>
+  [1463] jmpifz [1480] .......................... if g_Muted = 0 then
+  [1466] pushint8 3 ............................. <3>
+  [1468] pushint8 28 ............................ <28>
+  [1470] pushcons 25 ............................ <"Sfx">
+  [1472] pusharglist 2 .......................... <28, "Sfx">
+  [1474] extcall 5 .............................. <member(28, "Sfx")>
+  [1476] pusharglistnoret 2 ..................... <3, member(28, "Sfx")>
+  [1478] extcall 42 ............................. puppetSound(3, member(28, "Sfx"))
+  [1480] pushint16 200 .......................... <200>
+  [1483] setprop 888 ............................ animLength = 200
+  [1486] pop 1 .................................. end case
+  [1488] pusharglist 0 .......................... <>
+  [1490] thebuiltin 181 ......................... <the ticks>
+  [1492] getprop 873 ............................ <blinkStartTicks>
+  [1495] sub .................................... <the ticks - blinkStartTicks>
+  [1496] setlocal 4 ............................. tickDiff = the ticks - blinkStartTicks
+  [1498] getlocal 4 ............................. <tickDiff>
+  [1500] getprop 874 ............................ <blinkInterval>
+  [1503] lt ..................................... <tickDiff < blinkInterval>
+  [1504] jmpifz [1581] .......................... if tickDiff < blinkInterval then
+  [1507] getprop 887 ............................ <mBitzer>
+  [1510] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1513] pushsymb 882 ........................... <#bone>
+  [1516] pushint8 14 ............................ <14>
+  [1518] pusharglist 3 .......................... <mBitzer.bonesPlayer, #bone, 14>
+  [1520] objcall 18 ............................. <mBitzer.bonesPlayer.bone[14]>
+  [1522] getobjprop 311 ......................... <mBitzer.bonesPlayer.bone[14].transform>
+  [1525] pusharglist 1 .......................... <mBitzer.bonesPlayer.bone[14].transform>
+  [1527] objcall 283 ............................ <mBitzer.bonesPlayer.bone[14].transform.duplicate()>
+  [1530] setlocal 5 ............................. tempTransform = mBitzer.bonesPlayer.bone[14].transform.duplicate()
+  [1532] getlocal 5 ............................. <tempTransform>
+  [1534] pushint8 12 ............................ <12>
+  [1536] inv .................................... <-12>
+  [1537] pushint8 4 ............................. <4>
+  [1539] pushzero ............................... <0>
+  [1540] pusharglist 3 .......................... <-12, 4, 0>
+  [1542] extcall 151 ............................ <vector(-12, 4, 0)>
+  [1544] setobjprop 308 ......................... tempTransform.position = vector(-12, 4, 0)
+  [1547] getlocal 5 ............................. <tempTransform>
+  [1549] pushzero ............................... <0>
+  [1550] pushzero ............................... <0>
+  [1551] pushint8 80 ............................ <80>
+  [1553] inv .................................... <-80>
+  [1554] pusharglist 3 .......................... <0, 0, -80>
+  [1556] extcall 151 ............................ <vector(0, 0, -80)>
+  [1558] setobjprop 312 ......................... tempTransform.rotation = vector(0, 0, -80)
+  [1561] getprop 887 ............................ <mBitzer>
+  [1564] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1567] pushsymb 882 ........................... <#bone>
+  [1570] pushint8 14 ............................ <14>
+  [1572] pusharglist 3 .......................... <mBitzer.bonesPlayer, #bone, 14>
+  [1574] objcall 18 ............................. <mBitzer.bonesPlayer.bone[14]>
+  [1576] getlocal 5 ............................. <tempTransform>
+  [1578] setobjprop 311 ......................... mBitzer.bonesPlayer.bone[14].transform = tempTransform
+  [1581] getlocal 4 ............................. <tickDiff>
+  [1583] getprop 874 ............................ <blinkInterval>
+  [1586] gteq ................................... <tickDiff >= blinkInterval>
+  [1587] pusharglist 0 .......................... <>
+  [1589] thebuiltin 34 .......................... <the mouseDown>
+  [1591] or ..................................... <(tickDiff >= blinkInterval) or the mouseDown>
+  [1592] jmpifz [1669] .......................... if (tickDiff >= blinkInterval) or the mouseDown then
+  [1595] getprop 887 ............................ <mBitzer>
+  [1598] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1601] pushsymb 882 ........................... <#bone>
+  [1604] pushint8 15 ............................ <15>
+  [1606] pusharglist 3 .......................... <mBitzer.bonesPlayer, #bone, 15>
+  [1608] objcall 18 ............................. <mBitzer.bonesPlayer.bone[15]>
+  [1610] getobjprop 311 ......................... <mBitzer.bonesPlayer.bone[15].transform>
+  [1613] pusharglist 1 .......................... <mBitzer.bonesPlayer.bone[15].transform>
+  [1615] objcall 283 ............................ <mBitzer.bonesPlayer.bone[15].transform.duplicate()>
+  [1618] setlocal 5 ............................. tempTransform = mBitzer.bonesPlayer.bone[15].transform.duplicate()
+  [1620] getlocal 5 ............................. <tempTransform>
+  [1622] pushint8 8 ............................. <8>
+  [1624] inv .................................... <-8>
+  [1625] pushint8 4 ............................. <4>
+  [1627] pushzero ............................... <0>
+  [1628] pusharglist 3 .......................... <-8, 4, 0>
+  [1630] extcall 151 ............................ <vector(-8, 4, 0)>
+  [1632] setobjprop 308 ......................... tempTransform.position = vector(-8, 4, 0)
+  [1635] getlocal 5 ............................. <tempTransform>
+  [1637] pushzero ............................... <0>
+  [1638] pushzero ............................... <0>
+  [1639] pushint8 80 ............................ <80>
+  [1641] inv .................................... <-80>
+  [1642] pusharglist 3 .......................... <0, 0, -80>
+  [1644] extcall 151 ............................ <vector(0, 0, -80)>
+  [1646] setobjprop 312 ......................... tempTransform.rotation = vector(0, 0, -80)
+  [1649] getprop 887 ............................ <mBitzer>
+  [1652] getchainedprop 866 ..................... <mBitzer.bonesPlayer>
+  [1655] pushsymb 882 ........................... <#bone>
+  [1658] pushint8 15 ............................ <15>
+  [1660] pusharglist 3 .......................... <mBitzer.bonesPlayer, #bone, 15>
+  [1662] objcall 18 ............................. <mBitzer.bonesPlayer.bone[15]>
+  [1664] getlocal 5 ............................. <tempTransform>
+  [1666] setobjprop 311 ......................... mBitzer.bonesPlayer.bone[15].transform = tempTransform
+  [1669] getlocal 4 ............................. <tickDiff>
+  [1671] getprop 874 ............................ <blinkInterval>
+  [1674] pushint8 8 ............................. <8>
+  [1676] add .................................... <blinkInterval + 8>
+  [1677] gt ..................................... <tickDiff > (blinkInterval + 8)>
+  [1678] jmpifz [1701] .......................... if tickDiff > (blinkInterval + 8) then
+  [1681] pushint8 100 ........................... <100>
+  [1683] pushint8 100 ........................... <100>
+  [1685] pusharglist 1 .......................... <100>
+  [1687] extcall 583 ............................ <random(100)>
+  [1690] add .................................... <100 + random(100)>
+  [1691] setprop 874 ............................ blinkInterval = 100 + random(100)
+  [1694] pusharglist 0 .......................... <>
+  [1696] thebuiltin 181 ......................... <the ticks>
+  [1698] setprop 873 ............................ blinkStartTicks = the ticks
+  [1701] getprop 881 ............................ <theMouseDown>
+  [1704] setprop 35 ............................. prevMouseDown = theMouseDown
+  [1706] ret
+end
+
+on mouseDown me
+  [  0] ret
+end

@@ -1,0 +1,286 @@
+property imagePanel, texturePanel, panelCounter, panelLoc, maskPanel, panelUP, panelTarget, panelLayer, imageKeyPanel, keyPanelLayer, textureKeyPanel, panelBlend, panelDownTicks, cam, prevMessageID
+global gData, gPaused
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setlocal 0 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 12] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 14] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 16] getobjprop 7 ............................ <sprite(the currentSpriteNum).camera>
+  [ 18] setprop 6 ............................... cam = sprite(the currentSpriteNum).camera
+  [ 20] pushint8 21 ............................. <21>
+  [ 22] pushcons 0 .............................. <"Textures">
+  [ 24] pusharglist 2 ........................... <21, "Textures">
+  [ 26] extcall 5 ............................... <member(21, "Textures")>
+  [ 28] getchainedprop 736 ...................... <member(21, "Textures").image>
+  [ 31] pusharglist 1 ........................... <member(21, "Textures").image>
+  [ 33] objcall 283 ............................. <member(21, "Textures").image.duplicate()>
+  [ 36] setprop 735 ............................. imagePanel = member(21, "Textures").image.duplicate()
+  [ 39] getlocal 0 .............................. <w>
+  [ 41] pushcons 1 .............................. <"PanelOverlayTexture">
+  [ 43] pushsymb 738 ............................ <#fromImageObject>
+  [ 46] getprop 735 ............................. <imagePanel>
+  [ 49] pusharglist 4 ........................... <w, "PanelOverlayTexture", #fromImageObject, imagePanel>
+  [ 51] objcall 10 .............................. <w.newTexture("PanelOverlayTexture", #fromImageObject, imagePanel)>
+  [ 53] setprop 737 ............................. texturePanel = w.newTexture("PanelOverlayTexture", #fromImageObject, imagePanel)
+  [ 56] getprop 737 ............................. <texturePanel>
+  [ 59] pushsymb 11 ............................. <#rgba8888>
+  [ 61] setobjprop 12 ........................... texturePanel.renderFormat = #rgba8888
+  [ 63] getprop 6 ............................... <cam>
+  [ 65] getprop 737 ............................. <texturePanel>
+  [ 68] pushint16 278 ........................... <278>
+  [ 71] pushint8 9 .............................. <9>
+  [ 73] pusharglist 2 ........................... <278, 9>
+  [ 75] extcall 13 .............................. <point(278, 9)>
+  [ 77] pushzero ................................ <0>
+  [ 78] pusharglistnoret 4 ...................... <cam, texturePanel, point(278, 9), 0>
+  [ 80] objcall 14 .............................. cam.addOverlay(texturePanel, point(278, 9), 0)
+  [ 82] getprop 6 ............................... <cam>
+  [ 84] pushsymb 16 ............................. <#overlay>
+  [ 86] pusharglist 2 ........................... <cam, #overlay>
+  [ 88] objcall 17 .............................. <cam.overlay.count>
+  [ 90] setprop 739 ............................. panelLayer = cam.overlay.count
+  [ 93] getprop 6 ............................... <cam>
+  [ 95] pushsymb 16 ............................. <#overlay>
+  [ 97] getprop 739 ............................. <panelLayer>
+  [100] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [102] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [104] getobjprop 386 .......................... <cam.overlay[panelLayer].loc>
+  [107] setprop 740 ............................. panelLoc = cam.overlay[panelLayer].loc
+  [110] getprop 6 ............................... <cam>
+  [112] pushsymb 16 ............................. <#overlay>
+  [114] getprop 739 ............................. <panelLayer>
+  [117] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [119] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [121] pushzero ................................ <0>
+  [122] setobjprop 20 ........................... cam.overlay[panelLayer].blend = 0
+  [124] pushzero ................................ <0>
+  [125] setprop 741 ............................. panelBlend = 0
+  [128] pushzero ................................ <0>
+  [129] setprop 742 ............................. panelCounter = 0
+  [132] pushint8 1 .............................. <1>
+  [134] setprop 743 ............................. panelUP = 1
+  [137] pushint16 469 ........................... <469>
+  [140] setprop 744 ............................. panelTarget = 469
+  [143] pushzero ................................ <0>
+  [144] pushzero ................................ <0>
+  [145] pushzero ................................ <0>
+  [146] pushzero ................................ <0>
+  [147] pusharglist 3 ........................... <0, 0, 0>
+  [149] extcall 322 ............................. <rgb(0, 0, 0)>
+  [152] pusharglistnoret 2 ...................... <0, rgb(0, 0, 0)>
+  [154] localcall 2 ............................. doPanel(0, rgb(0, 0, 0))
+  [156] pushzero ................................ <0>
+  [157] setprop 745 ............................. prevMessageID = 0
+  [160] pushzero ................................ <0>
+  [161] setprop 746 ............................. panelDownTicks = 0
+  [164] pushzero ................................ <0>
+  [165] pushint8 10 ............................. <10>
+  [167] pushint16 255 ........................... <255>
+  [170] pushint16 255 ........................... <255>
+  [173] pushint16 255 ........................... <255>
+  [176] pusharglist 3 ........................... <255, 255, 255>
+  [178] extcall 322 ............................. <rgb(255, 255, 255)>
+  [181] pushint16 1000 .......................... <1000>
+  [184] pusharglistnoret 4 ...................... <0, 10, rgb(255, 255, 255), 1000>
+  [186] localcall 2 ............................. doPanel(0, 10, rgb(255, 255, 255), 1000)
+  [188] ret
+end
+
+on exitFrame
+  [  0] getprop 746 ............................. <panelDownTicks>
+  [  3] pushzero ................................ <0>
+  [  4] gt ...................................... <panelDownTicks > 0>
+  [  5] jmpifz [ 23] ............................ if panelDownTicks > 0 then
+  [  8] pusharglist 0 ........................... <>
+  [ 10] thebuiltin 181 .......................... <the ticks>
+  [ 12] getprop 746 ............................. <panelDownTicks>
+  [ 15] gteq .................................... <the ticks >= panelDownTicks>
+  [ 16] jmpifz [ 23] ............................ if the ticks >= panelDownTicks then
+  [ 19] pushzero ................................ <0>
+  [ 20] setprop 743 ............................. panelUP = 0
+  [ 23] getglobal 747 ........................... <gPaused>
+  [ 26] pushzero ................................ <0>
+  [ 27] eq ...................................... <gPaused = 0>
+  [ 28] jmpifz [150] ............................ if gPaused = 0 then
+  [ 31] getprop 743 ............................. <panelUP>
+  [ 34] jmpifz [ 95] ............................ if panelUP then / else
+  [ 37] getprop 741 ............................. <panelBlend>
+  [ 40] pushint8 70 ............................. <70>
+  [ 42] lt ...................................... <panelBlend < 70>
+  [ 43] jmpifz [ 55] ............................ if panelBlend < 70 then
+  [ 46] getprop 741 ............................. <panelBlend>
+  [ 49] pushint8 5 .............................. <5>
+  [ 51] add ..................................... <panelBlend + 5>
+  [ 52] setprop 741 ............................. panelBlend = panelBlend + 5
+  [ 55] getprop 6 ............................... <cam>
+  [ 57] pushsymb 16 ............................. <#overlay>
+  [ 59] getprop 739 ............................. <panelLayer>
+  [ 62] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [ 64] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [ 66] pushint8 100 ............................ <100>
+  [ 68] setobjprop 20 ........................... cam.overlay[panelLayer].blend = 100
+  [ 70] getprop 6 ............................... <cam>
+  [ 72] pushsymb 16 ............................. <#overlay>
+  [ 74] getprop 739 ............................. <panelLayer>
+  [ 77] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [ 79] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [ 81] getprop 741 ............................. <panelBlend>
+  [ 84] pushfloat32 70.0 ........................ <70.0>
+  [ 89] div ..................................... <panelBlend / 70.0>
+  [ 90] setobjprop 19 ........................... cam.overlay[panelLayer].scale = panelBlend / 70.0
+  [ 92] jmp [150]
+  [ 95] getprop 741 ............................. <panelBlend>
+  [ 98] pushzero ................................ <0>
+  [ 99] gt ...................................... <panelBlend > 0>
+  [100] jmpifz [112] ............................ if panelBlend > 0 then
+  [103] getprop 741 ............................. <panelBlend>
+  [106] pushint8 5 .............................. <5>
+  [108] sub ..................................... <panelBlend - 5>
+  [109] setprop 741 ............................. panelBlend = panelBlend - 5
+  [112] getprop 6 ............................... <cam>
+  [114] pushsymb 16 ............................. <#overlay>
+  [116] getprop 739 ............................. <panelLayer>
+  [119] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [121] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [123] getprop 741 ............................. <panelBlend>
+  [126] setobjprop 20 ........................... cam.overlay[panelLayer].blend = panelBlend
+  [128] getprop 6 ............................... <cam>
+  [130] pushsymb 16 ............................. <#overlay>
+  [132] getprop 739 ............................. <panelLayer>
+  [135] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [137] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [139] getprop 741 ............................. <panelBlend>
+  [142] pushfloat32 70.0 ........................ <70.0>
+  [147] div ..................................... <panelBlend / 70.0>
+  [148] setobjprop 19 ........................... cam.overlay[panelLayer].scale = panelBlend / 70.0
+  [150] ret
+end
+
+on doPanel me, messageID, messageColor, messageTicks
+  [  0] getparam 3 .............................. <messageTicks>
+  [  2] pushzero ................................ <0>
+  [  3] gt ...................................... <messageTicks > 0>
+  [  4] jmpifz [ 20] ............................ if messageTicks > 0 then / else
+  [  7] pusharglist 0 ........................... <>
+  [  9] thebuiltin 181 .......................... <the ticks>
+  [ 11] getparam 3 .............................. <messageTicks>
+  [ 13] add ..................................... <the ticks + messageTicks>
+  [ 14] setprop 746 ............................. panelDownTicks = the ticks + messageTicks
+  [ 17] jmp [ 24]
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 746 ............................. panelDownTicks = 0
+  [ 24] getprop 745 ............................. <prevMessageID>
+  [ 27] getparam 1 .............................. <messageID>
+  [ 29] nteq .................................... <prevMessageID <> messageID>
+  [ 30] jmpifz [ 79] ............................ if prevMessageID <> messageID then
+  [ 33] getparam 1 .............................. <messageID>
+  [ 35] setprop 745 ............................. prevMessageID = messageID
+  [ 38] getparam 1 .............................. <messageID>
+  [ 40] pushzero ................................ <0>
+  [ 41] gt ...................................... <messageID > 0>
+  [ 42] jmpifz [ 79] ............................ if messageID > 0 then
+  [ 45] getprop 6 ............................... <cam>
+  [ 47] pushsymb 16 ............................. <#overlay>
+  [ 49] getprop 739 ............................. <panelLayer>
+  [ 52] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [ 54] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [ 56] pushzero ................................ <0>
+  [ 57] setobjprop 19 ........................... cam.overlay[panelLayer].scale = 0
+  [ 59] pushzero ................................ <0>
+  [ 60] setprop 741 ............................. panelBlend = 0
+  [ 63] getprop 6 ............................... <cam>
+  [ 65] pushsymb 16 ............................. <#overlay>
+  [ 67] getprop 739 ............................. <panelLayer>
+  [ 70] pusharglist 3 ........................... <cam, #overlay, panelLayer>
+  [ 72] objcall 18 .............................. <cam.overlay[panelLayer]>
+  [ 74] getprop 741 ............................. <panelBlend>
+  [ 77] setobjprop 20 ........................... cam.overlay[panelLayer].blend = panelBlend
+  [ 79] getparam 1 .............................. <messageID>
+  [ 81] pushzero ................................ <0>
+  [ 82] gt ...................................... <messageID > 0>
+  [ 83] jmpifz [251] ............................ if messageID > 0 then / else
+  [ 86] pushint8 1 .............................. <1>
+  [ 88] setprop 743 ............................. panelUP = 1
+  [ 91] getparam 1 .............................. <messageID>
+  [ 93] pushcons 2 .............................. <"infoPanels">
+  [ 95] pusharglist 2 ........................... <messageID, "infoPanels">
+  [ 97] extcall 5 ............................... <member(messageID, "infoPanels")>
+  [ 99] getchainedprop 736 ...................... <member(messageID, "infoPanels").image>
+  [102] pusharglist 1 ........................... <member(messageID, "infoPanels").image>
+  [104] objcall 748 ............................. <member(messageID, "infoPanels").image.extractAlpha()>
+  [107] setlocal 0 .............................. tempAlpha = member(messageID, "infoPanels").image.extractAlpha()
+  [109] getlocal 0 .............................. <tempAlpha>
+  [111] pusharglist 1 ........................... <tempAlpha>
+  [113] objcall 749 ............................. <tempAlpha.createMask()>
+  [116] setlocal 1 .............................. tempMask = tempAlpha.createMask()
+  [118] getlocal 0 .............................. <tempAlpha>
+  [120] getobjprop 750 .......................... <tempAlpha.width>
+  [123] getlocal 0 .............................. <tempAlpha>
+  [125] getobjprop 751 .......................... <tempAlpha.height>
+  [128] pushint8 8 .............................. <8>
+  [130] pusharglist 3 ........................... <tempAlpha.width, tempAlpha.height, 8>
+  [132] extcall 736 ............................. <image(tempAlpha.width, tempAlpha.height, 8)>
+  [135] setlocal 2 .............................. tempFill = image(tempAlpha.width, tempAlpha.height, 8)
+  [137] getlocal 2 .............................. <tempFill>
+  [139] getlocal 2 .............................. <tempFill>
+  [141] getobjprop 24 ........................... <tempFill.rect>
+  [143] getparam 2 .............................. <messageColor>
+  [145] pusharglistnoret 3 ...................... <tempFill, tempFill.rect, messageColor>
+  [147] objcall 752 ............................. tempFill.fill(tempFill.rect, messageColor)
+  [150] getlocal 2 .............................. <tempFill>
+  [152] pushzero ................................ <0>
+  [153] pushzero ................................ <0>
+  [154] getlocal 2 .............................. <tempFill>
+  [156] getobjprop 750 .......................... <tempFill.width>
+  [159] pushint8 12 ............................. <12>
+  [161] pusharglist 4 ........................... <0, 0, tempFill.width, 12>
+  [163] extcall 24 .............................. <rect(0, 0, tempFill.width, 12)>
+  [165] getparam 2 .............................. <messageColor>
+  [167] pusharglistnoret 3 ...................... <tempFill, rect(0, 0, tempFill.width, 12), messageColor>
+  [169] objcall 752 ............................. tempFill.fill(rect(0, 0, tempFill.width, 12), messageColor)
+  [172] pushint8 21 ............................. <21>
+  [174] pushcons 0 .............................. <"Textures">
+  [176] pusharglist 2 ........................... <21, "Textures">
+  [178] extcall 5 ............................... <member(21, "Textures")>
+  [180] getchainedprop 736 ...................... <member(21, "Textures").image>
+  [183] pusharglist 1 ........................... <member(21, "Textures").image>
+  [185] objcall 283 ............................. <member(21, "Textures").image.duplicate()>
+  [188] setprop 735 ............................. imagePanel = member(21, "Textures").image.duplicate()
+  [191] getprop 735 ............................. <imagePanel>
+  [194] getlocal 2 .............................. <tempFill>
+  [196] getlocal 2 .............................. <tempFill>
+  [198] getobjprop 24 ........................... <tempFill.rect>
+  [200] pushint8 5 .............................. <5>
+  [202] pushint8 20 ............................. <20>
+  [204] pushint8 5 .............................. <5>
+  [206] pushint8 20 ............................. <20>
+  [208] pusharglist 4 ........................... <5, 20, 5, 20>
+  [210] extcall 24 .............................. <rect(5, 20, 5, 20)>
+  [212] add ..................................... <tempFill.rect + rect(5, 20, 5, 20)>
+  [213] getlocal 2 .............................. <tempFill>
+  [215] getobjprop 24 ........................... <tempFill.rect>
+  [217] pushsymb 753 ............................ <#maskImage>
+  [220] getlocal 1 .............................. <tempMask>
+  [222] pusharglist 2 ........................... <[#maskImage: tempMask]>
+  [224] pushproplist ............................ <[#maskImage: tempMask]>
+  [225] pusharglistnoret 5 ...................... <imagePanel, tempFill, tempFill.rect + rect(5, 20, 5, 20), tempFill.rect, [#maskImage: tempMask]>
+  [227] objcall 754 ............................. imagePanel.copyPixels(tempFill, tempFill.rect + rect(5, 20, 5, 20), tempFill.rect, [#maskImage: tempMask])
+  [230] getprop 737 ............................. <texturePanel>
+  [233] getprop 735 ............................. <imagePanel>
+  [236] setobjprop 736 .......................... texturePanel.image = imagePanel
+  [239] pushzero ................................ <0>
+  [240] setlocal 2 .............................. tempFill = 0
+  [242] pushzero ................................ <0>
+  [243] setlocal 1 .............................. tempMask = 0
+  [245] pushzero ................................ <0>
+  [246] setlocal 0 .............................. tempAlpha = 0
+  [248] jmp [255]
+  [251] pushzero ................................ <0>
+  [252] setprop 743 ............................. panelUP = 0
+  [255] ret
+end

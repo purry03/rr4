@@ -1,0 +1,182 @@
+{
+  "totalLength": 1220,
+  "totalLength2": 1220,
+  "headerLength": 92,
+  "scriptNumber": 1,
+  "unk20": 1,
+  "parentNumber": -1,
+  "scriptFlags": 32770,
+  "unk42": 0,
+  "castID": 65537,
+  "factoryNameID": -1,
+  "handlerVectorsCount": 13,
+  "handlerVectorsOffset": 1194,
+  "handlerVectorsSize": 6144,
+  "propertiesCount": 0,
+  "propertiesOffset": 92,
+  "globalsCount": 19,
+  "globalsOffset": 92,
+  "handlersCount": 3,
+  "handlersOffset": 130,
+  "literalsCount": 16,
+  "literalsOffset": 834,
+  "literalsDataCount": 232,
+  "literalsDataOffset": 962,
+  "propertyNameIDs": [],
+  "globalNameIDs": [
+    47,
+    68,
+    92,
+    93,
+    70,
+    71,
+    66,
+    69,
+    67,
+    76,
+    72,
+    73,
+    74,
+    75,
+    81,
+    82,
+    83,
+    84,
+    85
+  ],
+  "handlers": [
+    {
+      "nameID": 48,
+      "vectorPos": 65535,
+      "compiledLen": 81,
+      "compiledOffset": 268,
+      "argumentCount": 0,
+      "argumentOffset": 350,
+      "localsCount": 2,
+      "localsOffset": 350,
+      "globalsCount": 0,
+      "globalsOffset": 92,
+      "unknown1": 321,
+      "unknown2": 7,
+      "lineCount": 8,
+      "lineOffset": 354,
+      "stackHeight": 6
+    },
+    {
+      "nameID": 49,
+      "vectorPos": 12,
+      "compiledLen": 30,
+      "compiledOffset": 362,
+      "argumentCount": 0,
+      "argumentOffset": 392,
+      "localsCount": 0,
+      "localsOffset": 392,
+      "globalsCount": 0,
+      "globalsOffset": 92,
+      "unknown1": 791,
+      "unknown2": 21,
+      "lineCount": 4,
+      "lineOffset": 392,
+      "stackHeight": 2
+    },
+    {
+      "nameID": 50,
+      "vectorPos": 11,
+      "compiledLen": 347,
+      "compiledOffset": 396,
+      "argumentCount": 0,
+      "argumentOffset": 744,
+      "localsCount": 6,
+      "localsOffset": 744,
+      "globalsCount": 0,
+      "globalsOffset": 92,
+      "unknown1": 941,
+      "unknown2": 32,
+      "lineCount": 77,
+      "lineOffset": 756,
+      "stackHeight": 11
+    }
+  ],
+  "literals": [
+    {
+      "type": 1,
+      "offset": 0,
+      "value": "src"
+    },
+    {
+      "type": 1,
+      "offset": 8,
+      "value": "http:"
+    },
+    {
+      "type": 1,
+      "offset": 18,
+      "value": "shockwave.com"
+    },
+    {
+      "type": 1,
+      "offset": 36,
+      "value": "gallopinggames.com"
+    },
+    {
+      "type": 1,
+      "offset": 60,
+      "value": "High Scores"
+    },
+    {
+      "type": 1,
+      "offset": 76,
+      "value": "Plugin"
+    },
+    {
+      "type": 1,
+      "offset": 88,
+      "value": "Author"
+    },
+    {
+      "type": 1,
+      "offset": 100,
+      "value": "stolen"
+    },
+    {
+      "type": 1,
+      "offset": 112,
+      "value": "FALSE"
+    },
+    {
+      "type": 1,
+      "offset": 122,
+      "value": "RedlineRumble4SaveGame_214"
+    },
+    {
+      "type": 1,
+      "offset": 154,
+      "value": "["
+    },
+    {
+      "type": 1,
+      "offset": 160,
+      "value": ","
+    },
+    {
+      "type": 1,
+      "offset": 166,
+      "value": "]"
+    },
+    {
+      "type": 1,
+      "offset": 172,
+      "value": "tempSaveString = "
+    },
+    {
+      "type": 1,
+      "offset": 194,
+      "value": "tempResult = "
+    },
+    {
+      "type": 1,
+      "offset": 212,
+      "value": "tempLoadData = "
+    }
+  ]
+}

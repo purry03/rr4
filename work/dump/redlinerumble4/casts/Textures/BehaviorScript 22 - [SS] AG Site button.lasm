@@ -1,0 +1,24 @@
+on mouseEnter me
+  [  0] gettoplevelprop 3 ....................... <_player>
+  [  2] pushint16 280 ........................... <280>
+  [  5] pusharglistnoret 2 ...................... <_player, 280>
+  [  7] objcall 4 ............................... _player.cursor(280)
+  [  9] ret
+end
+
+on mouseLeave me
+  [  0] gettoplevelprop 3 ....................... <_player>
+  [  2] pushint8 1 .............................. <1>
+  [  4] inv ..................................... <-1>
+  [  5] pusharglistnoret 2 ...................... <_player, -1>
+  [  7] objcall 4 ............................... _player.cursor(-1)
+  [  9] ret
+end
+
+on mouseUp
+  [  0] pushcons 0 .............................. <"http://www.addictinggames.com">
+  [  2] pushcons 1 .............................. <"_new">
+  [  4] pusharglistnoret 2 ...................... <"http://www.addictinggames.com", "_new">
+  [  6] extcall 6 ............................... gotoNetPage("http://www.addictinggames.com", "_new")
+  [  8] ret
+end

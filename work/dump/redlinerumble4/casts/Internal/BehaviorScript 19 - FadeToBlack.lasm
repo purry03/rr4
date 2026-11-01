@@ -1,0 +1,112 @@
+property w, cam, oFadeToBlack, fadeToBlackBlend, prevFadeToBlackBlend
+global g_NextFrame, g_PrevFrame, g_FadeToBlack, g_NextFramePlease
+
+on beginSprite
+  [  0] getglobal 47 ............................ <g_NextFrame>
+  [  2] setglobal 69 ............................ g_NextFramePlease = g_NextFrame
+  [  4] pushzero ................................ <0>
+  [  5] setglobal 728 ........................... g_FadeToBlack = 0
+  [  8] pushint8 100 ............................ <100>
+  [ 10] setprop 424 ............................. fadeToBlackBlend = 100
+  [ 13] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 15] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 17] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 19] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [ 21] setprop 27 .............................. w = sprite(the currentSpriteNum).member
+  [ 23] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 25] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 27] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 29] getobjprop 7 ............................ <sprite(the currentSpriteNum).camera>
+  [ 31] setprop 6 ............................... cam = sprite(the currentSpriteNum).camera
+  [ 33] getprop 27 .............................. <w>
+  [ 35] pushcons 0 .............................. <"FadeToBlackTexture">
+  [ 37] pushsymb 9 .............................. <#fromCastMember>
+  [ 39] pushint8 52 ............................. <52>
+  [ 41] pushcons 1 .............................. <"Textures">
+  [ 43] pusharglist 2 ........................... <52, "Textures">
+  [ 45] extcall 5 ............................... <member(52, "Textures")>
+  [ 47] pusharglist 4 ........................... <w, "FadeToBlackTexture", #fromCastMember, member(52, "Textures")>
+  [ 49] objcall 10 .............................. <w.newTexture("FadeToBlackTexture", #fromCastMember, member(52, "Textures"))>
+  [ 51] setlocal 0 .............................. tempTexture = w.newTexture("FadeToBlackTexture", #fromCastMember, member(52, "Textures"))
+  [ 53] getprop 6 ............................... <cam>
+  [ 55] getlocal 0 .............................. <tempTexture>
+  [ 57] pushzero ................................ <0>
+  [ 58] pushzero ................................ <0>
+  [ 59] pusharglist 2 ........................... <0, 0>
+  [ 61] extcall 13 .............................. <point(0, 0)>
+  [ 63] pushzero ................................ <0>
+  [ 64] pusharglistnoret 4 ...................... <cam, tempTexture, point(0, 0), 0>
+  [ 66] objcall 14 .............................. cam.addOverlay(tempTexture, point(0, 0), 0)
+  [ 68] getprop 6 ............................... <cam>
+  [ 70] pushsymb 16 ............................. <#overlay>
+  [ 72] pusharglist 2 ........................... <cam, #overlay>
+  [ 74] objcall 17 .............................. <cam.overlay.count>
+  [ 76] setprop 1014 ............................ oFadeToBlack = cam.overlay.count
+  [ 79] getprop 6 ............................... <cam>
+  [ 81] pushsymb 16 ............................. <#overlay>
+  [ 83] getprop 1014 ............................ <oFadeToBlack>
+  [ 86] pusharglist 3 ........................... <cam, #overlay, oFadeToBlack>
+  [ 88] objcall 18 .............................. <cam.overlay[oFadeToBlack]>
+  [ 90] pushint8 100 ............................ <100>
+  [ 92] setobjprop 19 ........................... cam.overlay[oFadeToBlack].scale = 100
+  [ 94] ret
+end
+
+on exitFrame
+  [  0] getprop 6 ............................... <cam>
+  [  2] pushsymb 16 ............................. <#overlay>
+  [  4] getprop 1014 ............................ <oFadeToBlack>
+  [  7] pusharglist 3 ........................... <cam, #overlay, oFadeToBlack>
+  [  9] objcall 18 .............................. <cam.overlay[oFadeToBlack]>
+  [ 11] getprop 424 ............................. <fadeToBlackBlend>
+  [ 14] setobjprop 20 ........................... cam.overlay[oFadeToBlack].blend = fadeToBlackBlend
+  [ 16] getglobal 728 ........................... <g_FadeToBlack>
+  [ 19] pushzero ................................ <0>
+  [ 20] eq ...................................... <g_FadeToBlack = 0>
+  [ 21] jmpifz [ 44] ............................ if g_FadeToBlack = 0 then / else
+  [ 24] getprop 424 ............................. <fadeToBlackBlend>
+  [ 27] pushzero ................................ <0>
+  [ 28] gt ...................................... <fadeToBlackBlend > 0>
+  [ 29] jmpifz [ 41] ............................ if fadeToBlackBlend > 0 then
+  [ 32] getprop 424 ............................. <fadeToBlackBlend>
+  [ 35] pushint8 2 .............................. <2>
+  [ 37] sub ..................................... <fadeToBlackBlend - 2>
+  [ 38] setprop 424 ............................. fadeToBlackBlend = fadeToBlackBlend - 2
+  [ 41] jmp [ 62]
+  [ 44] getprop 424 ............................. <fadeToBlackBlend>
+  [ 47] pushint8 100 ............................ <100>
+  [ 49] lt ...................................... <fadeToBlackBlend < 100>
+  [ 50] jmpifz [ 62] ............................ if fadeToBlackBlend < 100 then
+  [ 53] getprop 424 ............................. <fadeToBlackBlend>
+  [ 56] pushint8 2 .............................. <2>
+  [ 58] add ..................................... <fadeToBlackBlend + 2>
+  [ 59] setprop 424 ............................. fadeToBlackBlend = fadeToBlackBlend + 2
+  [ 62] getprop 424 ............................. <fadeToBlackBlend>
+  [ 65] pushzero ................................ <0>
+  [ 66] eq ...................................... <fadeToBlackBlend = 0>
+  [ 67] jmpifz [ 99] ............................ if fadeToBlackBlend = 0 then / else
+  [ 70] getprop 6 ............................... <cam>
+  [ 72] pushsymb 16 ............................. <#overlay>
+  [ 74] getprop 1014 ............................ <oFadeToBlack>
+  [ 77] pusharglist 3 ........................... <cam, #overlay, oFadeToBlack>
+  [ 79] objcall 18 .............................. <cam.overlay[oFadeToBlack]>
+  [ 81] pushint16 1000 .......................... <1000>
+  [ 84] inv ..................................... <-1000>
+  [ 85] pushint16 1000 .......................... <1000>
+  [ 88] inv ..................................... <-1000>
+  [ 89] pusharglist 2 ........................... <-1000, -1000>
+  [ 91] extcall 13 .............................. <point(-1000, -1000)>
+  [ 93] setobjprop 386 .......................... cam.overlay[oFadeToBlack].loc = point(-1000, -1000)
+  [ 96] jmp [119]
+  [ 99] getprop 6 ............................... <cam>
+  [101] pushsymb 16 ............................. <#overlay>
+  [103] getprop 1014 ............................ <oFadeToBlack>
+  [106] pusharglist 3 ........................... <cam, #overlay, oFadeToBlack>
+  [108] objcall 18 .............................. <cam.overlay[oFadeToBlack]>
+  [110] pushzero ................................ <0>
+  [111] pushzero ................................ <0>
+  [112] pusharglist 2 ........................... <0, 0>
+  [114] extcall 13 .............................. <point(0, 0)>
+  [116] setobjprop 386 .......................... cam.overlay[oFadeToBlack].loc = point(0, 0)
+  [119] ret
+end

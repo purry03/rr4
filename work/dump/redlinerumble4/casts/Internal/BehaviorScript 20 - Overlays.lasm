@@ -1,0 +1,466 @@
+property w, cam, oRedBar, oSkull, oRedSkull, oGameOver, prevDamagePercent, skullBlend, displayDamagePercent, oLogo, oYellowBar, prevBoostPercent, displayBoostPercent, oLevelSmashed, gameOverTexture, prevGameOverID, oPickups, pickupsTexture, pickupsStartTicks
+global g_Paused, g_DamagePercent, g_BoostPercent, g_PickupOverlay, g_GameOverID
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setprop 27 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 12] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 14] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 16] getobjprop 7 ............................ <sprite(the currentSpriteNum).camera>
+  [ 18] setprop 6 ............................... cam = sprite(the currentSpriteNum).camera
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 288 ............................. prevDamagePercent = 0
+  [ 24] pushzero ................................ <0>
+  [ 25] setprop 1016 ............................ prevBoostPercent = 0
+  [ 28] pushzero ................................ <0>
+  [ 29] setprop 1017 ............................ prevGameOverID = 0
+  [ 32] pushzero ................................ <0>
+  [ 33] setglobal 1018 .......................... g_PickupOverlay = 0
+  [ 36] pusharglist 0 ........................... <>
+  [ 38] thebuiltin 181 .......................... <the ticks>
+  [ 40] setlocal 0 .............................. flashTicks = the ticks
+  [ 42] getglobal 289 ........................... <g_DamagePercent>
+  [ 45] setprop 1019 ............................ displayDamagePercent = g_DamagePercent
+  [ 48] getglobal 426 ........................... <g_BoostPercent>
+  [ 51] setprop 1020 ............................ displayBoostPercent = g_BoostPercent
+  [ 54] getprop 27 .............................. <w>
+  [ 56] pushcons 0 .............................. <"DamageBarTexture">
+  [ 58] pushsymb 9 .............................. <#fromCastMember>
+  [ 60] pushint8 12 ............................. <12>
+  [ 62] pushcons 1 .............................. <"Textures">
+  [ 64] pusharglist 2 ........................... <12, "Textures">
+  [ 66] extcall 5 ............................... <member(12, "Textures")>
+  [ 68] pusharglist 4 ........................... <w, "DamageBarTexture", #fromCastMember, member(12, "Textures")>
+  [ 70] objcall 10 .............................. <w.newTexture("DamageBarTexture", #fromCastMember, member(12, "Textures"))>
+  [ 72] setlocal 1 .............................. tempTexture = w.newTexture("DamageBarTexture", #fromCastMember, member(12, "Textures"))
+  [ 74] getlocal 1 .............................. <tempTexture>
+  [ 76] pushsymb 661 ............................ <#rgba8880>
+  [ 79] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8880
+  [ 81] getprop 6 ............................... <cam>
+  [ 83] getlocal 1 .............................. <tempTexture>
+  [ 85] pushzero ................................ <0>
+  [ 86] pushint8 8 .............................. <8>
+  [ 88] pusharglist 2 ........................... <0, 8>
+  [ 90] extcall 13 .............................. <point(0, 8)>
+  [ 92] pushzero ................................ <0>
+  [ 93] pusharglistnoret 4 ...................... <cam, tempTexture, point(0, 8), 0>
+  [ 95] objcall 14 .............................. cam.addOverlay(tempTexture, point(0, 8), 0)
+  [ 97] getprop 27 .............................. <w>
+  [ 99] pushcons 2 .............................. <"DamageRedBarTexture">
+  [101] pushsymb 9 .............................. <#fromCastMember>
+  [103] pushint8 13 ............................. <13>
+  [105] pushcons 1 .............................. <"Textures">
+  [107] pusharglist 2 ........................... <13, "Textures">
+  [109] extcall 5 ............................... <member(13, "Textures")>
+  [111] pusharglist 4 ........................... <w, "DamageRedBarTexture", #fromCastMember, member(13, "Textures")>
+  [113] objcall 10 .............................. <w.newTexture("DamageRedBarTexture", #fromCastMember, member(13, "Textures"))>
+  [115] setlocal 1 .............................. tempTexture = w.newTexture("DamageRedBarTexture", #fromCastMember, member(13, "Textures"))
+  [117] getlocal 1 .............................. <tempTexture>
+  [119] pushsymb 661 ............................ <#rgba8880>
+  [122] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8880
+  [124] getprop 6 ............................... <cam>
+  [126] getlocal 1 .............................. <tempTexture>
+  [128] pushint16 256 ........................... <256>
+  [131] inv ..................................... <-256>
+  [132] pushint8 8 .............................. <8>
+  [134] pusharglist 2 ........................... <-256, 8>
+  [136] extcall 13 .............................. <point(-256, 8)>
+  [138] pushzero ................................ <0>
+  [139] pusharglistnoret 4 ...................... <cam, tempTexture, point(-256, 8), 0>
+  [141] objcall 14 .............................. cam.addOverlay(tempTexture, point(-256, 8), 0)
+  [143] getprop 6 ............................... <cam>
+  [145] pushsymb 16 ............................. <#overlay>
+  [147] pusharglist 2 ........................... <cam, #overlay>
+  [149] objcall 17 .............................. <cam.overlay.count>
+  [151] setprop 1021 ............................ oRedBar = cam.overlay.count
+  [154] getprop 27 .............................. <w>
+  [156] pushcons 3 .............................. <"DamageSkullTexture">
+  [158] pushsymb 9 .............................. <#fromCastMember>
+  [160] pushint8 14 ............................. <14>
+  [162] pushcons 1 .............................. <"Textures">
+  [164] pusharglist 2 ........................... <14, "Textures">
+  [166] extcall 5 ............................... <member(14, "Textures")>
+  [168] pusharglist 4 ........................... <w, "DamageSkullTexture", #fromCastMember, member(14, "Textures")>
+  [170] objcall 10 .............................. <w.newTexture("DamageSkullTexture", #fromCastMember, member(14, "Textures"))>
+  [172] setlocal 1 .............................. tempTexture = w.newTexture("DamageSkullTexture", #fromCastMember, member(14, "Textures"))
+  [174] getlocal 1 .............................. <tempTexture>
+  [176] pushsymb 370 ............................ <#rgba4444>
+  [179] setobjprop 12 ........................... tempTexture.renderFormat = #rgba4444
+  [181] getprop 6 ............................... <cam>
+  [183] getlocal 1 .............................. <tempTexture>
+  [185] pushint16 214 ........................... <214>
+  [188] pushzero ................................ <0>
+  [189] pusharglist 2 ........................... <214, 0>
+  [191] extcall 13 .............................. <point(214, 0)>
+  [193] pushzero ................................ <0>
+  [194] pusharglistnoret 4 ...................... <cam, tempTexture, point(214, 0), 0>
+  [196] objcall 14 .............................. cam.addOverlay(tempTexture, point(214, 0), 0)
+  [198] getprop 6 ............................... <cam>
+  [200] pushsymb 16 ............................. <#overlay>
+  [202] pusharglist 2 ........................... <cam, #overlay>
+  [204] objcall 17 .............................. <cam.overlay.count>
+  [206] setprop 1022 ............................ oSkull = cam.overlay.count
+  [209] getprop 27 .............................. <w>
+  [211] pushcons 4 .............................. <"DamageRedSkullTexture">
+  [213] pushsymb 9 .............................. <#fromCastMember>
+  [215] pushint8 15 ............................. <15>
+  [217] pushcons 1 .............................. <"Textures">
+  [219] pusharglist 2 ........................... <15, "Textures">
+  [221] extcall 5 ............................... <member(15, "Textures")>
+  [223] pusharglist 4 ........................... <w, "DamageRedSkullTexture", #fromCastMember, member(15, "Textures")>
+  [225] objcall 10 .............................. <w.newTexture("DamageRedSkullTexture", #fromCastMember, member(15, "Textures"))>
+  [227] setlocal 1 .............................. tempTexture = w.newTexture("DamageRedSkullTexture", #fromCastMember, member(15, "Textures"))
+  [229] getlocal 1 .............................. <tempTexture>
+  [231] pushsymb 370 ............................ <#rgba4444>
+  [234] setobjprop 12 ........................... tempTexture.renderFormat = #rgba4444
+  [236] getprop 6 ............................... <cam>
+  [238] getlocal 1 .............................. <tempTexture>
+  [240] pushint16 246 ........................... <246>
+  [243] pushint8 1 .............................. <1>
+  [245] pusharglist 2 ........................... <246, 1>
+  [247] extcall 13 .............................. <point(246, 1)>
+  [249] pushzero ................................ <0>
+  [250] pusharglistnoret 4 ...................... <cam, tempTexture, point(246, 1), 0>
+  [252] objcall 14 .............................. cam.addOverlay(tempTexture, point(246, 1), 0)
+  [254] getprop 6 ............................... <cam>
+  [256] pushsymb 16 ............................. <#overlay>
+  [258] pusharglist 2 ........................... <cam, #overlay>
+  [260] objcall 17 .............................. <cam.overlay.count>
+  [262] setprop 1023 ............................ oRedSkull = cam.overlay.count
+  [265] getprop 27 .............................. <w>
+  [267] pushcons 5 .............................. <"BoostBarTexture">
+  [269] pushsymb 9 .............................. <#fromCastMember>
+  [271] pushint8 16 ............................. <16>
+  [273] pushcons 1 .............................. <"Textures">
+  [275] pusharglist 2 ........................... <16, "Textures">
+  [277] extcall 5 ............................... <member(16, "Textures")>
+  [279] pusharglist 4 ........................... <w, "BoostBarTexture", #fromCastMember, member(16, "Textures")>
+  [281] objcall 10 .............................. <w.newTexture("BoostBarTexture", #fromCastMember, member(16, "Textures"))>
+  [283] setlocal 1 .............................. tempTexture = w.newTexture("BoostBarTexture", #fromCastMember, member(16, "Textures"))
+  [285] getlocal 1 .............................. <tempTexture>
+  [287] pushsymb 661 ............................ <#rgba8880>
+  [290] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8880
+  [292] getprop 6 ............................... <cam>
+  [294] getlocal 1 .............................. <tempTexture>
+  [296] pushint16 544 ........................... <544>
+  [299] pushint8 8 .............................. <8>
+  [301] pusharglist 2 ........................... <544, 8>
+  [303] extcall 13 .............................. <point(544, 8)>
+  [305] pushzero ................................ <0>
+  [306] pusharglistnoret 4 ...................... <cam, tempTexture, point(544, 8), 0>
+  [308] objcall 14 .............................. cam.addOverlay(tempTexture, point(544, 8), 0)
+  [310] getprop 27 .............................. <w>
+  [312] pushcons 6 .............................. <"BoostYellowBarTexture">
+  [314] pushsymb 9 .............................. <#fromCastMember>
+  [316] pushint8 17 ............................. <17>
+  [318] pushcons 1 .............................. <"Textures">
+  [320] pusharglist 2 ........................... <17, "Textures">
+  [322] extcall 5 ............................... <member(17, "Textures")>
+  [324] pusharglist 4 ........................... <w, "BoostYellowBarTexture", #fromCastMember, member(17, "Textures")>
+  [326] objcall 10 .............................. <w.newTexture("BoostYellowBarTexture", #fromCastMember, member(17, "Textures"))>
+  [328] setlocal 1 .............................. tempTexture = w.newTexture("BoostYellowBarTexture", #fromCastMember, member(17, "Textures"))
+  [330] getlocal 1 .............................. <tempTexture>
+  [332] pushsymb 661 ............................ <#rgba8880>
+  [335] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8880
+  [337] getprop 6 ............................... <cam>
+  [339] getlocal 1 .............................. <tempTexture>
+  [341] pushint16 800 ........................... <800>
+  [344] pushint8 8 .............................. <8>
+  [346] pusharglist 2 ........................... <800, 8>
+  [348] extcall 13 .............................. <point(800, 8)>
+  [350] pushzero ................................ <0>
+  [351] pusharglistnoret 4 ...................... <cam, tempTexture, point(800, 8), 0>
+  [353] objcall 14 .............................. cam.addOverlay(tempTexture, point(800, 8), 0)
+  [355] getprop 6 ............................... <cam>
+  [357] pushsymb 16 ............................. <#overlay>
+  [359] pusharglist 2 ........................... <cam, #overlay>
+  [361] objcall 17 .............................. <cam.overlay.count>
+  [363] setprop 1024 ............................ oYellowBar = cam.overlay.count
+  [366] getprop 27 .............................. <w>
+  [368] pushcons 7 .............................. <"BoostLogoTexture">
+  [370] pushsymb 9 .............................. <#fromCastMember>
+  [372] pushint8 18 ............................. <18>
+  [374] pushcons 1 .............................. <"Textures">
+  [376] pusharglist 2 ........................... <18, "Textures">
+  [378] extcall 5 ............................... <member(18, "Textures")>
+  [380] pusharglist 4 ........................... <w, "BoostLogoTexture", #fromCastMember, member(18, "Textures")>
+  [382] objcall 10 .............................. <w.newTexture("BoostLogoTexture", #fromCastMember, member(18, "Textures"))>
+  [384] setlocal 1 .............................. tempTexture = w.newTexture("BoostLogoTexture", #fromCastMember, member(18, "Textures"))
+  [386] getlocal 1 .............................. <tempTexture>
+  [388] pushsymb 370 ............................ <#rgba4444>
+  [391] setobjprop 12 ........................... tempTexture.renderFormat = #rgba4444
+  [393] getprop 6 ............................... <cam>
+  [395] getlocal 1 .............................. <tempTexture>
+  [397] pushint16 505 ........................... <505>
+  [400] pushint8 2 .............................. <2>
+  [402] pusharglist 2 ........................... <505, 2>
+  [404] extcall 13 .............................. <point(505, 2)>
+  [406] pushzero ................................ <0>
+  [407] pusharglistnoret 4 ...................... <cam, tempTexture, point(505, 2), 0>
+  [409] objcall 14 .............................. cam.addOverlay(tempTexture, point(505, 2), 0)
+  [411] getprop 6 ............................... <cam>
+  [413] pushsymb 16 ............................. <#overlay>
+  [415] pusharglist 2 ........................... <cam, #overlay>
+  [417] objcall 17 .............................. <cam.overlay.count>
+  [419] setprop 1025 ............................ oLogo = cam.overlay.count
+  [422] ret
+end
+
+on exitFrame
+  [  0] getglobal 28 ............................ <g_Paused>
+  [  2] pushzero ................................ <0>
+  [  3] eq ...................................... <g_Paused = 0>
+  [  4] jmpifz [546] ............................ if g_Paused = 0 then
+  [  7] getprop 1017 ............................ <prevGameOverID>
+  [ 10] pushzero ................................ <0>
+  [ 11] eq ...................................... <prevGameOverID = 0>
+  [ 12] getglobal 607 ........................... <g_GameOverID>
+  [ 15] pushzero ................................ <0>
+  [ 16] gt ...................................... <g_GameOverID > 0>
+  [ 17] and ..................................... <(prevGameOverID = 0) and (g_GameOverID > 0)>
+  [ 18] jmpifz [119] ............................ if (prevGameOverID = 0) and (g_GameOverID > 0) then
+  [ 21] getglobal 607 ........................... <g_GameOverID>
+  [ 24] peek 0 .................................. case g_GameOverID of
+  [ 26] pushint8 1 .............................. <1>
+  [ 28] eq
+  [ 29] jmpifz [ 48] ............................ (case) 1:
+  [ 32] getprop 1026 ............................ <gameOverTexture>
+  [ 35] pushint8 94 ............................. <94>
+  [ 37] pushcons 1 .............................. <"Textures">
+  [ 39] pusharglist 2 ........................... <94, "Textures">
+  [ 41] extcall 5 ............................... <member(94, "Textures")>
+  [ 43] setobjprop 5 ............................ gameOverTexture.member = member(94, "Textures")
+  [ 45] jmp [117]
+  [ 48] peek 0
+  [ 50] pushint8 2 .............................. <2>
+  [ 52] eq
+  [ 53] jmpifz [ 72] ............................ (case) 2:
+  [ 56] getprop 1026 ............................ <gameOverTexture>
+  [ 59] pushint8 95 ............................. <95>
+  [ 61] pushcons 1 .............................. <"Textures">
+  [ 63] pusharglist 2 ........................... <95, "Textures">
+  [ 65] extcall 5 ............................... <member(95, "Textures")>
+  [ 67] setobjprop 5 ............................ gameOverTexture.member = member(95, "Textures")
+  [ 69] jmp [117]
+  [ 72] peek 0
+  [ 74] pushint8 3 .............................. <3>
+  [ 76] eq
+  [ 77] jmpifz [ 96] ............................ (case) 3:
+  [ 80] getprop 1026 ............................ <gameOverTexture>
+  [ 83] pushint8 96 ............................. <96>
+  [ 85] pushcons 1 .............................. <"Textures">
+  [ 87] pusharglist 2 ........................... <96, "Textures">
+  [ 89] extcall 5 ............................... <member(96, "Textures")>
+  [ 91] setobjprop 5 ............................ gameOverTexture.member = member(96, "Textures")
+  [ 93] jmp [117]
+  [ 96] peek 0
+  [ 98] pushint8 4 .............................. <4>
+  [100] eq
+  [101] jmpifz [117] ............................ (case) 4:
+  [104] getprop 1026 ............................ <gameOverTexture>
+  [107] pushint8 97 ............................. <97>
+  [109] pushcons 1 .............................. <"Textures">
+  [111] pusharglist 2 ........................... <97, "Textures">
+  [113] extcall 5 ............................... <member(97, "Textures")>
+  [115] setobjprop 5 ............................ gameOverTexture.member = member(97, "Textures")
+  [117] pop 1 ................................... end case
+  [119] getglobal 1018 .......................... <g_PickupOverlay>
+  [122] pushzero ................................ <0>
+  [123] nteq .................................... <g_PickupOverlay <> 0>
+  [124] jmpifz [299] ............................ if g_PickupOverlay <> 0 then
+  [127] getglobal 1018 .......................... <g_PickupOverlay>
+  [130] peek 0 .................................. case g_PickupOverlay of
+  [132] pushint8 1 .............................. <1>
+  [134] eq
+  [135] jmpifz [154] ............................ (case) 1:
+  [138] getprop 1027 ............................ <pickupsTexture>
+  [141] pushint8 56 ............................. <56>
+  [143] pushcons 1 .............................. <"Textures">
+  [145] pusharglist 2 ........................... <56, "Textures">
+  [147] extcall 5 ............................... <member(56, "Textures")>
+  [149] setobjprop 5 ............................ pickupsTexture.member = member(56, "Textures")
+  [151] jmp [271]
+  [154] peek 0
+  [156] pushint8 2 .............................. <2>
+  [158] eq
+  [159] jmpifz [178] ............................ (case) 2:
+  [162] getprop 1027 ............................ <pickupsTexture>
+  [165] pushint8 57 ............................. <57>
+  [167] pushcons 1 .............................. <"Textures">
+  [169] pusharglist 2 ........................... <57, "Textures">
+  [171] extcall 5 ............................... <member(57, "Textures")>
+  [173] setobjprop 5 ............................ pickupsTexture.member = member(57, "Textures")
+  [175] jmp [271]
+  [178] peek 0
+  [180] pushint8 3 .............................. <3>
+  [182] eq
+  [183] jmpifz [202] ............................ (case) 3:
+  [186] getprop 1027 ............................ <pickupsTexture>
+  [189] pushint8 58 ............................. <58>
+  [191] pushcons 1 .............................. <"Textures">
+  [193] pusharglist 2 ........................... <58, "Textures">
+  [195] extcall 5 ............................... <member(58, "Textures")>
+  [197] setobjprop 5 ............................ pickupsTexture.member = member(58, "Textures")
+  [199] jmp [271]
+  [202] peek 0
+  [204] pushint8 4 .............................. <4>
+  [206] eq
+  [207] jmpifz [226] ............................ (case) 4:
+  [210] getprop 1027 ............................ <pickupsTexture>
+  [213] pushint8 59 ............................. <59>
+  [215] pushcons 1 .............................. <"Textures">
+  [217] pusharglist 2 ........................... <59, "Textures">
+  [219] extcall 5 ............................... <member(59, "Textures")>
+  [221] setobjprop 5 ............................ pickupsTexture.member = member(59, "Textures")
+  [223] jmp [271]
+  [226] peek 0
+  [228] pushint8 5 .............................. <5>
+  [230] eq
+  [231] jmpifz [250] ............................ (case) 5:
+  [234] getprop 1027 ............................ <pickupsTexture>
+  [237] pushint8 60 ............................. <60>
+  [239] pushcons 1 .............................. <"Textures">
+  [241] pusharglist 2 ........................... <60, "Textures">
+  [243] extcall 5 ............................... <member(60, "Textures")>
+  [245] setobjprop 5 ............................ pickupsTexture.member = member(60, "Textures")
+  [247] jmp [271]
+  [250] peek 0
+  [252] pushint8 6 .............................. <6>
+  [254] eq
+  [255] jmpifz [271] ............................ (case) 6:
+  [258] getprop 1027 ............................ <pickupsTexture>
+  [261] pushint8 61 ............................. <61>
+  [263] pushcons 1 .............................. <"Textures">
+  [265] pusharglist 2 ........................... <61, "Textures">
+  [267] extcall 5 ............................... <member(61, "Textures")>
+  [269] setobjprop 5 ............................ pickupsTexture.member = member(61, "Textures")
+  [271] pop 1 ................................... end case
+  [273] getprop 6 ............................... <cam>
+  [275] pushsymb 16 ............................. <#overlay>
+  [277] getprop 1028 ............................ <oPickups>
+  [280] pusharglist 3 ........................... <cam, #overlay, oPickups>
+  [282] objcall 18 .............................. <cam.overlay[oPickups]>
+  [284] pushint8 100 ............................ <100>
+  [286] setobjprop 20 ........................... cam.overlay[oPickups].blend = 100
+  [288] pushzero ................................ <0>
+  [289] setglobal 1018 .......................... g_PickupOverlay = 0
+  [292] pusharglist 0 ........................... <>
+  [294] thebuiltin 181 .......................... <the ticks>
+  [296] setprop 1029 ............................ pickupsStartTicks = the ticks
+  [299] getglobal 289 ........................... <g_DamagePercent>
+  [302] pushint8 1 .............................. <1>
+  [304] gt ...................................... <g_DamagePercent > 1>
+  [305] jmpifz [313] ............................ if g_DamagePercent > 1 then
+  [308] pushint8 1 .............................. <1>
+  [310] setglobal 289 ........................... g_DamagePercent = 1
+  [313] getglobal 607 ........................... <g_GameOverID>
+  [316] pushzero ................................ <0>
+  [317] nteq .................................... <g_GameOverID <> 0>
+  [318] jmpifz [376] ............................ if g_GameOverID <> 0 then
+  [321] getprop 6 ............................... <cam>
+  [323] pushsymb 16 ............................. <#overlay>
+  [325] getprop 1030 ............................ <oGameOver>
+  [328] pusharglist 3 ........................... <cam, #overlay, oGameOver>
+  [330] objcall 18 .............................. <cam.overlay[oGameOver]>
+  [332] pushint16 272 ........................... <272>
+  [335] pushint8 100 ............................ <100>
+  [337] pusharglist 2 ........................... <272, 100>
+  [339] extcall 13 .............................. <point(272, 100)>
+  [341] setobjprop 386 .......................... cam.overlay[oGameOver].loc = point(272, 100)
+  [344] getprop 6 ............................... <cam>
+  [346] pushsymb 16 ............................. <#overlay>
+  [348] getprop 1030 ............................ <oGameOver>
+  [351] pusharglist 3 ........................... <cam, #overlay, oGameOver>
+  [353] objcall 18 .............................. <cam.overlay[oGameOver]>
+  [355] getprop 6 ............................... <cam>
+  [357] pushsymb 16 ............................. <#overlay>
+  [359] getprop 1030 ............................ <oGameOver>
+  [362] pusharglist 3 ........................... <cam, #overlay, oGameOver>
+  [364] objcall 18 .............................. <cam.overlay[oGameOver]>
+  [366] getobjprop 312 .......................... <cam.overlay[oGameOver].rotation>
+  [369] pushcons 8 .............................. <0.80000000000000004>
+  [371] inv ..................................... <-0.80000000000000004>
+  [372] mul ..................................... <cam.overlay[oGameOver].rotation * -0.80000000000000004>
+  [373] setobjprop 312 .......................... cam.overlay[oGameOver].rotation = cam.overlay[oGameOver].rotation * -0.80000000000000004
+  [376] getprop 1019 ............................ <displayDamagePercent>
+  [379] getglobal 289 ........................... <g_DamagePercent>
+  [382] getprop 1019 ............................ <displayDamagePercent>
+  [385] sub ..................................... <g_DamagePercent - displayDamagePercent>
+  [386] pushcons 9 .............................. <0.20000000000000001>
+  [388] mul ..................................... <(g_DamagePercent - displayDamagePercent) * 0.20000000000000001>
+  [389] add ..................................... <displayDamagePercent + ((g_DamagePercent - displayDamagePercent) * 0.20000000000000001)>
+  [390] setprop 1019 ............................ displayDamagePercent = displayDamagePercent + ((g_DamagePercent - displayDamagePercent) * 0.20000000000000001)
+  [393] getprop 288 ............................. <prevDamagePercent>
+  [396] getglobal 289 ........................... <g_DamagePercent>
+  [399] nteq .................................... <prevDamagePercent <> g_DamagePercent>
+  [400] jmpifz [408] ............................ if prevDamagePercent <> g_DamagePercent then
+  [403] pushint8 100 ............................ <100>
+  [405] setprop 1031 ............................ skullBlend = 100
+  [408] getprop 6 ............................... <cam>
+  [410] pushsymb 16 ............................. <#overlay>
+  [412] getprop 1021 ............................ <oRedBar>
+  [415] pusharglist 3 ........................... <cam, #overlay, oRedBar>
+  [417] objcall 18 .............................. <cam.overlay[oRedBar]>
+  [419] pushint16 254 ........................... <254>
+  [422] inv ..................................... <-254>
+  [423] getprop 1019 ............................ <displayDamagePercent>
+  [426] pushint16 254 ........................... <254>
+  [429] mul ..................................... <displayDamagePercent * 254>
+  [430] add ..................................... <-254 + (displayDamagePercent * 254)>
+  [431] pushint8 8 .............................. <8>
+  [433] pusharglist 2 ........................... <-254 + (displayDamagePercent * 254), 8>
+  [435] extcall 13 .............................. <point(-254 + (displayDamagePercent * 254), 8)>
+  [437] setobjprop 386 .......................... cam.overlay[oRedBar].loc = point(-254 + (displayDamagePercent * 254), 8)
+  [440] getprop 6 ............................... <cam>
+  [442] pushsymb 16 ............................. <#overlay>
+  [444] getprop 1023 ............................ <oRedSkull>
+  [447] pusharglist 3 ........................... <cam, #overlay, oRedSkull>
+  [449] objcall 18 .............................. <cam.overlay[oRedSkull]>
+  [451] getprop 1031 ............................ <skullBlend>
+  [454] setobjprop 20 ........................... cam.overlay[oRedSkull].blend = skullBlend
+  [456] getprop 1031 ............................ <skullBlend>
+  [459] pushzero ................................ <0>
+  [460] gt ...................................... <skullBlend > 0>
+  [461] getglobal 289 ........................... <g_DamagePercent>
+  [464] pushint8 1 .............................. <1>
+  [466] lt ...................................... <g_DamagePercent < 1>
+  [467] and ..................................... <(skullBlend > 0) and (g_DamagePercent < 1)>
+  [468] jmpifz [480] ............................ if (skullBlend > 0) and (g_DamagePercent < 1) then
+  [471] getprop 1031 ............................ <skullBlend>
+  [474] pushint8 5 .............................. <5>
+  [476] sub ..................................... <skullBlend - 5>
+  [477] setprop 1031 ............................ skullBlend = skullBlend - 5
+  [480] getglobal 289 ........................... <g_DamagePercent>
+  [483] setprop 288 ............................. prevDamagePercent = g_DamagePercent
+  [486] getprop 1020 ............................ <displayBoostPercent>
+  [489] getglobal 426 ........................... <g_BoostPercent>
+  [492] getprop 1020 ............................ <displayBoostPercent>
+  [495] sub ..................................... <g_BoostPercent - displayBoostPercent>
+  [496] pushcons 9 .............................. <0.20000000000000001>
+  [498] mul ..................................... <(g_BoostPercent - displayBoostPercent) * 0.20000000000000001>
+  [499] add ..................................... <displayBoostPercent + ((g_BoostPercent - displayBoostPercent) * 0.20000000000000001)>
+  [500] setprop 1020 ............................ displayBoostPercent = displayBoostPercent + ((g_BoostPercent - displayBoostPercent) * 0.20000000000000001)
+  [503] getprop 6 ............................... <cam>
+  [505] pushsymb 16 ............................. <#overlay>
+  [507] getprop 1024 ............................ <oYellowBar>
+  [510] pusharglist 3 ........................... <cam, #overlay, oYellowBar>
+  [512] objcall 18 .............................. <cam.overlay[oYellowBar]>
+  [514] pushint16 800 ........................... <800>
+  [517] getprop 1020 ............................ <displayBoostPercent>
+  [520] pushint16 250 ........................... <250>
+  [523] mul ..................................... <displayBoostPercent * 250>
+  [524] sub ..................................... <800 - (displayBoostPercent * 250)>
+  [525] pushint8 8 .............................. <8>
+  [527] pusharglist 2 ........................... <800 - (displayBoostPercent * 250), 8>
+  [529] extcall 13 .............................. <point(800 - (displayBoostPercent * 250), 8)>
+  [531] setobjprop 386 .......................... cam.overlay[oYellowBar].loc = point(800 - (displayBoostPercent * 250), 8)
+  [534] getglobal 289 ........................... <g_DamagePercent>
+  [537] setprop 1016 ............................ prevBoostPercent = g_DamagePercent
+  [540] getglobal 607 ........................... <g_GameOverID>
+  [543] setprop 1017 ............................ prevGameOverID = g_GameOverID
+  [546] ret
+end

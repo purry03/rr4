@@ -1,0 +1,65 @@
+{
+  "dataOffset": 12,
+  "unk0": 0,
+  "itemsPerCast": 4,
+  "itemsPerCast": 4,
+  "unk1": 0,
+  "entries": [
+    {
+      "name": "Internal",
+      "filePath": "",
+      "preloadSettings": 2,
+      "minMember": 1,
+      "maxMember": 43,
+      "id": 66560
+    },
+    {
+      "name": "w3D",
+      "filePath": "",
+      "preloadSettings": 2,
+      "minMember": 1,
+      "maxMember": 1,
+      "id": 132096
+    },
+    {
+      "name": "Sfx",
+      "filePath": "",
+      "preloadSettings": 0,
+      "minMember": 1,
+      "maxMember": 43,
+      "id": 197632
+    },
+    {
+      "name": "Motions",
+      "filePath": "",
+      "preloadSettings": 0,
+      "minMember": 1,
+      "maxMember": 0,
+      "id": 263168
+    },
+    {
+      "name": "Textures",
+      "filePath": "",
+      "preloadSettings": 0,
+      "minMember": 1,
+      "maxMember": 178,
+      "id": 328704
+    },
+    {
+      "name": "MapData",
+      "filePath": "",
+      "preloadSettings": 0,
+      "minMember": 1,
+      "maxMember": 6,
+      "id": 394240
+    },
+    {
+      "name": "InfoPanels",
+      "filePath": "",
+      "preloadSettings": 0,
+      "minMember": 1,
+      "maxMember": 44,
+      "id": 459776
+    }
+  ]
+}

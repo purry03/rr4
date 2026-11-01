@@ -1,0 +1,270 @@
+global g_NextFrame, g_PrevFrame, g_LevelPassedList, g_LevelScoreList, g_MissionID, g_RaceID, g_FirstTime, g_NextFramePlease, g_SaveGameName, g_RaceBestTimeList, g_CarsOwnedList, g_CarsColorIDList, g_CarsDamageList, g_CarsIgNitroList, g_NumberRacesWon, g_Points, g_NumberCarsUnlocked, g_RacesNoDamage, g_MidAirTime
+
+on validDomain
+  [  0] pushcons 0 .............................. <"src">
+  [  2] pusharglist 1 ........................... <"src">
+  [  4] extcall 51 .............................. <externalParamValue("src")>
+  [  6] pushcons 1 .............................. <"http:">
+  [  8] contains0str ............................ <externalParamValue("src") starts "http:">
+  [  9] jmpifz [ 17] ............................ if externalParamValue("src") starts "http:" then
+  [ 12] pushzero ................................ <0>
+  [ 13] pusharglistnoret 1 ...................... <0>
+  [ 15] extcall 52 .............................. return 0
+  [ 17] pushcons 2 .............................. <"shockwave.com">
+  [ 19] pushcons 3 .............................. <"gallopinggames.com">
+  [ 21] pusharglist 2 ........................... <["shockwave.com", "gallopinggames.com"]>
+  [ 23] pushlist ................................ <["shockwave.com", "gallopinggames.com"]>
+  [ 24] setlocal 0 .............................. validDomains = ["shockwave.com", "gallopinggames.com"]
+  [ 26] getlocal 0 .............................. <validDomains>
+  [ 28] peek 0
+  [ 30] pusharglist 1
+  [ 32] extcall 17
+  [ 34] pushint8 1
+  [ 36] peek 0
+  [ 38] peek 2
+  [ 40] lteq
+  [ 41] jmpifz [ 73] ............................ repeat with sDomain in validDomains
+  [ 44] peek 2
+  [ 46] peek 1
+  [ 48] pusharglist 2
+  [ 50] extcall 53
+  [ 52] setlocal 1
+  [ 54] getmovieprop 54 ......................... <the moviePath>
+  [ 56] getlocal 1 .............................. <sDomain>
+  [ 58] containsstr ............................. <the moviePath contains sDomain>
+  [ 59] jmpifz [ 68] ............................ if the moviePath contains sDomain then
+  [ 62] pushint8 1 .............................. <1>
+  [ 64] pusharglistnoret 1 ...................... <1>
+  [ 66] extcall 52 .............................. return 1
+  [ 68] pushint8 1
+  [ 70] add
+  [ 71] endrepeat [ 36]
+  [ 73] pop 3
+  [ 75] pushzero ................................ <0>
+  [ 76] pusharglistnoret 1 ...................... <0>
+  [ 78] extcall 52 .............................. return 0
+  [ 80] ret
+end
+
+on stopMovie
+  [  0] pushcons 4 .............................. <"High Scores">
+  [  2] pusharglist 1 ........................... <"High Scores">
+  [  4] extcall 57 .............................. <windowPresent("High Scores")>
+  [  6] jmpifz [ 29] ............................ if windowPresent("High Scores") then
+  [  9] pushcons 4 .............................. <"High Scores">
+  [ 11] pusharglist 1 ........................... <"High Scores">
+  [ 13] extcall 58 .............................. <window("High Scores")>
+  [ 15] pusharglistnoret 1 ...................... <window("High Scores")>
+  [ 17] objcall 59 .............................. window("High Scores").close()
+  [ 19] pushcons 4 .............................. <"High Scores">
+  [ 21] pusharglist 1 ........................... <"High Scores">
+  [ 23] extcall 58 .............................. <window("High Scores")>
+  [ 25] pusharglistnoret 1 ...................... <window("High Scores")>
+  [ 27] objcall 60 .............................. window("High Scores").forget()
+  [ 29] ret
+end
+
+on startMovie
+  [  0] getmovieprop 61 ......................... <the environment>
+  [  2] getobjprop 62 ........................... <(the environment).runMode>
+  [  4] pushcons 5 .............................. <"Plugin">
+  [  6] containsstr ............................. <(the environment).runMode contains "Plugin">
+  [  7] jmpifz [ 52] ............................ if (the environment).runMode contains "Plugin" then
+  [ 10] pushzero ................................ <0>
+  [ 11] setmovieprop 63 ......................... the allowSaveLocal = 0
+  [ 13] pushzero ................................ <0>
+  [ 14] setlocal 0 .............................. tResult = 0
+  [ 16] gettoplevelprop 32 ...................... <_player>
+  [ 18] getobjprop 62 ........................... <_player.runMode>
+  [ 20] pushcons 6 .............................. <"Author">
+  [ 22] containsstr ............................. <_player.runMode contains "Author">
+  [ 23] jmpifz [ 33] ............................ if _player.runMode contains "Author" then / else
+  [ 26] pushint8 1 .............................. <1>
+  [ 28] setlocal 0 .............................. tResult = 1
+  [ 30] jmp [ 39]
+  [ 33] pusharglist 0 ........................... <>
+  [ 35] extcall 64 .............................. <testSiteLock()>
+  [ 37] setlocal 0 .............................. tResult = testSiteLock()
+  [ 39] getlocal 0 .............................. <tResult>
+  [ 41] pushzero ................................ <0>
+  [ 42] eq ...................................... <tResult = 0>
+  [ 43] jmpifz [ 52] ............................ if tResult = 0 then
+  [ 46] pushcons 7 .............................. <"stolen">
+  [ 48] pusharglistnoret 1 ...................... <"stolen">
+  [ 50] extcall 65 .............................. go("stolen")
+  [ 52] getglobal 66 ............................ <g_FirstTime>
+  [ 54] pushcons 8 .............................. <"FALSE">
+  [ 56] nteq .................................... <g_FirstTime <> "FALSE">
+  [ 57] jmpifz [319] ............................ if g_FirstTime <> "FALSE" then / else
+  [ 60] pushcons 8 .............................. <"FALSE">
+  [ 62] setglobal 66 ............................ g_FirstTime = "FALSE"
+  [ 64] pushcons 9 .............................. <"RedlineRumble4SaveGame_214">
+  [ 66] setglobal 67 ............................ g_SaveGameName = "RedlineRumble4SaveGame_214"
+  [ 68] pushint8 5 .............................. <5>
+  [ 70] setglobal 47 ............................ g_NextFrame = 5
+  [ 72] pushint8 5 .............................. <5>
+  [ 74] setglobal 68 ............................ g_PrevFrame = 5
+  [ 76] getglobal 47 ............................ <g_NextFrame>
+  [ 78] setglobal 69 ............................ g_NextFramePlease = g_NextFrame
+  [ 80] pushzero ................................ <0>
+  [ 81] setglobal 70 ............................ g_MissionID = 0
+  [ 83] pushzero ................................ <0>
+  [ 84] setglobal 71 ............................ g_RaceID = 0
+  [ 86] pushint8 2 .............................. <2>
+  [ 88] pushzero ................................ <0>
+  [ 89] pushzero ................................ <0>
+  [ 90] pushzero ................................ <0>
+  [ 91] pushzero ................................ <0>
+  [ 92] pushzero ................................ <0>
+  [ 93] pusharglist 6 ........................... <[2, 0, 0, 0, 0, 0]>
+  [ 95] pushlist ................................ <[2, 0, 0, 0, 0, 0]>
+  [ 96] setglobal 72 ............................ g_CarsOwnedList = [2, 0, 0, 0, 0, 0]
+  [ 98] pushint8 1 .............................. <1>
+  [100] pushint8 2 .............................. <2>
+  [102] pushint8 3 .............................. <3>
+  [104] pushint8 4 .............................. <4>
+  [106] pushint8 5 .............................. <5>
+  [108] pushint8 1 .............................. <1>
+  [110] pusharglist 6 ........................... <[1, 2, 3, 4, 5, 1]>
+  [112] pushlist ................................ <[1, 2, 3, 4, 5, 1]>
+  [113] setglobal 73 ............................ g_CarsColorIDList = [1, 2, 3, 4, 5, 1]
+  [115] pushzero ................................ <0>
+  [116] pushzero ................................ <0>
+  [117] pushzero ................................ <0>
+  [118] pushzero ................................ <0>
+  [119] pushzero ................................ <0>
+  [120] pushzero ................................ <0>
+  [121] pusharglist 6 ........................... <[0, 0, 0, 0, 0, 0]>
+  [123] pushlist ................................ <[0, 0, 0, 0, 0, 0]>
+  [124] setglobal 74 ............................ g_CarsDamageList = [0, 0, 0, 0, 0, 0]
+  [126] pushint8 1 .............................. <1>
+  [128] pushint8 1 .............................. <1>
+  [130] pushint8 1 .............................. <1>
+  [132] pushint8 1 .............................. <1>
+  [134] pushint8 1 .............................. <1>
+  [136] pushint8 1 .............................. <1>
+  [138] pusharglist 6 ........................... <[1, 1, 1, 1, 1, 1]>
+  [140] pushlist ................................ <[1, 1, 1, 1, 1, 1]>
+  [141] setglobal 75 ............................ g_CarsIgNitroList = [1, 1, 1, 1, 1, 1]
+  [143] pushzero ................................ <0>
+  [144] pushzero ................................ <0>
+  [145] pushzero ................................ <0>
+  [146] pushzero ................................ <0>
+  [147] pushzero ................................ <0>
+  [148] pushzero ................................ <0>
+  [149] pushzero ................................ <0>
+  [150] pushzero ................................ <0>
+  [151] pushzero ................................ <0>
+  [152] pushzero ................................ <0>
+  [153] pusharglist 10 .......................... <[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]>
+  [155] pushlist ................................ <[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]>
+  [156] setlocal 1 .............................. g_MissionHiScoreList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [158] pushzero ................................ <0>
+  [159] pushzero ................................ <0>
+  [160] pushzero ................................ <0>
+  [161] pushzero ................................ <0>
+  [162] pushzero ................................ <0>
+  [163] pushzero ................................ <0>
+  [164] pusharglist 6 ........................... <[0, 0, 0, 0, 0, 0]>
+  [166] pushlist ................................ <[0, 0, 0, 0, 0, 0]>
+  [167] setglobal 76 ............................ g_RaceBestTimeList = [0, 0, 0, 0, 0, 0]
+  [169] getglobal 67 ............................ <g_SaveGameName>
+  [171] pusharglist 1 ........................... <g_SaveGameName>
+  [173] extcall 77 .............................. <getPref(g_SaveGameName)>
+  [175] setlocal 2 .............................. tempResult = getPref(g_SaveGameName)
+  [177] getlocal 2 .............................. <tempResult>
+  [179] pusharglist 0 ........................... <>
+  [181] extcall 78 .............................. <VOID>
+  [183] eq ...................................... <tempResult = VOID>
+  [184] jmpifz [235] ............................ if tempResult = VOID then / else
+  [187] pushcons 10 ............................. <"[">
+  [189] getglobal 72 ............................ <g_CarsOwnedList>
+  [191] joinstr ................................. <"[" & g_CarsOwnedList>
+  [192] pushcons 11 ............................. <",">
+  [194] joinstr ................................. <"[" & g_CarsOwnedList & ",">
+  [195] getglobal 73 ............................ <g_CarsColorIDList>
+  [197] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList>
+  [198] pushcons 11 ............................. <",">
+  [200] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList & ",">
+  [201] getglobal 74 ............................ <g_CarsDamageList>
+  [203] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList & "," & g_CarsDamageList>
+  [204] pushcons 11 ............................. <",">
+  [206] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList & "," & g_CarsDamageList & ",">
+  [207] getglobal 75 ............................ <g_CarsIgNitroList>
+  [209] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList & "," & g_CarsDamageList & "," & g_CarsIgNitroList>
+  [210] pushcons 12 ............................. <"]">
+  [212] joinstr ................................. <"[" & g_CarsOwnedList & "," & g_CarsColorIDList & "," & g_CarsDamageList & "," & g_CarsIgNitroList & "]">
+  [213] setlocal 3 .............................. tempSaveString = "[" & g_CarsOwnedList & "," & g_CarsColorIDList & "," & g_CarsDamageList & "," & g_CarsIgNitroList & "]"
+  [215] pushcons 13 ............................. <"tempSaveString = ">
+  [217] getlocal 3 .............................. <tempSaveString>
+  [219] joinstr ................................. <"tempSaveString = " & tempSaveString>
+  [220] pusharglistnoret 1 ...................... <"tempSaveString = " & tempSaveString>
+  [222] extcall 39 .............................. put "tempSaveString = " & tempSaveString
+  [224] getglobal 67 ............................ <g_SaveGameName>
+  [226] getlocal 3 .............................. <tempSaveString>
+  [228] pusharglistnoret 2 ...................... <g_SaveGameName, tempSaveString>
+  [230] extcall 79 .............................. setPref(g_SaveGameName, tempSaveString)
+  [232] jmp [301]
+  [235] pushcons 14 ............................. <"tempResult = ">
+  [237] getlocal 2 .............................. <tempResult>
+  [239] joinstr ................................. <"tempResult = " & tempResult>
+  [240] pusharglistnoret 1 ...................... <"tempResult = " & tempResult>
+  [242] extcall 39 .............................. put "tempResult = " & tempResult
+  [244] getlocal 2 .............................. <tempResult>
+  [246] pusharglist 1 ........................... <tempResult>
+  [248] extcall 80 .............................. <value(tempResult)>
+  [250] setlocal 4 .............................. tempLoadData = value(tempResult)
+  [252] pushcons 15 ............................. <"tempLoadData = ">
+  [254] getlocal 4 .............................. <tempLoadData>
+  [256] joinstr ................................. <"tempLoadData = " & tempLoadData>
+  [257] pusharglistnoret 1 ...................... <"tempLoadData = " & tempLoadData>
+  [259] extcall 39 .............................. put "tempLoadData = " & tempLoadData
+  [261] getlocal 4 .............................. <tempLoadData>
+  [263] pushint8 1 .............................. <1>
+  [265] pusharglist 2 ........................... <tempLoadData, 1>
+  [267] objcall 53 .............................. <tempLoadData[1]>
+  [269] setglobal 72 ............................ g_CarsOwnedList = tempLoadData[1]
+  [271] getlocal 4 .............................. <tempLoadData>
+  [273] pushint8 2 .............................. <2>
+  [275] pusharglist 2 ........................... <tempLoadData, 2>
+  [277] objcall 53 .............................. <tempLoadData[2]>
+  [279] setglobal 73 ............................ g_CarsColorIDList = tempLoadData[2]
+  [281] getlocal 4 .............................. <tempLoadData>
+  [283] pushint8 3 .............................. <3>
+  [285] pusharglist 2 ........................... <tempLoadData, 3>
+  [287] objcall 53 .............................. <tempLoadData[3]>
+  [289] setlocal 5 .............................. g_CarsDamageIDList = tempLoadData[3]
+  [291] getlocal 4 .............................. <tempLoadData>
+  [293] pushint8 4 .............................. <4>
+  [295] pusharglist 2 ........................... <tempLoadData, 4>
+  [297] objcall 53 .............................. <tempLoadData[4]>
+  [299] setglobal 75 ............................ g_CarsIgNitroList = tempLoadData[4]
+  [301] pushzero ................................ <0>
+  [302] setglobal 81 ............................ g_NumberRacesWon = 0
+  [304] pushzero ................................ <0>
+  [305] setglobal 82 ............................ g_Points = 0
+  [307] pushzero ................................ <0>
+  [308] setglobal 83 ............................ g_NumberCarsUnlocked = 0
+  [310] pushzero ................................ <0>
+  [311] setglobal 84 ............................ g_RacesNoDamage = 0
+  [313] pushzero ................................ <0>
+  [314] setglobal 85 ............................ g_MidAirTime = 0
+  [316] jmp [346]
+  [319] pushint8 19 ............................. <19>
+  [321] setglobal 47 ............................ g_NextFrame = 19
+  [323] pushint8 19 ............................. <19>
+  [325] setglobal 68 ............................ g_PrevFrame = 19
+  [327] getglobal 47 ............................ <g_NextFrame>
+  [329] setglobal 69 ............................ g_NextFramePlease = g_NextFrame
+  [331] pushzero ................................ <0>
+  [332] setglobal 81 ............................ g_NumberRacesWon = 0
+  [334] pushzero ................................ <0>
+  [335] setglobal 82 ............................ g_Points = 0
+  [337] pushzero ................................ <0>
+  [338] setglobal 83 ............................ g_NumberCarsUnlocked = 0
+  [340] pushzero ................................ <0>
+  [341] setglobal 84 ............................ g_RacesNoDamage = 0
+  [343] pushzero ................................ <0>
+  [344] setglobal 85 ............................ g_MidAirTime = 0
+  [346] ret
+end

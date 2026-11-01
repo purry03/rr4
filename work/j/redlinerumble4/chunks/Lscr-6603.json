@@ -1,0 +1,53 @@
+{
+  "totalLength": 194,
+  "totalLength2": 194,
+  "headerLength": 92,
+  "scriptNumber": 17,
+  "unk20": 1,
+  "parentNumber": -1,
+  "scriptFlags": 0,
+  "unk42": 0,
+  "castID": 65557,
+  "factoryNameID": -1,
+  "handlerVectorsCount": 2,
+  "handlerVectorsOffset": 190,
+  "handlerVectorsSize": 2,
+  "propertiesCount": 0,
+  "propertiesOffset": 92,
+  "globalsCount": 0,
+  "globalsOffset": 92,
+  "handlersCount": 1,
+  "handlersOffset": 92,
+  "literalsCount": 1,
+  "literalsOffset": 148,
+  "literalsDataCount": 34,
+  "literalsDataOffset": 156,
+  "propertyNameIDs": [],
+  "globalNameIDs": [],
+  "handlers": [
+    {
+      "nameID": 1033,
+      "vectorPos": 1,
+      "compiledLen": 8,
+      "compiledOffset": 138,
+      "argumentCount": 0,
+      "argumentOffset": 146,
+      "localsCount": 0,
+      "localsOffset": 146,
+      "globalsCount": 0,
+      "globalsOffset": 92,
+      "unknown1": 10,
+      "unknown2": 1,
+      "lineCount": 1,
+      "lineOffset": 146,
+      "stackHeight": 2
+    }
+  ],
+  "literals": [
+    {
+      "type": 1,
+      "offset": 0,
+      "value": "http://www.addictinggames.com"
+    }
+  ]
+}

@@ -1,0 +1,794 @@
+{
+  "totalLength": 16000,
+  "totalLength2": 16000,
+  "headerLength": 92,
+  "scriptNumber": 12,
+  "unk20": 1,
+  "parentNumber": -1,
+  "scriptFlags": 0,
+  "unk42": 0,
+  "castID": 65552,
+  "factoryNameID": -1,
+  "handlerVectorsCount": 16,
+  "handlerVectorsOffset": 15968,
+  "handlerVectorsSize": 32769,
+  "propertiesCount": 43,
+  "propertiesOffset": 92,
+  "globalsCount": 7,
+  "globalsOffset": 178,
+  "handlersCount": 3,
+  "handlersOffset": 192,
+  "literalsCount": 132,
+  "literalsOffset": 12390,
+  "literalsDataCount": 2522,
+  "literalsDataOffset": 13446,
+  "propertyNameIDs": [
+    6,
+    729,
+    911,
+    919,
+    860,
+    873,
+    874,
+    870,
+    871,
+    872,
+    880,
+    876,
+    881,
+    35,
+    875,
+    888,
+    897,
+    898,
+    891,
+    900,
+    912,
+    933,
+    913,
+    914,
+    921,
+    915,
+    916,
+    922,
+    923,
+    924,
+    925,
+    910,
+    861,
+    899,
+    889,
+    917,
+    931,
+    930,
+    929,
+    926,
+    928,
+    932,
+    927
+  ],
+  "globalNameIDs": [
+    25,
+    47,
+    728,
+    69,
+    70,
+    93,
+    92
+  ],
+  "handlers": [
+    {
+      "nameID": 0,
+      "vectorPos": 65535,
+      "compiledLen": 7377,
+      "compiledOffset": 330,
+      "argumentCount": 0,
+      "argumentOffset": 7708,
+      "localsCount": 53,
+      "localsOffset": 7708,
+      "globalsCount": 0,
+      "globalsOffset": 178,
+      "unknown1": 689,
+      "unknown2": 11,
+      "lineCount": 593,
+      "lineOffset": 7814,
+      "stackHeight": 8
+    },
+    {
+      "nameID": 1,
+      "vectorPos": 15,
+      "compiledLen": 3533,
+      "compiledOffset": 8408,
+      "argumentCount": 0,
+      "argumentOffset": 11942,
+      "localsCount": 2,
+      "localsOffset": 11942,
+      "globalsCount": 0,
+      "globalsOffset": 178,
+      "unknown1": 25945,
+      "unknown2": 610,
+      "lineCount": 436,
+      "lineOffset": 11946,
+      "stackHeight": 7
+    },
+    {
+      "nameID": 34,
+      "vectorPos": 0,
+      "compiledLen": 1,
+      "compiledOffset": 12382,
+      "argumentCount": 1,
+      "argumentOffset": 12384,
+      "localsCount": 0,
+      "localsOffset": 12386,
+      "globalsCount": 0,
+      "globalsOffset": 178,
+      "unknown1": 38905,
+      "unknown2": 1050,
+      "lineCount": 3,
+      "lineOffset": 12386,
+      "stackHeight": 0
+    }
+  ],
+  "literals": [
+    {
+      "type": 1,
+      "offset": 0,
+      "value": "w3D"
+    },
+    {
+      "type": 1,
+      "offset": 8,
+      "value": "MotherClone"
+    },
+    {
+      "type": 1,
+      "offset": 24,
+      "value": "MotherNodMotion"
+    },
+    {
+      "type": 1,
+      "offset": 44,
+      "value": "Motions"
+    },
+    {
+      "type": 1,
+      "offset": 56,
+      "value": "MotherSmileMotion"
+    },
+    {
+      "type": 1,
+      "offset": 78,
+      "value": "MotherFearMotion"
+    },
+    {
+      "type": 1,
+      "offset": 100,
+      "value": "ItemsGroup"
+    },
+    {
+      "type": 1,
+      "offset": 116,
+      "value": "KeysGroup"
+    },
+    {
+      "type": 1,
+      "offset": 130,
+      "value": "KeysHandleGroup"
+    },
+    {
+      "type": 1,
+      "offset": 150,
+      "value": "CursorKeyClone1"
+    },
+    {
+      "type": 1,
+      "offset": 170,
+      "value": "CursorKey_000"
+    },
+    {
+      "type": 1,
+      "offset": 188,
+      "value": "CursorKeyClone2"
+    },
+    {
+      "type": 1,
+      "offset": 208,
+      "value": "CursorKeyClone3"
+    },
+    {
+      "type": 1,
+      "offset": 228,
+      "value": "CursorKeyClone4"
+    },
+    {
+      "type": 1,
+      "offset": 248,
+      "value": "StopBlockClone"
+    },
+    {
+      "type": 1,
+      "offset": 268,
+      "value": "StopBlock_000"
+    },
+    {
+      "type": 1,
+      "offset": 286,
+      "value": "StopBlockArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 310,
+      "value": "ArrowStopBlock_000"
+    },
+    {
+      "type": 9,
+      "offset": 334,
+      "value": 0.13
+    },
+    {
+      "type": 1,
+      "offset": 346,
+      "value": "StopBlockGroup"
+    },
+    {
+      "type": 1,
+      "offset": 366,
+      "value": "TextBox1Texture"
+    },
+    {
+      "type": 1,
+      "offset": 386,
+      "value": "Textures"
+    },
+    {
+      "type": 1,
+      "offset": 400,
+      "value": "TextBox2Texture"
+    },
+    {
+      "type": 1,
+      "offset": 420,
+      "value": "ConeClone"
+    },
+    {
+      "type": 1,
+      "offset": 434,
+      "value": "TrafficCone_000"
+    },
+    {
+      "type": 1,
+      "offset": 454,
+      "value": "ArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 470,
+      "value": "ArrowAroundConeClockWise_000"
+    },
+    {
+      "type": 9,
+      "offset": 504,
+      "value": 0.44
+    },
+    {
+      "type": 9,
+      "offset": 516,
+      "value": 0.59999999999999998
+    },
+    {
+      "type": 1,
+      "offset": 528,
+      "value": "ConeGroup"
+    },
+    {
+      "type": 1,
+      "offset": 542,
+      "value": "ConeCrushedClone"
+    },
+    {
+      "type": 1,
+      "offset": 564,
+      "value": "TrafficConeCrushed_000"
+    },
+    {
+      "type": 1,
+      "offset": 592,
+      "value": "ArrowCrushedClone"
+    },
+    {
+      "type": 1,
+      "offset": 614,
+      "value": "ConeCrushedGroup"
+    },
+    {
+      "type": 1,
+      "offset": 636,
+      "value": "TextBox3Texture"
+    },
+    {
+      "type": 1,
+      "offset": 656,
+      "value": "BaleClone"
+    },
+    {
+      "type": 1,
+      "offset": 670,
+      "value": "StrawBale_000"
+    },
+    {
+      "type": 1,
+      "offset": 688,
+      "value": "BaleArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 708,
+      "value": "ArrowBaleBarge_000"
+    },
+    {
+      "type": 9,
+      "offset": 732,
+      "value": 0.14000000000000001
+    },
+    {
+      "type": 1,
+      "offset": 744,
+      "value": "BaleGroup"
+    },
+    {
+      "type": 1,
+      "offset": 758,
+      "value": "SpaceBarKeyClone"
+    },
+    {
+      "type": 1,
+      "offset": 780,
+      "value": "SpaceBarKey_000"
+    },
+    {
+      "type": 1,
+      "offset": 800,
+      "value": "NOSCanClone"
+    },
+    {
+      "type": 1,
+      "offset": 816,
+      "value": "NOSCan_001"
+    },
+    {
+      "type": 1,
+      "offset": 832,
+      "value": "CheckPointClone"
+    },
+    {
+      "type": 1,
+      "offset": 852,
+      "value": "CheckPoint_000"
+    },
+    {
+      "type": 1,
+      "offset": 872,
+      "value": "CheckPointArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 898,
+      "value": "ArrowCheckPoint_000"
+    },
+    {
+      "type": 9,
+      "offset": 922,
+      "value": 0.08
+    },
+    {
+      "type": 1,
+      "offset": 934,
+      "value": "CheckPointGroup"
+    },
+    {
+      "type": 1,
+      "offset": 954,
+      "value": "BarnObjectsClone"
+    },
+    {
+      "type": 1,
+      "offset": 976,
+      "value": "TILE_BarnObjects_004"
+    },
+    {
+      "type": 1,
+      "offset": 1002,
+      "value": "SnorkelClone"
+    },
+    {
+      "type": 1,
+      "offset": 1020,
+      "value": "LandroverSnorkel_000"
+    },
+    {
+      "type": 9,
+      "offset": 1046,
+      "value": 0.10000000000000001
+    },
+    {
+      "type": 1,
+      "offset": 1058,
+      "value": "BarnGroup"
+    },
+    {
+      "type": 1,
+      "offset": 1072,
+      "value": "AppleTreeClone"
+    },
+    {
+      "type": 1,
+      "offset": 1092,
+      "value": "AppleTree_000"
+    },
+    {
+      "type": 1,
+      "offset": 1110,
+      "value": "AppleTreeArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 1134,
+      "value": "ArrowAppleTree_000"
+    },
+    {
+      "type": 9,
+      "offset": 1158,
+      "value": 0.16
+    },
+    {
+      "type": 1,
+      "offset": 1170,
+      "value": "RiverClone"
+    },
+    {
+      "type": 1,
+      "offset": 1186,
+      "value": "TILE_RiverSBend_001"
+    },
+    {
+      "type": 9,
+      "offset": 1210,
+      "value": 0.015
+    },
+    {
+      "type": 1,
+      "offset": 1222,
+      "value": "RiverGroup"
+    },
+    {
+      "type": 1,
+      "offset": 1238,
+      "value": "ApplePressClone"
+    },
+    {
+      "type": 1,
+      "offset": 1258,
+      "value": "ApplePress_000"
+    },
+    {
+      "type": 1,
+      "offset": 1278,
+      "value": "ApplePressArmClone"
+    },
+    {
+      "type": 1,
+      "offset": 1302,
+      "value": "ApplePressArm_001"
+    },
+    {
+      "type": 1,
+      "offset": 1324,
+      "value": "ApplePressArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 1350,
+      "value": "ArrowApplePress_000"
+    },
+    {
+      "type": 1,
+      "offset": 1374,
+      "value": "ApplePressArmArrowClone"
+    },
+    {
+      "type": 1,
+      "offset": 1402,
+      "value": "ArrowApplePressArm_000"
+    },
+    {
+      "type": 1,
+      "offset": 1430,
+      "value": "BFSClone"
+    },
+    {
+      "type": 1,
+      "offset": 1444,
+      "value": "BFSGroup"
+    },
+    {
+      "type": 9,
+      "offset": 1458,
+      "value": 1.19999999999999996
+    },
+    {
+      "type": 9,
+      "offset": 1470,
+      "value": 0.80000000000000004
+    },
+    {
+      "type": 9,
+      "offset": 1482,
+      "value": 0.20000000000000001
+    },
+    {
+      "type": 1,
+      "offset": 1494,
+      "value": "ApplePressGroup"
+    },
+    {
+      "type": 1,
+      "offset": 1514,
+      "value": "TextBox4Texture"
+    },
+    {
+      "type": 1,
+      "offset": 1534,
+      "value": "TimmyClone"
+    },
+    {
+      "type": 9,
+      "offset": 1550,
+      "value": 1.10000000000000009
+    },
+    {
+      "type": 1,
+      "offset": 1562,
+      "value": "TimmyGroup"
+    },
+    {
+      "type": 1,
+      "offset": 1578,
+      "value": "TimmyScaredMotion"
+    },
+    {
+      "type": 1,
+      "offset": 1600,
+      "value": "BullBarsClone"
+    },
+    {
+      "type": 1,
+      "offset": 1618,
+      "value": "LandroverBullBars_000"
+    },
+    {
+      "type": 1,
+      "offset": 1644,
+      "value": "BullClone"
+    },
+    {
+      "type": 1,
+      "offset": 1658,
+      "value": "BullGroup"
+    },
+    {
+      "type": 1,
+      "offset": 1672,
+      "value": "BullPawMotion"
+    },
+    {
+      "type": 1,
+      "offset": 1690,
+      "value": "BarnObjectsClone1"
+    },
+    {
+      "type": 1,
+      "offset": 1712,
+      "value": "BarnGroup1"
+    },
+    {
+      "type": 1,
+      "offset": 1728,
+      "value": "FlockSheepClone"
+    },
+    {
+      "type": 1,
+      "offset": 1748,
+      "value": "FlockSheepFearMotion"
+    },
+    {
+      "type": 1,
+      "offset": 1774,
+      "value": "FlockSheepGrinMotion"
+    },
+    {
+      "type": 1,
+      "offset": 1800,
+      "value": "FlockSheepLookAroundMotion"
+    },
+    {
+      "type": 1,
+      "offset": 1832,
+      "value": "FlockSheepLookUpMotion"
+    },
+    {
+      "type": 9,
+      "offset": 1860,
+      "value": 0.69999999999999996
+    },
+    {
+      "type": 1,
+      "offset": 1872,
+      "value": "FlockSheep"
+    },
+    {
+      "type": 1,
+      "offset": 1888,
+      "value": "LitterClone1"
+    },
+    {
+      "type": 1,
+      "offset": 1906,
+      "value": "LitterNewPaper_000"
+    },
+    {
+      "type": 1,
+      "offset": 1930,
+      "value": "LitterClone2"
+    },
+    {
+      "type": 1,
+      "offset": 1948,
+      "value": "LitterCan_000"
+    },
+    {
+      "type": 1,
+      "offset": 1966,
+      "value": "LitterClone3"
+    },
+    {
+      "type": 1,
+      "offset": 1984,
+      "value": "LitterCoke_000"
+    },
+    {
+      "type": 1,
+      "offset": 2004,
+      "value": "LitterClone4"
+    },
+    {
+      "type": 1,
+      "offset": 2022,
+      "value": "LitterLager_000"
+    },
+    {
+      "type": 1,
+      "offset": 2042,
+      "value": "BSFGroup"
+    },
+    {
+      "type": 1,
+      "offset": 2056,
+      "value": "DotClone"
+    },
+    {
+      "type": 1,
+      "offset": 2070,
+      "value": "RacePoint_000"
+    },
+    {
+      "type": 1,
+      "offset": 2088,
+      "value": "ArrowRacePoint_000"
+    },
+    {
+      "type": 9,
+      "offset": 2112,
+      "value": 0.40000000000000002
+    },
+    {
+      "type": 1,
+      "offset": 2124,
+      "value": "DotGroup"
+    },
+    {
+      "type": 1,
+      "offset": 2138,
+      "value": "BigTopObjectsClone"
+    },
+    {
+      "type": 1,
+      "offset": 2162,
+      "value": "TILE_BigTopObjects_000"
+    },
+    {
+      "type": 1,
+      "offset": 2190,
+      "value": "CannonClone"
+    },
+    {
+      "type": 1,
+      "offset": 2206,
+      "value": "LandroverCannon_003"
+    },
+    {
+      "type": 9,
+      "offset": 2230,
+      "value": 0.07000000000000001
+    },
+    {
+      "type": 1,
+      "offset": 2242,
+      "value": "TargetClone"
+    },
+    {
+      "type": 1,
+      "offset": 2258,
+      "value": "LandroverCannonTarget_000"
+    },
+    {
+      "type": 1,
+      "offset": 2288,
+      "value": "SplatClone"
+    },
+    {
+      "type": 1,
+      "offset": 2304,
+      "value": "LandroverCannonPieSplat_000"
+    },
+    {
+      "type": 1,
+      "offset": 2336,
+      "value": "MotherTitleTexture"
+    },
+    {
+      "type": 1,
+      "offset": 2360,
+      "value": "StartButtonTexture"
+    },
+    {
+      "type": 1,
+      "offset": 2384,
+      "value": "BackButtonTexture"
+    },
+    {
+      "type": 1,
+      "offset": 2406,
+      "value": "menuBackdropTexture"
+    },
+    {
+      "type": 1,
+      "offset": 2430,
+      "value": "MenuBackdropResource"
+    },
+    {
+      "type": 1,
+      "offset": 2456,
+      "value": "MenuBackdropModel"
+    },
+    {
+      "type": 1,
+      "offset": 2478,
+      "value": "Sfx"
+    },
+    {
+      "type": 9,
+      "offset": 2486,
+      "value": 0.90000000000000002
+    },
+    {
+      "type": 9,
+      "offset": 2498,
+      "value": 0.02
+    },
+    {
+      "type": 9,
+      "offset": 2510,
+      "value": 0.001
+    }
+  ]
+}

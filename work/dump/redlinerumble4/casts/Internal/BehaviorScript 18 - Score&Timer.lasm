@@ -1,0 +1,1695 @@
+property w, timerTextureList, frameCounter, cam, timeList, prevTimeList, countDown, existingOverlays, overlayScale, origin, prevCurrentScore, displayScore, startTicks, deductHundredths, scoreTextureList, flashTicks, oTimeUp, waitTicks
+global g_TimerState, g_CurrentScore, g_Paused, g_DamagePercent, g_NextFrame, g_ScoreList, g_SubmitItList, g_MissionID, g_Muted
+
+on beginSprite
+  [  0] pushint8 1 .............................. <1>
+  [  2] pusharglist 1 ........................... <1>
+  [  4] extcall 3 ............................... <sprite(1)>
+  [  6] getobjprop 5 ............................ <sprite(1).member>
+  [  8] setprop 27 .............................. w = sprite(1).member
+  [ 10] pushint8 1 .............................. <1>
+  [ 12] setlocal 0
+  [ 14] getlocal 0
+  [ 16] pushint8 12 ............................. <12>
+  [ 18] lteq
+  [ 19] jmpifz [ 31] ............................ repeat with i = 1 to 12
+  [ 22] pushint8 1
+  [ 24] getlocal 0
+  [ 26] add
+  [ 27] setlocal 0
+  [ 29] endrepeat [ 14]
+  [ 31] pusharglist 0 ........................... <>
+  [ 33] thebuiltin 181 .......................... <the ticks>
+  [ 35] setprop 992 ............................. waitTicks = the ticks
+  [ 38] pushzero ................................ <0>
+  [ 39] setglobal 325 ........................... g_TimerState = 0
+  [ 42] pushzero ................................ <0>
+  [ 43] setprop 730 ............................. frameCounter = 0
+  [ 46] pusharglist 0 ........................... <>
+  [ 48] thebuiltin 181 .......................... <the ticks>
+  [ 50] setprop 993 ............................. flashTicks = the ticks
+  [ 53] pushzero ................................ <0>
+  [ 54] pushzero ................................ <0>
+  [ 55] pushzero ................................ <0>
+  [ 56] pushzero ................................ <0>
+  [ 57] pushzero ................................ <0>
+  [ 58] pusharglist 5 ........................... <[0, 0, 0, 0, 0]>
+  [ 60] pushlist ................................ <[0, 0, 0, 0, 0]>
+  [ 61] setprop 324 ............................. timeList = [0, 0, 0, 0, 0]
+  [ 64] pushint8 1 .............................. <1>
+  [ 66] pushint8 1 .............................. <1>
+  [ 68] pushint8 1 .............................. <1>
+  [ 70] pushint8 1 .............................. <1>
+  [ 72] pushint8 1 .............................. <1>
+  [ 74] pusharglist 5 ........................... <[1, 1, 1, 1, 1]>
+  [ 76] pushlist ................................ <[1, 1, 1, 1, 1]>
+  [ 77] setprop 994 ............................. prevTimeList = [1, 1, 1, 1, 1]
+  [ 80] pusharglist 0 ........................... <[]>
+  [ 82] pushlist ................................ <[]>
+  [ 83] setprop 995 ............................. timerTextureList = []
+  [ 86] pusharglist 0 ........................... <[]>
+  [ 88] pushlist ................................ <[]>
+  [ 89] setprop 996 ............................. scoreTextureList = []
+  [ 92] pushzero ................................ <0>
+  [ 93] setlocal 0
+  [ 95] getlocal 0
+  [ 97] pushint8 9 .............................. <9>
+  [ 99] lteq
+  [100] jmpifz [167] ............................ repeat with i = 0 to 9
+  [103] getprop 27 .............................. <w>
+  [105] pushcons 0 .............................. <"TimerNumber">
+  [107] getlocal 0 .............................. <i>
+  [109] joinstr ................................. <"TimerNumber" & i>
+  [110] pushcons 1 .............................. <"Texture">
+  [112] joinstr ................................. <"TimerNumber" & i & "Texture">
+  [113] pushsymb 9 .............................. <#fromCastMember>
+  [115] pushint8 37 ............................. <37>
+  [117] getlocal 0 .............................. <i>
+  [119] add ..................................... <37 + i>
+  [120] pushcons 2 .............................. <"textures">
+  [122] pusharglist 2 ........................... <37 + i, "textures">
+  [124] extcall 5 ............................... <member(37 + i, "textures")>
+  [126] pusharglist 4 ........................... <w, "TimerNumber" & i & "Texture", #fromCastMember, member(37 + i, "textures")>
+  [128] objcall 10 .............................. <w.newTexture("TimerNumber" & i & "Texture", #fromCastMember, member(37 + i, "textures"))>
+  [130] setlocal 1 .............................. tempTexture = w.newTexture("TimerNumber" & i & "Texture", #fromCastMember, member(37 + i, "textures"))
+  [132] getprop 995 ............................. <timerTextureList>
+  [135] getlocal 1 .............................. <tempTexture>
+  [137] pusharglistnoret 2 ...................... <timerTextureList, tempTexture>
+  [139] objcall 365 ............................. timerTextureList.add(tempTexture)
+  [142] getprop 995 ............................. <timerTextureList>
+  [145] getlocal 0 .............................. <i>
+  [147] pushint8 1 .............................. <1>
+  [149] add ..................................... <i + 1>
+  [150] pusharglist 2 ........................... <timerTextureList, i + 1>
+  [152] objcall 53 .............................. <timerTextureList[i + 1]>
+  [154] pushsymb 11 ............................. <#rgba8888>
+  [156] setobjprop 12 ........................... timerTextureList[i + 1].renderFormat = #rgba8888
+  [158] pushint8 1
+  [160] getlocal 0
+  [162] add
+  [163] setlocal 0
+  [165] endrepeat [ 95]
+  [167] pushzero ................................ <0>
+  [168] setlocal 0
+  [170] getlocal 0
+  [172] pushint8 9 .............................. <9>
+  [174] lteq
+  [175] jmpifz [242] ............................ repeat with i = 0 to 9
+  [178] getprop 27 .............................. <w>
+  [180] pushcons 3 .............................. <"ScoreNumber">
+  [182] getlocal 0 .............................. <i>
+  [184] joinstr ................................. <"ScoreNumber" & i>
+  [185] pushcons 1 .............................. <"Texture">
+  [187] joinstr ................................. <"ScoreNumber" & i & "Texture">
+  [188] pushsymb 9 .............................. <#fromCastMember>
+  [190] pushint8 25 ............................. <25>
+  [192] getlocal 0 .............................. <i>
+  [194] add ..................................... <25 + i>
+  [195] pushcons 2 .............................. <"textures">
+  [197] pusharglist 2 ........................... <25 + i, "textures">
+  [199] extcall 5 ............................... <member(25 + i, "textures")>
+  [201] pusharglist 4 ........................... <w, "ScoreNumber" & i & "Texture", #fromCastMember, member(25 + i, "textures")>
+  [203] objcall 10 .............................. <w.newTexture("ScoreNumber" & i & "Texture", #fromCastMember, member(25 + i, "textures"))>
+  [205] setlocal 1 .............................. tempTexture = w.newTexture("ScoreNumber" & i & "Texture", #fromCastMember, member(25 + i, "textures"))
+  [207] getprop 996 ............................. <scoreTextureList>
+  [210] getlocal 1 .............................. <tempTexture>
+  [212] pusharglistnoret 2 ...................... <scoreTextureList, tempTexture>
+  [214] objcall 365 ............................. scoreTextureList.add(tempTexture)
+  [217] getprop 996 ............................. <scoreTextureList>
+  [220] getlocal 0 .............................. <i>
+  [222] pushint8 1 .............................. <1>
+  [224] add ..................................... <i + 1>
+  [225] pusharglist 2 ........................... <scoreTextureList, i + 1>
+  [227] objcall 53 .............................. <scoreTextureList[i + 1]>
+  [229] pushsymb 11 ............................. <#rgba8888>
+  [231] setobjprop 12 ........................... scoreTextureList[i + 1].renderFormat = #rgba8888
+  [233] pushint8 1
+  [235] getlocal 0
+  [237] add
+  [238] setlocal 0
+  [240] endrepeat [170]
+  [242] pushint8 1 .............................. <1>
+  [244] pusharglist 1 ........................... <1>
+  [246] extcall 3 ............................... <sprite(1)>
+  [248] getobjprop 7 ............................ <sprite(1).camera>
+  [250] setprop 6 ............................... cam = sprite(1).camera
+  [252] getprop 6 ............................... <cam>
+  [254] pushsymb 16 ............................. <#overlay>
+  [256] pusharglist 2 ........................... <cam, #overlay>
+  [258] objcall 17 .............................. <cam.overlay.count>
+  [260] setprop 997 ............................. existingOverlays = cam.overlay.count
+  [263] pushfloat32 1.0 ......................... <1.0>
+  [268] setprop 998 ............................. overlayScale = 1.0
+  [271] pushint16 640 ........................... <640>
+  [274] pushint8 28 ............................. <28>
+  [276] pusharglist 2 ........................... <640, 28>
+  [278] extcall 13 .............................. <point(640, 28)>
+  [280] setprop 999 ............................. origin = point(640, 28)
+  [283] getprop 27 .............................. <w>
+  [285] pushcons 4 .............................. <"TimerBackGroundTexture">
+  [287] pushsymb 9 .............................. <#fromCastMember>
+  [289] pushint8 47 ............................. <47>
+  [291] pushcons 2 .............................. <"textures">
+  [293] pusharglist 2 ........................... <47, "textures">
+  [295] extcall 5 ............................... <member(47, "textures")>
+  [297] pusharglist 4 ........................... <w, "TimerBackGroundTexture", #fromCastMember, member(47, "textures")>
+  [299] objcall 10 .............................. <w.newTexture("TimerBackGroundTexture", #fromCastMember, member(47, "textures"))>
+  [301] setlocal 1 .............................. tempTexture = w.newTexture("TimerBackGroundTexture", #fromCastMember, member(47, "textures"))
+  [303] getlocal 1 .............................. <tempTexture>
+  [305] pushsymb 370 ............................ <#rgba4444>
+  [308] setobjprop 12 ........................... tempTexture.renderFormat = #rgba4444
+  [310] getprop 6 ............................... <cam>
+  [312] getlocal 1 .............................. <tempTexture>
+  [314] getprop 999 ............................. <origin>
+  [317] pushint8 24 ............................. <24>
+  [319] pushzero ................................ <0>
+  [320] pusharglist 2 ........................... <24, 0>
+  [322] extcall 13 .............................. <point(24, 0)>
+  [324] getprop 998 ............................. <overlayScale>
+  [327] mul ..................................... <point(24, 0) * overlayScale>
+  [328] add ..................................... <origin + (point(24, 0) * overlayScale)>
+  [329] pushzero ................................ <0>
+  [330] pusharglistnoret 4 ...................... <cam, tempTexture, origin + (point(24, 0) * overlayScale), 0>
+  [332] objcall 14 .............................. cam.addOverlay(tempTexture, origin + (point(24, 0) * overlayScale), 0)
+  [334] getprop 6 ............................... <cam>
+  [336] getprop 995 ............................. <timerTextureList>
+  [339] pushint8 1 .............................. <1>
+  [341] pusharglist 2 ........................... <timerTextureList, 1>
+  [343] objcall 53 .............................. <timerTextureList[1]>
+  [345] getprop 999 ............................. <origin>
+  [348] pushzero ................................ <0>
+  [349] pushzero ................................ <0>
+  [350] pusharglist 2 ........................... <0, 0>
+  [352] extcall 13 .............................. <point(0, 0)>
+  [354] add ..................................... <origin + point(0, 0)>
+  [355] pushzero ................................ <0>
+  [356] pusharglistnoret 4 ...................... <cam, timerTextureList[1], origin + point(0, 0), 0>
+  [358] objcall 14 .............................. cam.addOverlay(timerTextureList[1], origin + point(0, 0), 0)
+  [360] getprop 6 ............................... <cam>
+  [362] getprop 995 ............................. <timerTextureList>
+  [365] pushint8 1 .............................. <1>
+  [367] pusharglist 2 ........................... <timerTextureList, 1>
+  [369] objcall 53 .............................. <timerTextureList[1]>
+  [371] getprop 999 ............................. <origin>
+  [374] pushint8 52 ............................. <52>
+  [376] pushzero ................................ <0>
+  [377] pusharglist 2 ........................... <52, 0>
+  [379] extcall 13 .............................. <point(52, 0)>
+  [381] getprop 998 ............................. <overlayScale>
+  [384] mul ..................................... <point(52, 0) * overlayScale>
+  [385] add ..................................... <origin + (point(52, 0) * overlayScale)>
+  [386] pushzero ................................ <0>
+  [387] pusharglistnoret 4 ...................... <cam, timerTextureList[1], origin + (point(52, 0) * overlayScale), 0>
+  [389] objcall 14 .............................. cam.addOverlay(timerTextureList[1], origin + (point(52, 0) * overlayScale), 0)
+  [391] getprop 6 ............................... <cam>
+  [393] getprop 995 ............................. <timerTextureList>
+  [396] pushint8 1 .............................. <1>
+  [398] pusharglist 2 ........................... <timerTextureList, 1>
+  [400] objcall 53 .............................. <timerTextureList[1]>
+  [402] getprop 999 ............................. <origin>
+  [405] pushint8 78 ............................. <78>
+  [407] pushzero ................................ <0>
+  [408] pusharglist 2 ........................... <78, 0>
+  [410] extcall 13 .............................. <point(78, 0)>
+  [412] getprop 998 ............................. <overlayScale>
+  [415] mul ..................................... <point(78, 0) * overlayScale>
+  [416] add ..................................... <origin + (point(78, 0) * overlayScale)>
+  [417] pushzero ................................ <0>
+  [418] pusharglistnoret 4 ...................... <cam, timerTextureList[1], origin + (point(78, 0) * overlayScale), 0>
+  [420] objcall 14 .............................. cam.addOverlay(timerTextureList[1], origin + (point(78, 0) * overlayScale), 0)
+  [422] getprop 6 ............................... <cam>
+  [424] getprop 995 ............................. <timerTextureList>
+  [427] pushint8 1 .............................. <1>
+  [429] pusharglist 2 ........................... <timerTextureList, 1>
+  [431] objcall 53 .............................. <timerTextureList[1]>
+  [433] getprop 999 ............................. <origin>
+  [436] pushint8 116 ............................ <116>
+  [438] pushint8 2 .............................. <2>
+  [440] pusharglist 2 ........................... <116, 2>
+  [442] extcall 13 .............................. <point(116, 2)>
+  [444] getprop 998 ............................. <overlayScale>
+  [447] mul ..................................... <point(116, 2) * overlayScale>
+  [448] add ..................................... <origin + (point(116, 2) * overlayScale)>
+  [449] pushzero ................................ <0>
+  [450] pusharglistnoret 4 ...................... <cam, timerTextureList[1], origin + (point(116, 2) * overlayScale), 0>
+  [452] objcall 14 .............................. cam.addOverlay(timerTextureList[1], origin + (point(116, 2) * overlayScale), 0)
+  [454] getprop 6 ............................... <cam>
+  [456] getprop 995 ............................. <timerTextureList>
+  [459] pushint8 1 .............................. <1>
+  [461] pusharglist 2 ........................... <timerTextureList, 1>
+  [463] objcall 53 .............................. <timerTextureList[1]>
+  [465] getprop 999 ............................. <origin>
+  [468] pushint16 132 ........................... <132>
+  [471] pushint8 2 .............................. <2>
+  [473] pusharglist 2 ........................... <132, 2>
+  [475] extcall 13 .............................. <point(132, 2)>
+  [477] getprop 998 ............................. <overlayScale>
+  [480] mul ..................................... <point(132, 2) * overlayScale>
+  [481] add ..................................... <origin + (point(132, 2) * overlayScale)>
+  [482] pushzero ................................ <0>
+  [483] pusharglistnoret 4 ...................... <cam, timerTextureList[1], origin + (point(132, 2) * overlayScale), 0>
+  [485] objcall 14 .............................. cam.addOverlay(timerTextureList[1], origin + (point(132, 2) * overlayScale), 0)
+  [487] getprop 6 ............................... <cam>
+  [489] pushsymb 16 ............................. <#overlay>
+  [491] getprop 997 ............................. <existingOverlays>
+  [494] pushint8 1 .............................. <1>
+  [496] add ..................................... <existingOverlays + 1>
+  [497] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 1>
+  [499] objcall 18 .............................. <cam.overlay[existingOverlays + 1]>
+  [501] getprop 998 ............................. <overlayScale>
+  [504] setobjprop 19 ........................... cam.overlay[existingOverlays + 1].scale = overlayScale
+  [506] getprop 6 ............................... <cam>
+  [508] pushsymb 16 ............................. <#overlay>
+  [510] getprop 997 ............................. <existingOverlays>
+  [513] pushint8 2 .............................. <2>
+  [515] add ..................................... <existingOverlays + 2>
+  [516] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 2>
+  [518] objcall 18 .............................. <cam.overlay[existingOverlays + 2]>
+  [520] getprop 998 ............................. <overlayScale>
+  [523] setobjprop 19 ........................... cam.overlay[existingOverlays + 2].scale = overlayScale
+  [525] getprop 6 ............................... <cam>
+  [527] pushsymb 16 ............................. <#overlay>
+  [529] getprop 997 ............................. <existingOverlays>
+  [532] pushint8 3 .............................. <3>
+  [534] add ..................................... <existingOverlays + 3>
+  [535] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 3>
+  [537] objcall 18 .............................. <cam.overlay[existingOverlays + 3]>
+  [539] getprop 998 ............................. <overlayScale>
+  [542] setobjprop 19 ........................... cam.overlay[existingOverlays + 3].scale = overlayScale
+  [544] getprop 6 ............................... <cam>
+  [546] pushsymb 16 ............................. <#overlay>
+  [548] getprop 997 ............................. <existingOverlays>
+  [551] pushint8 4 .............................. <4>
+  [553] add ..................................... <existingOverlays + 4>
+  [554] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 4>
+  [556] objcall 18 .............................. <cam.overlay[existingOverlays + 4]>
+  [558] getprop 998 ............................. <overlayScale>
+  [561] setobjprop 19 ........................... cam.overlay[existingOverlays + 4].scale = overlayScale
+  [563] getprop 6 ............................... <cam>
+  [565] pushsymb 16 ............................. <#overlay>
+  [567] getprop 997 ............................. <existingOverlays>
+  [570] pushint8 5 .............................. <5>
+  [572] add ..................................... <existingOverlays + 5>
+  [573] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 5>
+  [575] objcall 18 .............................. <cam.overlay[existingOverlays + 5]>
+  [577] getprop 998 ............................. <overlayScale>
+  [580] pushfloat32 0.5 ......................... <0.5>
+  [585] mul ..................................... <overlayScale * 0.5>
+  [586] setobjprop 19 ........................... cam.overlay[existingOverlays + 5].scale = overlayScale * 0.5
+  [588] getprop 6 ............................... <cam>
+  [590] pushsymb 16 ............................. <#overlay>
+  [592] getprop 997 ............................. <existingOverlays>
+  [595] pushint8 6 .............................. <6>
+  [597] add ..................................... <existingOverlays + 6>
+  [598] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 6>
+  [600] objcall 18 .............................. <cam.overlay[existingOverlays + 6]>
+  [602] getprop 998 ............................. <overlayScale>
+  [605] pushfloat32 0.5 ......................... <0.5>
+  [610] mul ..................................... <overlayScale * 0.5>
+  [611] setobjprop 19 ........................... cam.overlay[existingOverlays + 6].scale = overlayScale * 0.5
+  [613] pusharglistnoret 0 ...................... <>
+  [615] localcall 2 ............................. updateTimer()
+  [617] getprop 324 ............................. <timeList>
+  [620] pusharglist 1 ........................... <timeList>
+  [622] objcall 283 ............................. <timeList.duplicate()>
+  [625] setprop 994 ............................. prevTimeList = timeList.duplicate()
+  [628] pushint8 4 .............................. <4>
+  [630] pushint8 28 ............................. <28>
+  [632] pusharglist 2 ........................... <4, 28>
+  [634] extcall 13 .............................. <point(4, 28)>
+  [636] setprop 999 ............................. origin = point(4, 28)
+  [639] getglobal 295 ........................... <g_CurrentScore>
+  [642] setprop 294 ............................. prevCurrentScore = g_CurrentScore
+  [645] pushfloat32 1.0 ......................... <1.0>
+  [650] setprop 998 ............................. overlayScale = 1.0
+  [653] getprop 6 ............................... <cam>
+  [655] getprop 996 ............................. <scoreTextureList>
+  [658] pushint8 1 .............................. <1>
+  [660] pusharglist 2 ........................... <scoreTextureList, 1>
+  [662] objcall 53 .............................. <scoreTextureList[1]>
+  [664] getprop 999 ............................. <origin>
+  [667] pushzero ................................ <0>
+  [668] pushzero ................................ <0>
+  [669] pusharglist 2 ........................... <0, 0>
+  [671] extcall 13 .............................. <point(0, 0)>
+  [673] add ..................................... <origin + point(0, 0)>
+  [674] pushzero ................................ <0>
+  [675] pusharglistnoret 4 ...................... <cam, scoreTextureList[1], origin + point(0, 0), 0>
+  [677] objcall 14 .............................. cam.addOverlay(scoreTextureList[1], origin + point(0, 0), 0)
+  [679] getprop 6 ............................... <cam>
+  [681] getprop 996 ............................. <scoreTextureList>
+  [684] pushint8 1 .............................. <1>
+  [686] pusharglist 2 ........................... <scoreTextureList, 1>
+  [688] objcall 53 .............................. <scoreTextureList[1]>
+  [690] getprop 999 ............................. <origin>
+  [693] pushint8 26 ............................. <26>
+  [695] pushzero ................................ <0>
+  [696] pusharglist 2 ........................... <26, 0>
+  [698] extcall 13 .............................. <point(26, 0)>
+  [700] getprop 998 ............................. <overlayScale>
+  [703] mul ..................................... <point(26, 0) * overlayScale>
+  [704] add ..................................... <origin + (point(26, 0) * overlayScale)>
+  [705] pushzero ................................ <0>
+  [706] pusharglistnoret 4 ...................... <cam, scoreTextureList[1], origin + (point(26, 0) * overlayScale), 0>
+  [708] objcall 14 .............................. cam.addOverlay(scoreTextureList[1], origin + (point(26, 0) * overlayScale), 0)
+  [710] getprop 6 ............................... <cam>
+  [712] getprop 996 ............................. <scoreTextureList>
+  [715] pushint8 1 .............................. <1>
+  [717] pusharglist 2 ........................... <scoreTextureList, 1>
+  [719] objcall 53 .............................. <scoreTextureList[1]>
+  [721] getprop 999 ............................. <origin>
+  [724] pushint8 52 ............................. <52>
+  [726] pushzero ................................ <0>
+  [727] pusharglist 2 ........................... <52, 0>
+  [729] extcall 13 .............................. <point(52, 0)>
+  [731] getprop 998 ............................. <overlayScale>
+  [734] mul ..................................... <point(52, 0) * overlayScale>
+  [735] add ..................................... <origin + (point(52, 0) * overlayScale)>
+  [736] pushzero ................................ <0>
+  [737] pusharglistnoret 4 ...................... <cam, scoreTextureList[1], origin + (point(52, 0) * overlayScale), 0>
+  [739] objcall 14 .............................. cam.addOverlay(scoreTextureList[1], origin + (point(52, 0) * overlayScale), 0)
+  [741] getprop 6 ............................... <cam>
+  [743] getprop 996 ............................. <scoreTextureList>
+  [746] pushint8 1 .............................. <1>
+  [748] pusharglist 2 ........................... <scoreTextureList, 1>
+  [750] objcall 53 .............................. <scoreTextureList[1]>
+  [752] getprop 999 ............................. <origin>
+  [755] pushint8 78 ............................. <78>
+  [757] pushzero ................................ <0>
+  [758] pusharglist 2 ........................... <78, 0>
+  [760] extcall 13 .............................. <point(78, 0)>
+  [762] getprop 998 ............................. <overlayScale>
+  [765] mul ..................................... <point(78, 0) * overlayScale>
+  [766] add ..................................... <origin + (point(78, 0) * overlayScale)>
+  [767] pushzero ................................ <0>
+  [768] pusharglistnoret 4 ...................... <cam, scoreTextureList[1], origin + (point(78, 0) * overlayScale), 0>
+  [770] objcall 14 .............................. cam.addOverlay(scoreTextureList[1], origin + (point(78, 0) * overlayScale), 0)
+  [772] getprop 6 ............................... <cam>
+  [774] getprop 996 ............................. <scoreTextureList>
+  [777] pushint8 1 .............................. <1>
+  [779] pusharglist 2 ........................... <scoreTextureList, 1>
+  [781] objcall 53 .............................. <scoreTextureList[1]>
+  [783] getprop 999 ............................. <origin>
+  [786] pushint8 104 ............................ <104>
+  [788] pushzero ................................ <0>
+  [789] pusharglist 2 ........................... <104, 0>
+  [791] extcall 13 .............................. <point(104, 0)>
+  [793] getprop 998 ............................. <overlayScale>
+  [796] mul ..................................... <point(104, 0) * overlayScale>
+  [797] add ..................................... <origin + (point(104, 0) * overlayScale)>
+  [798] pushzero ................................ <0>
+  [799] pusharglistnoret 4 ...................... <cam, scoreTextureList[1], origin + (point(104, 0) * overlayScale), 0>
+  [801] objcall 14 .............................. cam.addOverlay(scoreTextureList[1], origin + (point(104, 0) * overlayScale), 0)
+  [803] getprop 6 ............................... <cam>
+  [805] pushsymb 16 ............................. <#overlay>
+  [807] getprop 997 ............................. <existingOverlays>
+  [810] pushint8 7 .............................. <7>
+  [812] add ..................................... <existingOverlays + 7>
+  [813] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 7>
+  [815] objcall 18 .............................. <cam.overlay[existingOverlays + 7]>
+  [817] getprop 998 ............................. <overlayScale>
+  [820] setobjprop 19 ........................... cam.overlay[existingOverlays + 7].scale = overlayScale
+  [822] getprop 6 ............................... <cam>
+  [824] pushsymb 16 ............................. <#overlay>
+  [826] getprop 997 ............................. <existingOverlays>
+  [829] pushint8 8 .............................. <8>
+  [831] add ..................................... <existingOverlays + 8>
+  [832] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 8>
+  [834] objcall 18 .............................. <cam.overlay[existingOverlays + 8]>
+  [836] getprop 998 ............................. <overlayScale>
+  [839] setobjprop 19 ........................... cam.overlay[existingOverlays + 8].scale = overlayScale
+  [841] getprop 6 ............................... <cam>
+  [843] pushsymb 16 ............................. <#overlay>
+  [845] getprop 997 ............................. <existingOverlays>
+  [848] pushint8 9 .............................. <9>
+  [850] add ..................................... <existingOverlays + 9>
+  [851] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 9>
+  [853] objcall 18 .............................. <cam.overlay[existingOverlays + 9]>
+  [855] getprop 998 ............................. <overlayScale>
+  [858] setobjprop 19 ........................... cam.overlay[existingOverlays + 9].scale = overlayScale
+  [860] getprop 6 ............................... <cam>
+  [862] pushsymb 16 ............................. <#overlay>
+  [864] getprop 997 ............................. <existingOverlays>
+  [867] pushint8 10 ............................. <10>
+  [869] add ..................................... <existingOverlays + 10>
+  [870] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 10>
+  [872] objcall 18 .............................. <cam.overlay[existingOverlays + 10]>
+  [874] getprop 998 ............................. <overlayScale>
+  [877] setobjprop 19 ........................... cam.overlay[existingOverlays + 10].scale = overlayScale
+  [879] getprop 6 ............................... <cam>
+  [881] pushsymb 16 ............................. <#overlay>
+  [883] getprop 997 ............................. <existingOverlays>
+  [886] pushint8 11 ............................. <11>
+  [888] add ..................................... <existingOverlays + 11>
+  [889] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 11>
+  [891] objcall 18 .............................. <cam.overlay[existingOverlays + 11]>
+  [893] getprop 998 ............................. <overlayScale>
+  [896] setobjprop 19 ........................... cam.overlay[existingOverlays + 11].scale = overlayScale
+  [898] pusharglist 0 ........................... <>
+  [900] thebuiltin 181 .......................... <the ticks>
+  [902] setprop 729 ............................. startTicks = the ticks
+  [905] ret
+end
+
+on exitFrame
+  [  0] getglobal 28 ............................ <g_Paused>
+  [  2] pushzero ................................ <0>
+  [  3] eq ...................................... <g_Paused = 0>
+  [  4] jmpifz [2096] ........................... if g_Paused = 0 then / else
+  [  7] pusharglist 0 ........................... <>
+  [  9] thebuiltin 181 .......................... <the ticks>
+  [ 11] getprop 729 ............................. <startTicks>
+  [ 14] sub ..................................... <the ticks - startTicks>
+  [ 15] pushcons 5 .............................. <1.66666669999999995>
+  [ 17] mul ..................................... <(the ticks - startTicks) * 1.66666669999999995>
+  [ 18] pusharglist 1 ........................... <(the ticks - startTicks) * 1.66666669999999995>
+  [ 20] extcall 208 ............................. <integer((the ticks - startTicks) * 1.66666669999999995)>
+  [ 22] setlocal 0 .............................. addHundredths = integer((the ticks - startTicks) * 1.66666669999999995)
+  [ 24] pusharglist 0 ........................... <>
+  [ 26] thebuiltin 181 .......................... <the ticks>
+  [ 28] getprop 729 ............................. <startTicks>
+  [ 31] sub ..................................... <the ticks - startTicks>
+  [ 32] pushcons 5 .............................. <1.66666669999999995>
+  [ 34] mul ..................................... <(the ticks - startTicks) * 1.66666669999999995>
+  [ 35] pusharglist 1 ........................... <(the ticks - startTicks) * 1.66666669999999995>
+  [ 37] extcall 208 ............................. <integer((the ticks - startTicks) * 1.66666669999999995)>
+  [ 39] setprop 1000 ............................ deductHundredths = integer((the ticks - startTicks) * 1.66666669999999995)
+  [ 42] pusharglist 0 ........................... <>
+  [ 44] thebuiltin 181 .......................... <the ticks>
+  [ 46] setprop 729 ............................. startTicks = the ticks
+  [ 49] getglobal 325 ........................... <g_TimerState>
+  [ 52] peek 0 .................................. case g_TimerState of
+  [ 54] pushint8 2 .............................. <2>
+  [ 56] inv ..................................... <-2>
+  [ 57] eq
+  [ 58] jmpifz [372] ............................ (case) (-2):
+  [ 61] getprop 324 ............................. <timeList>
+  [ 64] pushint8 1 .............................. <1>
+  [ 66] getprop 324 ............................. <timeList>
+  [ 69] pushint8 1 .............................. <1>
+  [ 71] pusharglist 2 ........................... <timeList, 1>
+  [ 73] objcall 53 .............................. <timeList[1]>
+  [ 75] getlocal 0 .............................. <addHundredths>
+  [ 77] add ..................................... <timeList[1] + addHundredths>
+  [ 78] pusharglistnoret 3 ...................... <timeList, 1, timeList[1] + addHundredths>
+  [ 80] objcall 193 ............................. timeList[1] = timeList[1] + addHundredths
+  [ 82] getprop 324 ............................. <timeList>
+  [ 85] pushint8 1 .............................. <1>
+  [ 87] pusharglist 2 ........................... <timeList, 1>
+  [ 89] objcall 53 .............................. <timeList[1]>
+  [ 91] pushint8 9 .............................. <9>
+  [ 93] gt ...................................... <timeList[1] > 9>
+  [ 94] jmpifz [354] ............................ repeat while timeList[1] > 9
+  [ 97] getprop 324 ............................. <timeList>
+  [100] pushint8 1 .............................. <1>
+  [102] pusharglist 2 ........................... <timeList, 1>
+  [104] objcall 53 .............................. <timeList[1]>
+  [106] pushint8 9 .............................. <9>
+  [108] gt ...................................... <timeList[1] > 9>
+  [109] jmpifz [154] ............................ if timeList[1] > 9 then
+  [112] getprop 324 ............................. <timeList>
+  [115] pushint8 1 .............................. <1>
+  [117] getprop 324 ............................. <timeList>
+  [120] pushint8 1 .............................. <1>
+  [122] pusharglist 2 ........................... <timeList, 1>
+  [124] objcall 53 .............................. <timeList[1]>
+  [126] pushint8 10 ............................. <10>
+  [128] sub ..................................... <timeList[1] - 10>
+  [129] pusharglistnoret 3 ...................... <timeList, 1, timeList[1] - 10>
+  [131] objcall 193 ............................. timeList[1] = timeList[1] - 10
+  [133] getprop 324 ............................. <timeList>
+  [136] pushint8 2 .............................. <2>
+  [138] getprop 324 ............................. <timeList>
+  [141] pushint8 2 .............................. <2>
+  [143] pusharglist 2 ........................... <timeList, 2>
+  [145] objcall 53 .............................. <timeList[2]>
+  [147] pushint8 1 .............................. <1>
+  [149] add ..................................... <timeList[2] + 1>
+  [150] pusharglistnoret 3 ...................... <timeList, 2, timeList[2] + 1>
+  [152] objcall 193 ............................. timeList[2] = timeList[2] + 1
+  [154] getprop 324 ............................. <timeList>
+  [157] pushint8 2 .............................. <2>
+  [159] pusharglist 2 ........................... <timeList, 2>
+  [161] objcall 53 .............................. <timeList[2]>
+  [163] pushint8 9 .............................. <9>
+  [165] gt ...................................... <timeList[2] > 9>
+  [166] jmpifz [211] ............................ if timeList[2] > 9 then
+  [169] getprop 324 ............................. <timeList>
+  [172] pushint8 2 .............................. <2>
+  [174] getprop 324 ............................. <timeList>
+  [177] pushint8 2 .............................. <2>
+  [179] pusharglist 2 ........................... <timeList, 2>
+  [181] objcall 53 .............................. <timeList[2]>
+  [183] pushint8 10 ............................. <10>
+  [185] sub ..................................... <timeList[2] - 10>
+  [186] pusharglistnoret 3 ...................... <timeList, 2, timeList[2] - 10>
+  [188] objcall 193 ............................. timeList[2] = timeList[2] - 10
+  [190] getprop 324 ............................. <timeList>
+  [193] pushint8 3 .............................. <3>
+  [195] getprop 324 ............................. <timeList>
+  [198] pushint8 3 .............................. <3>
+  [200] pusharglist 2 ........................... <timeList, 3>
+  [202] objcall 53 .............................. <timeList[3]>
+  [204] pushint8 1 .............................. <1>
+  [206] add ..................................... <timeList[3] + 1>
+  [207] pusharglistnoret 3 ...................... <timeList, 3, timeList[3] + 1>
+  [209] objcall 193 ............................. timeList[3] = timeList[3] + 1
+  [211] getprop 324 ............................. <timeList>
+  [214] pushint8 3 .............................. <3>
+  [216] pusharglist 2 ........................... <timeList, 3>
+  [218] objcall 53 .............................. <timeList[3]>
+  [220] pushint8 9 .............................. <9>
+  [222] gt ...................................... <timeList[3] > 9>
+  [223] jmpifz [268] ............................ if timeList[3] > 9 then
+  [226] getprop 324 ............................. <timeList>
+  [229] pushint8 3 .............................. <3>
+  [231] getprop 324 ............................. <timeList>
+  [234] pushint8 3 .............................. <3>
+  [236] pusharglist 2 ........................... <timeList, 3>
+  [238] objcall 53 .............................. <timeList[3]>
+  [240] pushint8 10 ............................. <10>
+  [242] sub ..................................... <timeList[3] - 10>
+  [243] pusharglistnoret 3 ...................... <timeList, 3, timeList[3] - 10>
+  [245] objcall 193 ............................. timeList[3] = timeList[3] - 10
+  [247] getprop 324 ............................. <timeList>
+  [250] pushint8 4 .............................. <4>
+  [252] getprop 324 ............................. <timeList>
+  [255] pushint8 4 .............................. <4>
+  [257] pusharglist 2 ........................... <timeList, 4>
+  [259] objcall 53 .............................. <timeList[4]>
+  [261] pushint8 1 .............................. <1>
+  [263] add ..................................... <timeList[4] + 1>
+  [264] pusharglistnoret 3 ...................... <timeList, 4, timeList[4] + 1>
+  [266] objcall 193 ............................. timeList[4] = timeList[4] + 1
+  [268] getprop 324 ............................. <timeList>
+  [271] pushint8 4 .............................. <4>
+  [273] pusharglist 2 ........................... <timeList, 4>
+  [275] objcall 53 .............................. <timeList[4]>
+  [277] pushint8 5 .............................. <5>
+  [279] gt ...................................... <timeList[4] > 5>
+  [280] jmpifz [351] ............................ if timeList[4] > 5 then
+  [283] getprop 324 ............................. <timeList>
+  [286] pushint8 4 .............................. <4>
+  [288] getprop 324 ............................. <timeList>
+  [291] pushint8 4 .............................. <4>
+  [293] pusharglist 2 ........................... <timeList, 4>
+  [295] objcall 53 .............................. <timeList[4]>
+  [297] pushint8 6 .............................. <6>
+  [299] sub ..................................... <timeList[4] - 6>
+  [300] pusharglistnoret 3 ...................... <timeList, 4, timeList[4] - 6>
+  [302] objcall 193 ............................. timeList[4] = timeList[4] - 6
+  [304] getprop 324 ............................. <timeList>
+  [307] pushint8 5 .............................. <5>
+  [309] getprop 324 ............................. <timeList>
+  [312] pushint8 5 .............................. <5>
+  [314] pusharglist 2 ........................... <timeList, 5>
+  [316] objcall 53 .............................. <timeList[5]>
+  [318] pushint8 1 .............................. <1>
+  [320] add ..................................... <timeList[5] + 1>
+  [321] pusharglistnoret 3 ...................... <timeList, 5, timeList[5] + 1>
+  [323] objcall 193 ............................. timeList[5] = timeList[5] + 1
+  [325] getprop 324 ............................. <timeList>
+  [328] pushint8 5 .............................. <5>
+  [330] pusharglist 2 ........................... <timeList, 5>
+  [332] objcall 53 .............................. <timeList[5]>
+  [334] pushint8 9 .............................. <9>
+  [336] gt ...................................... <timeList[5] > 9>
+  [337] jmpifz [351] ............................ if timeList[5] > 9 then
+  [340] getprop 324 ............................. <timeList>
+  [343] pushint8 5 .............................. <5>
+  [345] pushint8 9 .............................. <9>
+  [347] pusharglistnoret 3 ...................... <timeList, 5, 9>
+  [349] objcall 193 ............................. timeList[5] = 9
+  [351] endrepeat [ 82]
+  [354] pusharglistnoret 0 ...................... <>
+  [356] localcall 2 ............................. updateTimer()
+  [358] getprop 324 ............................. <timeList>
+  [361] pusharglist 1 ........................... <timeList>
+  [363] objcall 283 ............................. <timeList.duplicate()>
+  [366] setprop 994 ............................. prevTimeList = timeList.duplicate()
+  [369] jmp [2087]
+  [372] peek 0
+  [374] pushint8 1 .............................. <1>
+  [376] inv ..................................... <-1>
+  [377] eq
+  [378] jmpifz [389] ............................ (case) (-1):
+  [381] pusharglistnoret 0 ...................... <>
+  [383] extcall 372 ............................. nothing()
+  [386] jmp [2087]
+  [389] peek 0
+  [391] pushzero ................................ <0>
+  [392] eq
+  [393] jmpifz [404] ............................ (case) 0:
+  [396] pusharglistnoret 0 ...................... <>
+  [398] extcall 372 ............................. nothing()
+  [401] jmp [2087]
+  [404] peek 0
+  [406] pushint8 1 .............................. <1>
+  [408] eq
+  [409] jmpifz [819] ............................ (case) 1:
+  [412] getprop 324 ............................. <timeList>
+  [415] pushint8 1 .............................. <1>
+  [417] getprop 324 ............................. <timeList>
+  [420] pushint8 1 .............................. <1>
+  [422] pusharglist 2 ........................... <timeList, 1>
+  [424] objcall 53 .............................. <timeList[1]>
+  [426] getprop 1000 ............................ <deductHundredths>
+  [429] sub ..................................... <timeList[1] - deductHundredths>
+  [430] pusharglistnoret 3 ...................... <timeList, 1, timeList[1] - deductHundredths>
+  [432] objcall 193 ............................. timeList[1] = timeList[1] - deductHundredths
+  [434] getprop 324 ............................. <timeList>
+  [437] pushint8 1 .............................. <1>
+  [439] pusharglist 2 ........................... <timeList, 1>
+  [441] objcall 53 .............................. <timeList[1]>
+  [443] pushzero ................................ <0>
+  [444] lt ...................................... <timeList[1] < 0>
+  [445] jmpifz [801] ............................ repeat while timeList[1] < 0
+  [448] getprop 324 ............................. <timeList>
+  [451] pushint8 1 .............................. <1>
+  [453] pusharglist 2 ........................... <timeList, 1>
+  [455] objcall 53 .............................. <timeList[1]>
+  [457] pushzero ................................ <0>
+  [458] lt ...................................... <timeList[1] < 0>
+  [459] jmpifz [504] ............................ if timeList[1] < 0 then
+  [462] getprop 324 ............................. <timeList>
+  [465] pushint8 1 .............................. <1>
+  [467] getprop 324 ............................. <timeList>
+  [470] pushint8 1 .............................. <1>
+  [472] pusharglist 2 ........................... <timeList, 1>
+  [474] objcall 53 .............................. <timeList[1]>
+  [476] pushint8 10 ............................. <10>
+  [478] add ..................................... <timeList[1] + 10>
+  [479] pusharglistnoret 3 ...................... <timeList, 1, timeList[1] + 10>
+  [481] objcall 193 ............................. timeList[1] = timeList[1] + 10
+  [483] getprop 324 ............................. <timeList>
+  [486] pushint8 2 .............................. <2>
+  [488] getprop 324 ............................. <timeList>
+  [491] pushint8 2 .............................. <2>
+  [493] pusharglist 2 ........................... <timeList, 2>
+  [495] objcall 53 .............................. <timeList[2]>
+  [497] pushint8 1 .............................. <1>
+  [499] sub ..................................... <timeList[2] - 1>
+  [500] pusharglistnoret 3 ...................... <timeList, 2, timeList[2] - 1>
+  [502] objcall 193 ............................. timeList[2] = timeList[2] - 1
+  [504] getprop 324 ............................. <timeList>
+  [507] pushint8 2 .............................. <2>
+  [509] pusharglist 2 ........................... <timeList, 2>
+  [511] objcall 53 .............................. <timeList[2]>
+  [513] pushzero ................................ <0>
+  [514] lt ...................................... <timeList[2] < 0>
+  [515] jmpifz [560] ............................ if timeList[2] < 0 then
+  [518] getprop 324 ............................. <timeList>
+  [521] pushint8 2 .............................. <2>
+  [523] getprop 324 ............................. <timeList>
+  [526] pushint8 2 .............................. <2>
+  [528] pusharglist 2 ........................... <timeList, 2>
+  [530] objcall 53 .............................. <timeList[2]>
+  [532] pushint8 10 ............................. <10>
+  [534] add ..................................... <timeList[2] + 10>
+  [535] pusharglistnoret 3 ...................... <timeList, 2, timeList[2] + 10>
+  [537] objcall 193 ............................. timeList[2] = timeList[2] + 10
+  [539] getprop 324 ............................. <timeList>
+  [542] pushint8 3 .............................. <3>
+  [544] getprop 324 ............................. <timeList>
+  [547] pushint8 3 .............................. <3>
+  [549] pusharglist 2 ........................... <timeList, 3>
+  [551] objcall 53 .............................. <timeList[3]>
+  [553] pushint8 1 .............................. <1>
+  [555] sub ..................................... <timeList[3] - 1>
+  [556] pusharglistnoret 3 ...................... <timeList, 3, timeList[3] - 1>
+  [558] objcall 193 ............................. timeList[3] = timeList[3] - 1
+  [560] getprop 324 ............................. <timeList>
+  [563] pushint8 3 .............................. <3>
+  [565] pusharglist 2 ........................... <timeList, 3>
+  [567] objcall 53 .............................. <timeList[3]>
+  [569] pushzero ................................ <0>
+  [570] lt ...................................... <timeList[3] < 0>
+  [571] jmpifz [616] ............................ if timeList[3] < 0 then
+  [574] getprop 324 ............................. <timeList>
+  [577] pushint8 3 .............................. <3>
+  [579] getprop 324 ............................. <timeList>
+  [582] pushint8 3 .............................. <3>
+  [584] pusharglist 2 ........................... <timeList, 3>
+  [586] objcall 53 .............................. <timeList[3]>
+  [588] pushint8 10 ............................. <10>
+  [590] add ..................................... <timeList[3] + 10>
+  [591] pusharglistnoret 3 ...................... <timeList, 3, timeList[3] + 10>
+  [593] objcall 193 ............................. timeList[3] = timeList[3] + 10
+  [595] getprop 324 ............................. <timeList>
+  [598] pushint8 4 .............................. <4>
+  [600] getprop 324 ............................. <timeList>
+  [603] pushint8 4 .............................. <4>
+  [605] pusharglist 2 ........................... <timeList, 4>
+  [607] objcall 53 .............................. <timeList[4]>
+  [609] pushint8 1 .............................. <1>
+  [611] sub ..................................... <timeList[4] - 1>
+  [612] pusharglistnoret 3 ...................... <timeList, 4, timeList[4] - 1>
+  [614] objcall 193 ............................. timeList[4] = timeList[4] - 1
+  [616] getprop 324 ............................. <timeList>
+  [619] pushint8 4 .............................. <4>
+  [621] pusharglist 2 ........................... <timeList, 4>
+  [623] objcall 53 .............................. <timeList[4]>
+  [625] pushzero ................................ <0>
+  [626] lt ...................................... <timeList[4] < 0>
+  [627] jmpifz [686] ............................ if timeList[4] < 0 then
+  [630] getprop 324 ............................. <timeList>
+  [633] pushint8 4 .............................. <4>
+  [635] getprop 324 ............................. <timeList>
+  [638] pushint8 4 .............................. <4>
+  [640] pusharglist 2 ........................... <timeList, 4>
+  [642] objcall 53 .............................. <timeList[4]>
+  [644] pushint8 6 .............................. <6>
+  [646] add ..................................... <timeList[4] + 6>
+  [647] pusharglistnoret 3 ...................... <timeList, 4, timeList[4] + 6>
+  [649] objcall 193 ............................. timeList[4] = timeList[4] + 6
+  [651] getprop 324 ............................. <timeList>
+  [654] pushint8 5 .............................. <5>
+  [656] pusharglist 2 ........................... <timeList, 5>
+  [658] objcall 53 .............................. <timeList[5]>
+  [660] pushzero ................................ <0>
+  [661] gt ...................................... <timeList[5] > 0>
+  [662] jmpifz [686] ............................ if timeList[5] > 0 then
+  [665] getprop 324 ............................. <timeList>
+  [668] pushint8 5 .............................. <5>
+  [670] getprop 324 ............................. <timeList>
+  [673] pushint8 5 .............................. <5>
+  [675] pusharglist 2 ........................... <timeList, 5>
+  [677] objcall 53 .............................. <timeList[5]>
+  [679] pushint8 1 .............................. <1>
+  [681] sub ..................................... <timeList[5] - 1>
+  [682] pusharglistnoret 3 ...................... <timeList, 5, timeList[5] - 1>
+  [684] objcall 193 ............................. timeList[5] = timeList[5] - 1
+  [686] getprop 324 ............................. <timeList>
+  [689] pushint8 4 .............................. <4>
+  [691] pusharglist 2 ........................... <timeList, 4>
+  [693] objcall 53 .............................. <timeList[4]>
+  [695] pushint8 5 .............................. <5>
+  [697] gt ...................................... <timeList[4] > 5>
+  [698] jmpifz [743] ............................ if timeList[4] > 5 then
+  [701] getprop 324 ............................. <timeList>
+  [704] pushint8 4 .............................. <4>
+  [706] getprop 324 ............................. <timeList>
+  [709] pushint8 4 .............................. <4>
+  [711] pusharglist 2 ........................... <timeList, 4>
+  [713] objcall 53 .............................. <timeList[4]>
+  [715] pushint8 5 .............................. <5>
+  [717] sub ..................................... <timeList[4] - 5>
+  [718] pusharglistnoret 3 ...................... <timeList, 4, timeList[4] - 5>
+  [720] objcall 193 ............................. timeList[4] = timeList[4] - 5
+  [722] getprop 324 ............................. <timeList>
+  [725] pushint8 5 .............................. <5>
+  [727] getprop 324 ............................. <timeList>
+  [730] pushint8 5 .............................. <5>
+  [732] pusharglist 2 ........................... <timeList, 5>
+  [734] objcall 53 .............................. <timeList[5]>
+  [736] pushint8 1 .............................. <1>
+  [738] add ..................................... <timeList[5] + 1>
+  [739] pusharglistnoret 3 ...................... <timeList, 5, timeList[5] + 1>
+  [741] objcall 193 ............................. timeList[5] = timeList[5] + 1
+  [743] getprop 324 ............................. <timeList>
+  [746] pushint8 3 .............................. <3>
+  [748] pusharglist 2 ........................... <timeList, 3>
+  [750] objcall 53 .............................. <timeList[3]>
+  [752] pushzero ................................ <0>
+  [753] eq ...................................... <timeList[3] = 0>
+  [754] getprop 324 ............................. <timeList>
+  [757] pushint8 4 .............................. <4>
+  [759] pusharglist 2 ........................... <timeList, 4>
+  [761] objcall 53 .............................. <timeList[4]>
+  [763] pushzero ................................ <0>
+  [764] eq ...................................... <timeList[4] = 0>
+  [765] and ..................................... <(timeList[3] = 0) and (timeList[4] = 0)>
+  [766] getprop 324 ............................. <timeList>
+  [769] pushint8 5 .............................. <5>
+  [771] pusharglist 2 ........................... <timeList, 5>
+  [773] objcall 53 .............................. <timeList[5]>
+  [775] pushzero ................................ <0>
+  [776] eq ...................................... <timeList[5] = 0>
+  [777] and ..................................... <(timeList[3] = 0) and (timeList[4] = 0) and (timeList[5] = 0)>
+  [778] jmpifz [798] ............................ if (timeList[3] = 0) and (timeList[4] = 0) and (timeList[5] = 0) then
+  [781] pushzero ................................ <0>
+  [782] pushzero ................................ <0>
+  [783] pushzero ................................ <0>
+  [784] pushzero ................................ <0>
+  [785] pushzero ................................ <0>
+  [786] pusharglist 5 ........................... <[0, 0, 0, 0, 0]>
+  [788] pushlist ................................ <[0, 0, 0, 0, 0]>
+  [789] setprop 324 ............................. timeList = [0, 0, 0, 0, 0]
+  [792] pushint8 1 .............................. <1>
+  [794] inv ..................................... <-1>
+  [795] setglobal 325 ........................... g_TimerState = -1
+  [798] endrepeat [434]
+  [801] pusharglistnoret 0 ...................... <>
+  [803] localcall 2 ............................. updateTimer()
+  [805] getprop 324 ............................. <timeList>
+  [808] pusharglist 1 ........................... <timeList>
+  [810] objcall 283 ............................. <timeList.duplicate()>
+  [813] setprop 994 ............................. prevTimeList = timeList.duplicate()
+  [816] jmp [2087]
+  [819] peek 0
+  [821] pushint8 2 .............................. <2>
+  [823] eq
+  [824] jmpifz [1680] ........................... (case) 2:
+  [827] getprop 998 ............................. <overlayScale>
+  [830] pushfloat32 2.0 ......................... <2.0>
+  [835] lt ...................................... <overlayScale < 2.0>
+  [836] jmpifz [848] ............................ if overlayScale < 2.0 then
+  [839] getprop 998 ............................. <overlayScale>
+  [842] pushcons 6 .............................. <0.05>
+  [844] add ..................................... <overlayScale + 0.05>
+  [845] setprop 998 ............................. overlayScale = overlayScale + 0.05
+  [848] getprop 999 ............................. <origin>
+  [851] pushint16 250 ........................... <250>
+  [854] pushint16 180 ........................... <180>
+  [857] pusharglist 2 ........................... <250, 180>
+  [859] extcall 13 .............................. <point(250, 180)>
+  [861] getprop 999 ............................. <origin>
+  [864] sub ..................................... <point(250, 180) - origin>
+  [865] pushcons 7 .............................. <0.10000000000000001>
+  [867] mul ..................................... <(point(250, 180) - origin) * 0.10000000000000001>
+  [868] add ..................................... <origin + ((point(250, 180) - origin) * 0.10000000000000001)>
+  [869] setprop 999 ............................. origin = origin + ((point(250, 180) - origin) * 0.10000000000000001)
+  [872] getprop 6 ............................... <cam>
+  [874] pushsymb 16 ............................. <#overlay>
+  [876] getprop 997 ............................. <existingOverlays>
+  [879] pushint8 7 .............................. <7>
+  [881] add ..................................... <existingOverlays + 7>
+  [882] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 7>
+  [884] objcall 18 .............................. <cam.overlay[existingOverlays + 7]>
+  [886] getprop 998 ............................. <overlayScale>
+  [889] setobjprop 19 ........................... cam.overlay[existingOverlays + 7].scale = overlayScale
+  [891] getprop 6 ............................... <cam>
+  [893] pushsymb 16 ............................. <#overlay>
+  [895] getprop 997 ............................. <existingOverlays>
+  [898] pushint8 8 .............................. <8>
+  [900] add ..................................... <existingOverlays + 8>
+  [901] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 8>
+  [903] objcall 18 .............................. <cam.overlay[existingOverlays + 8]>
+  [905] getprop 998 ............................. <overlayScale>
+  [908] setobjprop 19 ........................... cam.overlay[existingOverlays + 8].scale = overlayScale
+  [910] getprop 6 ............................... <cam>
+  [912] pushsymb 16 ............................. <#overlay>
+  [914] getprop 997 ............................. <existingOverlays>
+  [917] pushint8 9 .............................. <9>
+  [919] add ..................................... <existingOverlays + 9>
+  [920] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 9>
+  [922] objcall 18 .............................. <cam.overlay[existingOverlays + 9]>
+  [924] getprop 998 ............................. <overlayScale>
+  [927] setobjprop 19 ........................... cam.overlay[existingOverlays + 9].scale = overlayScale
+  [929] getprop 6 ............................... <cam>
+  [931] pushsymb 16 ............................. <#overlay>
+  [933] getprop 997 ............................. <existingOverlays>
+  [936] pushint8 10 ............................. <10>
+  [938] add ..................................... <existingOverlays + 10>
+  [939] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 10>
+  [941] objcall 18 .............................. <cam.overlay[existingOverlays + 10]>
+  [943] getprop 998 ............................. <overlayScale>
+  [946] setobjprop 19 ........................... cam.overlay[existingOverlays + 10].scale = overlayScale
+  [948] getprop 6 ............................... <cam>
+  [950] pushsymb 16 ............................. <#overlay>
+  [952] getprop 997 ............................. <existingOverlays>
+  [955] pushint8 11 ............................. <11>
+  [957] add ..................................... <existingOverlays + 11>
+  [958] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 11>
+  [960] objcall 18 .............................. <cam.overlay[existingOverlays + 11]>
+  [962] getprop 998 ............................. <overlayScale>
+  [965] setobjprop 19 ........................... cam.overlay[existingOverlays + 11].scale = overlayScale
+  [967] getprop 6 ............................... <cam>
+  [969] pushsymb 16 ............................. <#overlay>
+  [971] getprop 997 ............................. <existingOverlays>
+  [974] pushint8 7 .............................. <7>
+  [976] add ..................................... <existingOverlays + 7>
+  [977] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 7>
+  [979] objcall 18 .............................. <cam.overlay[existingOverlays + 7]>
+  [981] getprop 999 ............................. <origin>
+  [984] pushzero ................................ <0>
+  [985] pushzero ................................ <0>
+  [986] pusharglist 2 ........................... <0, 0>
+  [988] extcall 13 .............................. <point(0, 0)>
+  [990] getprop 998 ............................. <overlayScale>
+  [993] mul ..................................... <point(0, 0) * overlayScale>
+  [994] add ..................................... <origin + (point(0, 0) * overlayScale)>
+  [995] setobjprop 386 .......................... cam.overlay[existingOverlays + 7].loc = origin + (point(0, 0) * overlayScale)
+  [998] getprop 6 ............................... <cam>
+  [1000] pushsymb 16 ............................ <#overlay>
+  [1002] getprop 997 ............................ <existingOverlays>
+  [1005] pushint8 8 ............................. <8>
+  [1007] add .................................... <existingOverlays + 8>
+  [1008] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 8>
+  [1010] objcall 18 ............................. <cam.overlay[existingOverlays + 8]>
+  [1012] getprop 999 ............................ <origin>
+  [1015] pushint8 26 ............................ <26>
+  [1017] pushzero ............................... <0>
+  [1018] pusharglist 2 .......................... <26, 0>
+  [1020] extcall 13 ............................. <point(26, 0)>
+  [1022] getprop 998 ............................ <overlayScale>
+  [1025] mul .................................... <point(26, 0) * overlayScale>
+  [1026] add .................................... <origin + (point(26, 0) * overlayScale)>
+  [1027] setobjprop 386 ......................... cam.overlay[existingOverlays + 8].loc = origin + (point(26, 0) * overlayScale)
+  [1030] getprop 6 .............................. <cam>
+  [1032] pushsymb 16 ............................ <#overlay>
+  [1034] getprop 997 ............................ <existingOverlays>
+  [1037] pushint8 9 ............................. <9>
+  [1039] add .................................... <existingOverlays + 9>
+  [1040] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 9>
+  [1042] objcall 18 ............................. <cam.overlay[existingOverlays + 9]>
+  [1044] getprop 999 ............................ <origin>
+  [1047] pushint8 52 ............................ <52>
+  [1049] pushzero ............................... <0>
+  [1050] pusharglist 2 .......................... <52, 0>
+  [1052] extcall 13 ............................. <point(52, 0)>
+  [1054] getprop 998 ............................ <overlayScale>
+  [1057] mul .................................... <point(52, 0) * overlayScale>
+  [1058] add .................................... <origin + (point(52, 0) * overlayScale)>
+  [1059] setobjprop 386 ......................... cam.overlay[existingOverlays + 9].loc = origin + (point(52, 0) * overlayScale)
+  [1062] getprop 6 .............................. <cam>
+  [1064] pushsymb 16 ............................ <#overlay>
+  [1066] getprop 997 ............................ <existingOverlays>
+  [1069] pushint8 10 ............................ <10>
+  [1071] add .................................... <existingOverlays + 10>
+  [1072] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 10>
+  [1074] objcall 18 ............................. <cam.overlay[existingOverlays + 10]>
+  [1076] getprop 999 ............................ <origin>
+  [1079] pushint8 78 ............................ <78>
+  [1081] pushzero ............................... <0>
+  [1082] pusharglist 2 .......................... <78, 0>
+  [1084] extcall 13 ............................. <point(78, 0)>
+  [1086] getprop 998 ............................ <overlayScale>
+  [1089] mul .................................... <point(78, 0) * overlayScale>
+  [1090] add .................................... <origin + (point(78, 0) * overlayScale)>
+  [1091] setobjprop 386 ......................... cam.overlay[existingOverlays + 10].loc = origin + (point(78, 0) * overlayScale)
+  [1094] getprop 6 .............................. <cam>
+  [1096] pushsymb 16 ............................ <#overlay>
+  [1098] getprop 997 ............................ <existingOverlays>
+  [1101] pushint8 11 ............................ <11>
+  [1103] add .................................... <existingOverlays + 11>
+  [1104] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 11>
+  [1106] objcall 18 ............................. <cam.overlay[existingOverlays + 11]>
+  [1108] getprop 999 ............................ <origin>
+  [1111] pushint8 104 ........................... <104>
+  [1113] pushzero ............................... <0>
+  [1114] pusharglist 2 .......................... <104, 0>
+  [1116] extcall 13 ............................. <point(104, 0)>
+  [1118] getprop 998 ............................ <overlayScale>
+  [1121] mul .................................... <point(104, 0) * overlayScale>
+  [1122] add .................................... <origin + (point(104, 0) * overlayScale)>
+  [1123] setobjprop 386 ......................... cam.overlay[existingOverlays + 11].loc = origin + (point(104, 0) * overlayScale)
+  [1126] getprop 998 ............................ <overlayScale>
+  [1129] pushfloat32 2.0 ........................ <2.0>
+  [1134] gteq ................................... <overlayScale >= 2.0>
+  [1135] jmpifz [1656] .......................... if overlayScale >= 2.0 then
+  [1138] getglobal 295 .......................... <g_CurrentScore>
+  [1141] pushint8 23 ............................ <23>
+  [1143] add .................................... <g_CurrentScore + 23>
+  [1144] pushint32 99999 ........................ <99999>
+  [1149] lteq ................................... <(g_CurrentScore + 23) <= 99999>
+  [1150] jmpifz [1162] .......................... if (g_CurrentScore + 23) <= 99999 then
+  [1153] getglobal 295 .......................... <g_CurrentScore>
+  [1156] pushint8 23 ............................ <23>
+  [1158] add .................................... <g_CurrentScore + 23>
+  [1159] setglobal 295 .......................... g_CurrentScore = g_CurrentScore + 23
+  [1162] getprop 324 ............................ <timeList>
+  [1165] pushint8 1 ............................. <1>
+  [1167] getprop 324 ............................ <timeList>
+  [1170] pushint8 1 ............................. <1>
+  [1172] pusharglist 2 .......................... <timeList, 1>
+  [1174] objcall 53 ............................. <timeList[1]>
+  [1176] pushint8 123 ........................... <123>
+  [1178] sub .................................... <timeList[1] - 123>
+  [1179] pusharglistnoret 3 ..................... <timeList, 1, timeList[1] - 123>
+  [1181] objcall 193 ............................ timeList[1] = timeList[1] - 123
+  [1183] getprop 324 ............................ <timeList>
+  [1186] pushint8 1 ............................. <1>
+  [1188] pusharglist 2 .......................... <timeList, 1>
+  [1190] objcall 53 ............................. <timeList[1]>
+  [1192] pushzero ............................... <0>
+  [1193] lt ..................................... <timeList[1] < 0>
+  [1194] jmpifz [1656] .......................... repeat while timeList[1] < 0
+  [1197] getprop 324 ............................ <timeList>
+  [1200] pushint8 1 ............................. <1>
+  [1202] pusharglist 2 .......................... <timeList, 1>
+  [1204] objcall 53 ............................. <timeList[1]>
+  [1206] pushzero ............................... <0>
+  [1207] lt ..................................... <timeList[1] < 0>
+  [1208] jmpifz [1253] .......................... if timeList[1] < 0 then
+  [1211] getprop 324 ............................ <timeList>
+  [1214] pushint8 1 ............................. <1>
+  [1216] getprop 324 ............................ <timeList>
+  [1219] pushint8 1 ............................. <1>
+  [1221] pusharglist 2 .......................... <timeList, 1>
+  [1223] objcall 53 ............................. <timeList[1]>
+  [1225] pushint8 10 ............................ <10>
+  [1227] add .................................... <timeList[1] + 10>
+  [1228] pusharglistnoret 3 ..................... <timeList, 1, timeList[1] + 10>
+  [1230] objcall 193 ............................ timeList[1] = timeList[1] + 10
+  [1232] getprop 324 ............................ <timeList>
+  [1235] pushint8 2 ............................. <2>
+  [1237] getprop 324 ............................ <timeList>
+  [1240] pushint8 2 ............................. <2>
+  [1242] pusharglist 2 .......................... <timeList, 2>
+  [1244] objcall 53 ............................. <timeList[2]>
+  [1246] pushint8 1 ............................. <1>
+  [1248] sub .................................... <timeList[2] - 1>
+  [1249] pusharglistnoret 3 ..................... <timeList, 2, timeList[2] - 1>
+  [1251] objcall 193 ............................ timeList[2] = timeList[2] - 1
+  [1253] getprop 324 ............................ <timeList>
+  [1256] pushint8 2 ............................. <2>
+  [1258] pusharglist 2 .......................... <timeList, 2>
+  [1260] objcall 53 ............................. <timeList[2]>
+  [1262] pushzero ............................... <0>
+  [1263] lt ..................................... <timeList[2] < 0>
+  [1264] jmpifz [1309] .......................... if timeList[2] < 0 then
+  [1267] getprop 324 ............................ <timeList>
+  [1270] pushint8 2 ............................. <2>
+  [1272] getprop 324 ............................ <timeList>
+  [1275] pushint8 2 ............................. <2>
+  [1277] pusharglist 2 .......................... <timeList, 2>
+  [1279] objcall 53 ............................. <timeList[2]>
+  [1281] pushint8 10 ............................ <10>
+  [1283] add .................................... <timeList[2] + 10>
+  [1284] pusharglistnoret 3 ..................... <timeList, 2, timeList[2] + 10>
+  [1286] objcall 193 ............................ timeList[2] = timeList[2] + 10
+  [1288] getprop 324 ............................ <timeList>
+  [1291] pushint8 3 ............................. <3>
+  [1293] getprop 324 ............................ <timeList>
+  [1296] pushint8 3 ............................. <3>
+  [1298] pusharglist 2 .......................... <timeList, 3>
+  [1300] objcall 53 ............................. <timeList[3]>
+  [1302] pushint8 1 ............................. <1>
+  [1304] sub .................................... <timeList[3] - 1>
+  [1305] pusharglistnoret 3 ..................... <timeList, 3, timeList[3] - 1>
+  [1307] objcall 193 ............................ timeList[3] = timeList[3] - 1
+  [1309] getprop 324 ............................ <timeList>
+  [1312] pushint8 3 ............................. <3>
+  [1314] pusharglist 2 .......................... <timeList, 3>
+  [1316] objcall 53 ............................. <timeList[3]>
+  [1318] pushzero ............................... <0>
+  [1319] lt ..................................... <timeList[3] < 0>
+  [1320] jmpifz [1365] .......................... if timeList[3] < 0 then
+  [1323] getprop 324 ............................ <timeList>
+  [1326] pushint8 3 ............................. <3>
+  [1328] getprop 324 ............................ <timeList>
+  [1331] pushint8 3 ............................. <3>
+  [1333] pusharglist 2 .......................... <timeList, 3>
+  [1335] objcall 53 ............................. <timeList[3]>
+  [1337] pushint8 10 ............................ <10>
+  [1339] add .................................... <timeList[3] + 10>
+  [1340] pusharglistnoret 3 ..................... <timeList, 3, timeList[3] + 10>
+  [1342] objcall 193 ............................ timeList[3] = timeList[3] + 10
+  [1344] getprop 324 ............................ <timeList>
+  [1347] pushint8 4 ............................. <4>
+  [1349] getprop 324 ............................ <timeList>
+  [1352] pushint8 4 ............................. <4>
+  [1354] pusharglist 2 .......................... <timeList, 4>
+  [1356] objcall 53 ............................. <timeList[4]>
+  [1358] pushint8 1 ............................. <1>
+  [1360] sub .................................... <timeList[4] - 1>
+  [1361] pusharglistnoret 3 ..................... <timeList, 4, timeList[4] - 1>
+  [1363] objcall 193 ............................ timeList[4] = timeList[4] - 1
+  [1365] getprop 324 ............................ <timeList>
+  [1368] pushint8 4 ............................. <4>
+  [1370] pusharglist 2 .......................... <timeList, 4>
+  [1372] objcall 53 ............................. <timeList[4]>
+  [1374] pushzero ............................... <0>
+  [1375] lt ..................................... <timeList[4] < 0>
+  [1376] jmpifz [1435] .......................... if timeList[4] < 0 then
+  [1379] getprop 324 ............................ <timeList>
+  [1382] pushint8 4 ............................. <4>
+  [1384] getprop 324 ............................ <timeList>
+  [1387] pushint8 4 ............................. <4>
+  [1389] pusharglist 2 .......................... <timeList, 4>
+  [1391] objcall 53 ............................. <timeList[4]>
+  [1393] pushint8 6 ............................. <6>
+  [1395] add .................................... <timeList[4] + 6>
+  [1396] pusharglistnoret 3 ..................... <timeList, 4, timeList[4] + 6>
+  [1398] objcall 193 ............................ timeList[4] = timeList[4] + 6
+  [1400] getprop 324 ............................ <timeList>
+  [1403] pushint8 5 ............................. <5>
+  [1405] pusharglist 2 .......................... <timeList, 5>
+  [1407] objcall 53 ............................. <timeList[5]>
+  [1409] pushzero ............................... <0>
+  [1410] gt ..................................... <timeList[5] > 0>
+  [1411] jmpifz [1435] .......................... if timeList[5] > 0 then
+  [1414] getprop 324 ............................ <timeList>
+  [1417] pushint8 5 ............................. <5>
+  [1419] getprop 324 ............................ <timeList>
+  [1422] pushint8 5 ............................. <5>
+  [1424] pusharglist 2 .......................... <timeList, 5>
+  [1426] objcall 53 ............................. <timeList[5]>
+  [1428] pushint8 1 ............................. <1>
+  [1430] sub .................................... <timeList[5] - 1>
+  [1431] pusharglistnoret 3 ..................... <timeList, 5, timeList[5] - 1>
+  [1433] objcall 193 ............................ timeList[5] = timeList[5] - 1
+  [1435] getprop 324 ............................ <timeList>
+  [1438] pushint8 4 ............................. <4>
+  [1440] pusharglist 2 .......................... <timeList, 4>
+  [1442] objcall 53 ............................. <timeList[4]>
+  [1444] pushint8 5 ............................. <5>
+  [1446] gt ..................................... <timeList[4] > 5>
+  [1447] jmpifz [1492] .......................... if timeList[4] > 5 then
+  [1450] getprop 324 ............................ <timeList>
+  [1453] pushint8 4 ............................. <4>
+  [1455] getprop 324 ............................ <timeList>
+  [1458] pushint8 4 ............................. <4>
+  [1460] pusharglist 2 .......................... <timeList, 4>
+  [1462] objcall 53 ............................. <timeList[4]>
+  [1464] pushint8 5 ............................. <5>
+  [1466] sub .................................... <timeList[4] - 5>
+  [1467] pusharglistnoret 3 ..................... <timeList, 4, timeList[4] - 5>
+  [1469] objcall 193 ............................ timeList[4] = timeList[4] - 5
+  [1471] getprop 324 ............................ <timeList>
+  [1474] pushint8 5 ............................. <5>
+  [1476] getprop 324 ............................ <timeList>
+  [1479] pushint8 5 ............................. <5>
+  [1481] pusharglist 2 .......................... <timeList, 5>
+  [1483] objcall 53 ............................. <timeList[5]>
+  [1485] pushint8 1 ............................. <1>
+  [1487] add .................................... <timeList[5] + 1>
+  [1488] pusharglistnoret 3 ..................... <timeList, 5, timeList[5] + 1>
+  [1490] objcall 193 ............................ timeList[5] = timeList[5] + 1
+  [1492] getglobal 25 ........................... <g_Muted>
+  [1494] pushzero ............................... <0>
+  [1495] eq ..................................... <g_Muted = 0>
+  [1496] jmpifz [1563] .......................... if g_Muted = 0 then
+  [1499] pushint8 1 ............................. <1>
+  [1501] pusharglist 1 .......................... <1>
+  [1503] extcall 3 .............................. <sprite(1)>
+  [1505] pushsymb 245 ........................... <#soundMemberList>
+  [1507] pushint8 2 ............................. <2>
+  [1509] pusharglist 3 .......................... <sprite(1), #soundMemberList, 2>
+  [1511] objcall 304 ............................ <sprite(1).soundMemberList[2]>
+  [1514] pushint8 29 ............................ <29>
+  [1516] pushcons 8 ............................. <"Sfx">
+  [1518] pusharglist 2 .......................... <29, "Sfx">
+  [1520] extcall 5 .............................. <member(29, "Sfx")>
+  [1522] nteq ................................... <sprite(1).soundMemberList[2] <> member(29, "Sfx")>
+  [1523] jmpifz [1563] .......................... if sprite(1).soundMemberList[2] <> member(29, "Sfx") then
+  [1526] pushint8 2 ............................. <2>
+  [1528] pushint8 29 ............................ <29>
+  [1530] pushcons 8 ............................. <"Sfx">
+  [1532] pusharglist 2 .......................... <29, "Sfx">
+  [1534] extcall 5 .............................. <member(29, "Sfx")>
+  [1536] pusharglistnoret 2 ..................... <2, member(29, "Sfx")>
+  [1538] extcall 42 ............................. puppetSound(2, member(29, "Sfx"))
+  [1540] pushint8 1 ............................. <1>
+  [1542] pusharglist 1 .......................... <1>
+  [1544] extcall 3 .............................. <sprite(1)>
+  [1546] pushsymb 245 ........................... <#soundMemberList>
+  [1548] pushint8 2 ............................. <2>
+  [1550] pushint8 29 ............................ <29>
+  [1552] pushcons 8 ............................. <"Sfx">
+  [1554] pusharglist 2 .......................... <29, "Sfx">
+  [1556] extcall 5 .............................. <member(29, "Sfx")>
+  [1558] pusharglistnoret 4 ..................... <sprite(1), #soundMemberList, 2, member(29, "Sfx")>
+  [1560] objcall 1001 ........................... sprite(1).soundMemberList[2] = member(29, "Sfx")
+  [1563] getprop 324 ............................ <timeList>
+  [1566] pushint8 3 ............................. <3>
+  [1568] pusharglist 2 .......................... <timeList, 3>
+  [1570] objcall 53 ............................. <timeList[3]>
+  [1572] pushzero ............................... <0>
+  [1573] eq ..................................... <timeList[3] = 0>
+  [1574] getprop 324 ............................ <timeList>
+  [1577] pushint8 4 ............................. <4>
+  [1579] pusharglist 2 .......................... <timeList, 4>
+  [1581] objcall 53 ............................. <timeList[4]>
+  [1583] pushzero ............................... <0>
+  [1584] eq ..................................... <timeList[4] = 0>
+  [1585] and .................................... <(timeList[3] = 0) and (timeList[4] = 0)>
+  [1586] getprop 324 ............................ <timeList>
+  [1589] pushint8 5 ............................. <5>
+  [1591] pusharglist 2 .......................... <timeList, 5>
+  [1593] objcall 53 ............................. <timeList[5]>
+  [1595] pushzero ............................... <0>
+  [1596] eq ..................................... <timeList[5] = 0>
+  [1597] and .................................... <(timeList[3] = 0) and (timeList[4] = 0) and (timeList[5] = 0)>
+  [1598] jmpifz [1653] .......................... if (timeList[3] = 0) and (timeList[4] = 0) and (timeList[5] = 0) then
+  [1601] getglobal 295 .......................... <g_CurrentScore>
+  [1604] getprop 324 ............................ <timeList>
+  [1607] pushint8 1 ............................. <1>
+  [1609] pusharglist 2 .......................... <timeList, 1>
+  [1611] objcall 53 ............................. <timeList[1]>
+  [1613] add .................................... <g_CurrentScore + timeList[1]>
+  [1614] getprop 324 ............................ <timeList>
+  [1617] pushint8 2 ............................. <2>
+  [1619] pusharglist 2 .......................... <timeList, 2>
+  [1621] objcall 53 ............................. <timeList[2]>
+  [1623] pushint8 10 ............................ <10>
+  [1625] mul .................................... <timeList[2] * 10>
+  [1626] add .................................... <g_CurrentScore + timeList[1] + (timeList[2] * 10)>
+  [1627] setglobal 295 .......................... g_CurrentScore = g_CurrentScore + timeList[1] + (timeList[2] * 10)
+  [1630] pushzero ............................... <0>
+  [1631] pushzero ............................... <0>
+  [1632] pushzero ............................... <0>
+  [1633] pushzero ............................... <0>
+  [1634] pushzero ............................... <0>
+  [1635] pusharglist 5 .......................... <[0, 0, 0, 0, 0]>
+  [1637] pushlist ............................... <[0, 0, 0, 0, 0]>
+  [1638] setprop 324 ............................ timeList = [0, 0, 0, 0, 0]
+  [1641] pushint8 3 ............................. <3>
+  [1643] setglobal 325 .......................... g_TimerState = 3
+  [1646] pusharglist 0 .......................... <>
+  [1648] thebuiltin 181 ......................... <the ticks>
+  [1650] setprop 992 ............................ waitTicks = the ticks
+  [1653] endrepeat [1183]
+  [1656] pusharglistnoret 0 ..................... <>
+  [1658] localcall 2 ............................ updateTimer()
+  [1660] getglobal 295 .......................... <g_CurrentScore>
+  [1663] setprop 1002 ........................... displayScore = g_CurrentScore
+  [1666] getprop 324 ............................ <timeList>
+  [1669] pusharglist 1 .......................... <timeList>
+  [1671] objcall 283 ............................ <timeList.duplicate()>
+  [1674] setprop 994 ............................ prevTimeList = timeList.duplicate()
+  [1677] jmp [2087]
+  [1680] peek 0
+  [1682] pushint8 3 ............................. <3>
+  [1684] eq
+  [1685] jmpifz [1711] .......................... (case) 3:
+  [1688] pusharglist 0 .......................... <>
+  [1690] thebuiltin 181 ......................... <the ticks>
+  [1692] getprop 992 ............................ <waitTicks>
+  [1695] sub .................................... <the ticks - waitTicks>
+  [1696] pushint16 450 .......................... <450>
+  [1699] gt ..................................... <(the ticks - waitTicks) > 450>
+  [1700] jmpifz [1708] .......................... if (the ticks - waitTicks) > 450 then
+  [1703] pushint8 4 ............................. <4>
+  [1705] setglobal 325 .......................... g_TimerState = 4
+  [1708] jmp [2087]
+  [1711] peek 0
+  [1713] pushint8 4 ............................. <4>
+  [1715] eq
+  [1716] jmpifz [2042] .......................... (case) 4:
+  [1719] getprop 998 ............................ <overlayScale>
+  [1722] pushfloat32 0.75 ....................... <0.75>
+  [1727] gt ..................................... <overlayScale > 0.75>
+  [1728] jmpifz [1740] .......................... if overlayScale > 0.75 then
+  [1731] getprop 998 ............................ <overlayScale>
+  [1734] pushcons 9 ............................. <0.025>
+  [1736] sub .................................... <overlayScale - 0.025>
+  [1737] setprop 998 ............................ overlayScale = overlayScale - 0.025
+  [1740] getprop 999 ............................ <origin>
+  [1743] pushint8 4 ............................. <4>
+  [1745] pushint8 28 ............................ <28>
+  [1747] pusharglist 2 .......................... <4, 28>
+  [1749] extcall 13 ............................. <point(4, 28)>
+  [1751] getprop 999 ............................ <origin>
+  [1754] sub .................................... <point(4, 28) - origin>
+  [1755] pushcons 7 ............................. <0.10000000000000001>
+  [1757] mul .................................... <(point(4, 28) - origin) * 0.10000000000000001>
+  [1758] add .................................... <origin + ((point(4, 28) - origin) * 0.10000000000000001)>
+  [1759] setprop 999 ............................ origin = origin + ((point(4, 28) - origin) * 0.10000000000000001)
+  [1762] getprop 6 .............................. <cam>
+  [1764] pushsymb 16 ............................ <#overlay>
+  [1766] getprop 997 ............................ <existingOverlays>
+  [1769] pushint8 7 ............................. <7>
+  [1771] add .................................... <existingOverlays + 7>
+  [1772] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 7>
+  [1774] objcall 18 ............................. <cam.overlay[existingOverlays + 7]>
+  [1776] getprop 998 ............................ <overlayScale>
+  [1779] setobjprop 19 .......................... cam.overlay[existingOverlays + 7].scale = overlayScale
+  [1781] getprop 6 .............................. <cam>
+  [1783] pushsymb 16 ............................ <#overlay>
+  [1785] getprop 997 ............................ <existingOverlays>
+  [1788] pushint8 8 ............................. <8>
+  [1790] add .................................... <existingOverlays + 8>
+  [1791] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 8>
+  [1793] objcall 18 ............................. <cam.overlay[existingOverlays + 8]>
+  [1795] getprop 998 ............................ <overlayScale>
+  [1798] setobjprop 19 .......................... cam.overlay[existingOverlays + 8].scale = overlayScale
+  [1800] getprop 6 .............................. <cam>
+  [1802] pushsymb 16 ............................ <#overlay>
+  [1804] getprop 997 ............................ <existingOverlays>
+  [1807] pushint8 9 ............................. <9>
+  [1809] add .................................... <existingOverlays + 9>
+  [1810] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 9>
+  [1812] objcall 18 ............................. <cam.overlay[existingOverlays + 9]>
+  [1814] getprop 998 ............................ <overlayScale>
+  [1817] setobjprop 19 .......................... cam.overlay[existingOverlays + 9].scale = overlayScale
+  [1819] getprop 6 .............................. <cam>
+  [1821] pushsymb 16 ............................ <#overlay>
+  [1823] getprop 997 ............................ <existingOverlays>
+  [1826] pushint8 10 ............................ <10>
+  [1828] add .................................... <existingOverlays + 10>
+  [1829] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 10>
+  [1831] objcall 18 ............................. <cam.overlay[existingOverlays + 10]>
+  [1833] getprop 998 ............................ <overlayScale>
+  [1836] setobjprop 19 .......................... cam.overlay[existingOverlays + 10].scale = overlayScale
+  [1838] getprop 6 .............................. <cam>
+  [1840] pushsymb 16 ............................ <#overlay>
+  [1842] getprop 997 ............................ <existingOverlays>
+  [1845] pushint8 11 ............................ <11>
+  [1847] add .................................... <existingOverlays + 11>
+  [1848] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 11>
+  [1850] objcall 18 ............................. <cam.overlay[existingOverlays + 11]>
+  [1852] getprop 998 ............................ <overlayScale>
+  [1855] setobjprop 19 .......................... cam.overlay[existingOverlays + 11].scale = overlayScale
+  [1857] getprop 6 .............................. <cam>
+  [1859] pushsymb 16 ............................ <#overlay>
+  [1861] getprop 997 ............................ <existingOverlays>
+  [1864] pushint8 7 ............................. <7>
+  [1866] add .................................... <existingOverlays + 7>
+  [1867] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 7>
+  [1869] objcall 18 ............................. <cam.overlay[existingOverlays + 7]>
+  [1871] getprop 999 ............................ <origin>
+  [1874] pushzero ............................... <0>
+  [1875] pushzero ............................... <0>
+  [1876] pusharglist 2 .......................... <0, 0>
+  [1878] extcall 13 ............................. <point(0, 0)>
+  [1880] getprop 998 ............................ <overlayScale>
+  [1883] mul .................................... <point(0, 0) * overlayScale>
+  [1884] add .................................... <origin + (point(0, 0) * overlayScale)>
+  [1885] setobjprop 386 ......................... cam.overlay[existingOverlays + 7].loc = origin + (point(0, 0) * overlayScale)
+  [1888] getprop 6 .............................. <cam>
+  [1890] pushsymb 16 ............................ <#overlay>
+  [1892] getprop 997 ............................ <existingOverlays>
+  [1895] pushint8 8 ............................. <8>
+  [1897] add .................................... <existingOverlays + 8>
+  [1898] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 8>
+  [1900] objcall 18 ............................. <cam.overlay[existingOverlays + 8]>
+  [1902] getprop 999 ............................ <origin>
+  [1905] pushint8 26 ............................ <26>
+  [1907] pushzero ............................... <0>
+  [1908] pusharglist 2 .......................... <26, 0>
+  [1910] extcall 13 ............................. <point(26, 0)>
+  [1912] getprop 998 ............................ <overlayScale>
+  [1915] mul .................................... <point(26, 0) * overlayScale>
+  [1916] add .................................... <origin + (point(26, 0) * overlayScale)>
+  [1917] setobjprop 386 ......................... cam.overlay[existingOverlays + 8].loc = origin + (point(26, 0) * overlayScale)
+  [1920] getprop 6 .............................. <cam>
+  [1922] pushsymb 16 ............................ <#overlay>
+  [1924] getprop 997 ............................ <existingOverlays>
+  [1927] pushint8 9 ............................. <9>
+  [1929] add .................................... <existingOverlays + 9>
+  [1930] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 9>
+  [1932] objcall 18 ............................. <cam.overlay[existingOverlays + 9]>
+  [1934] getprop 999 ............................ <origin>
+  [1937] pushint8 52 ............................ <52>
+  [1939] pushzero ............................... <0>
+  [1940] pusharglist 2 .......................... <52, 0>
+  [1942] extcall 13 ............................. <point(52, 0)>
+  [1944] getprop 998 ............................ <overlayScale>
+  [1947] mul .................................... <point(52, 0) * overlayScale>
+  [1948] add .................................... <origin + (point(52, 0) * overlayScale)>
+  [1949] setobjprop 386 ......................... cam.overlay[existingOverlays + 9].loc = origin + (point(52, 0) * overlayScale)
+  [1952] getprop 6 .............................. <cam>
+  [1954] pushsymb 16 ............................ <#overlay>
+  [1956] getprop 997 ............................ <existingOverlays>
+  [1959] pushint8 10 ............................ <10>
+  [1961] add .................................... <existingOverlays + 10>
+  [1962] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 10>
+  [1964] objcall 18 ............................. <cam.overlay[existingOverlays + 10]>
+  [1966] getprop 999 ............................ <origin>
+  [1969] pushint8 78 ............................ <78>
+  [1971] pushzero ............................... <0>
+  [1972] pusharglist 2 .......................... <78, 0>
+  [1974] extcall 13 ............................. <point(78, 0)>
+  [1976] getprop 998 ............................ <overlayScale>
+  [1979] mul .................................... <point(78, 0) * overlayScale>
+  [1980] add .................................... <origin + (point(78, 0) * overlayScale)>
+  [1981] setobjprop 386 ......................... cam.overlay[existingOverlays + 10].loc = origin + (point(78, 0) * overlayScale)
+  [1984] getprop 6 .............................. <cam>
+  [1986] pushsymb 16 ............................ <#overlay>
+  [1988] getprop 997 ............................ <existingOverlays>
+  [1991] pushint8 11 ............................ <11>
+  [1993] add .................................... <existingOverlays + 11>
+  [1994] pusharglist 3 .......................... <cam, #overlay, existingOverlays + 11>
+  [1996] objcall 18 ............................. <cam.overlay[existingOverlays + 11]>
+  [1998] getprop 999 ............................ <origin>
+  [2001] pushint8 104 ........................... <104>
+  [2003] pushzero ............................... <0>
+  [2004] pusharglist 2 .......................... <104, 0>
+  [2006] extcall 13 ............................. <point(104, 0)>
+  [2008] getprop 998 ............................ <overlayScale>
+  [2011] mul .................................... <point(104, 0) * overlayScale>
+  [2012] add .................................... <origin + (point(104, 0) * overlayScale)>
+  [2013] setobjprop 386 ......................... cam.overlay[existingOverlays + 11].loc = origin + (point(104, 0) * overlayScale)
+  [2016] getprop 998 ............................ <overlayScale>
+  [2019] pushfloat32 0.75 ....................... <0.75>
+  [2024] sub .................................... <overlayScale - 0.75>
+  [2025] pusharglist 1 .......................... <overlayScale - 0.75>
+  [2027] extcall 36 ............................. <abs(overlayScale - 0.75)>
+  [2029] pushcons 7 ............................. <0.10000000000000001>
+  [2031] lt ..................................... <abs(overlayScale - 0.75) < 0.10000000000000001>
+  [2032] jmpifz [2039] .......................... if abs(overlayScale - 0.75) < 0.10000000000000001 then
+  [2035] pushzero ............................... <0>
+  [2036] setglobal 325 .......................... g_TimerState = 0
+  [2039] jmp [2087]
+  [2042] peek 0
+  [2044] pushint8 5 ............................. <5>
+  [2046] eq
+  [2047] jmpifz [2087] .......................... (case) 5:
+  [2050] pushzero ............................... <0>
+  [2051] pushzero ............................... <0>
+  [2052] pushzero ............................... <0>
+  [2053] pushint8 3 ............................. <3>
+  [2055] pushint8 2 ............................. <2>
+  [2057] pusharglist 5 .......................... <[0, 0, 0, 3, 2]>
+  [2059] pushlist ............................... <[0, 0, 0, 3, 2]>
+  [2060] setprop 324 ............................ timeList = [0, 0, 0, 3, 2]
+  [2063] pushint8 1 ............................. <1>
+  [2065] pushint8 1 ............................. <1>
+  [2067] pushint8 1 ............................. <1>
+  [2069] pushint8 1 ............................. <1>
+  [2071] pushint8 1 ............................. <1>
+  [2073] pusharglist 5 .......................... <[1, 1, 1, 1, 1]>
+  [2075] pushlist ............................... <[1, 1, 1, 1, 1]>
+  [2076] setprop 994 ............................ prevTimeList = [1, 1, 1, 1, 1]
+  [2079] pushzero ............................... <0>
+  [2080] setglobal 325 .......................... g_TimerState = 0
+  [2083] pusharglistnoret 0 ..................... <>
+  [2085] localcall 2 ............................ updateTimer()
+  [2087] pop 1 .................................. end case
+  [2089] pusharglistnoret 0 ..................... <>
+  [2091] localcall 3 ............................ updateScore()
+  [2093] jmp [2103]
+  [2096] pusharglist 0 .......................... <>
+  [2098] thebuiltin 181 ......................... <the ticks>
+  [2100] setprop 729 ............................ startTicks = the ticks
+  [2103] ret
+end
+
+on updateTimer
+  [  0] getprop 6 ............................... <cam>
+  [  2] pushsymb 16 ............................. <#overlay>
+  [  4] getprop 997 ............................. <existingOverlays>
+  [  7] pushint8 6 .............................. <6>
+  [  9] add ..................................... <existingOverlays + 6>
+  [ 10] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 6>
+  [ 12] objcall 18 .............................. <cam.overlay[existingOverlays + 6]>
+  [ 14] getprop 995 ............................. <timerTextureList>
+  [ 17] getprop 324 ............................. <timeList>
+  [ 20] pushint8 1 .............................. <1>
+  [ 22] pusharglist 2 ........................... <timeList, 1>
+  [ 24] objcall 53 .............................. <timeList[1]>
+  [ 26] pushint8 1 .............................. <1>
+  [ 28] add ..................................... <timeList[1] + 1>
+  [ 29] pusharglist 2 ........................... <timerTextureList, timeList[1] + 1>
+  [ 31] objcall 53 .............................. <timerTextureList[timeList[1] + 1]>
+  [ 33] setobjprop 984 .......................... cam.overlay[existingOverlays + 6].source = timerTextureList[timeList[1] + 1]
+  [ 36] getprop 6 ............................... <cam>
+  [ 38] pushsymb 16 ............................. <#overlay>
+  [ 40] getprop 997 ............................. <existingOverlays>
+  [ 43] pushint8 5 .............................. <5>
+  [ 45] add ..................................... <existingOverlays + 5>
+  [ 46] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 5>
+  [ 48] objcall 18 .............................. <cam.overlay[existingOverlays + 5]>
+  [ 50] getprop 995 ............................. <timerTextureList>
+  [ 53] getprop 324 ............................. <timeList>
+  [ 56] pushint8 2 .............................. <2>
+  [ 58] pusharglist 2 ........................... <timeList, 2>
+  [ 60] objcall 53 .............................. <timeList[2]>
+  [ 62] pushint8 1 .............................. <1>
+  [ 64] add ..................................... <timeList[2] + 1>
+  [ 65] pusharglist 2 ........................... <timerTextureList, timeList[2] + 1>
+  [ 67] objcall 53 .............................. <timerTextureList[timeList[2] + 1]>
+  [ 69] setobjprop 984 .......................... cam.overlay[existingOverlays + 5].source = timerTextureList[timeList[2] + 1]
+  [ 72] getprop 6 ............................... <cam>
+  [ 74] pushsymb 16 ............................. <#overlay>
+  [ 76] getprop 997 ............................. <existingOverlays>
+  [ 79] pushint8 4 .............................. <4>
+  [ 81] add ..................................... <existingOverlays + 4>
+  [ 82] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 4>
+  [ 84] objcall 18 .............................. <cam.overlay[existingOverlays + 4]>
+  [ 86] getprop 995 ............................. <timerTextureList>
+  [ 89] getprop 324 ............................. <timeList>
+  [ 92] pushint8 3 .............................. <3>
+  [ 94] pusharglist 2 ........................... <timeList, 3>
+  [ 96] objcall 53 .............................. <timeList[3]>
+  [ 98] pushint8 1 .............................. <1>
+  [100] add ..................................... <timeList[3] + 1>
+  [101] pusharglist 2 ........................... <timerTextureList, timeList[3] + 1>
+  [103] objcall 53 .............................. <timerTextureList[timeList[3] + 1]>
+  [105] setobjprop 984 .......................... cam.overlay[existingOverlays + 4].source = timerTextureList[timeList[3] + 1]
+  [108] getprop 6 ............................... <cam>
+  [110] pushsymb 16 ............................. <#overlay>
+  [112] getprop 997 ............................. <existingOverlays>
+  [115] pushint8 3 .............................. <3>
+  [117] add ..................................... <existingOverlays + 3>
+  [118] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 3>
+  [120] objcall 18 .............................. <cam.overlay[existingOverlays + 3]>
+  [122] getprop 995 ............................. <timerTextureList>
+  [125] getprop 324 ............................. <timeList>
+  [128] pushint8 4 .............................. <4>
+  [130] pusharglist 2 ........................... <timeList, 4>
+  [132] objcall 53 .............................. <timeList[4]>
+  [134] pushint8 1 .............................. <1>
+  [136] add ..................................... <timeList[4] + 1>
+  [137] pusharglist 2 ........................... <timerTextureList, timeList[4] + 1>
+  [139] objcall 53 .............................. <timerTextureList[timeList[4] + 1]>
+  [141] setobjprop 984 .......................... cam.overlay[existingOverlays + 3].source = timerTextureList[timeList[4] + 1]
+  [144] getprop 6 ............................... <cam>
+  [146] pushsymb 16 ............................. <#overlay>
+  [148] getprop 997 ............................. <existingOverlays>
+  [151] pushint8 2 .............................. <2>
+  [153] add ..................................... <existingOverlays + 2>
+  [154] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 2>
+  [156] objcall 18 .............................. <cam.overlay[existingOverlays + 2]>
+  [158] getprop 995 ............................. <timerTextureList>
+  [161] getprop 324 ............................. <timeList>
+  [164] pushint8 5 .............................. <5>
+  [166] pusharglist 2 ........................... <timeList, 5>
+  [168] objcall 53 .............................. <timeList[5]>
+  [170] pushint8 1 .............................. <1>
+  [172] add ..................................... <timeList[5] + 1>
+  [173] pusharglist 2 ........................... <timerTextureList, timeList[5] + 1>
+  [175] objcall 53 .............................. <timerTextureList[timeList[5] + 1]>
+  [177] setobjprop 984 .......................... cam.overlay[existingOverlays + 2].source = timerTextureList[timeList[5] + 1]
+  [180] ret
+end
+
+on updateScore
+  [  0] getprop 1002 ............................ <displayScore>
+  [  3] getglobal 295 ........................... <g_CurrentScore>
+  [  6] getprop 1002 ............................ <displayScore>
+  [  9] sub ..................................... <g_CurrentScore - displayScore>
+  [ 10] pushcons 10 ............................. <0.20000000000000001>
+  [ 12] mul ..................................... <(g_CurrentScore - displayScore) * 0.20000000000000001>
+  [ 13] pusharglist 1 ........................... <(g_CurrentScore - displayScore) * 0.20000000000000001>
+  [ 15] extcall 208 ............................. <integer((g_CurrentScore - displayScore) * 0.20000000000000001)>
+  [ 17] add ..................................... <displayScore + integer((g_CurrentScore - displayScore) * 0.20000000000000001)>
+  [ 18] setprop 1002 ............................ displayScore = displayScore + integer((g_CurrentScore - displayScore) * 0.20000000000000001)
+  [ 21] getglobal 295 ........................... <g_CurrentScore>
+  [ 24] getprop 1002 ............................ <displayScore>
+  [ 27] sub ..................................... <g_CurrentScore - displayScore>
+  [ 28] pushint8 4 .............................. <4>
+  [ 30] lt ...................................... <(g_CurrentScore - displayScore) < 4>
+  [ 31] jmpifz [ 40] ............................ if (g_CurrentScore - displayScore) < 4 then
+  [ 34] getglobal 295 ........................... <g_CurrentScore>
+  [ 37] setprop 1002 ............................ displayScore = g_CurrentScore
+  [ 40] getprop 1002 ............................ <displayScore>
+  [ 43] setlocal 0 .............................. tempScore = displayScore
+  [ 45] getlocal 0 .............................. <tempScore>
+  [ 47] pushint8 10 ............................. <10>
+  [ 49] mod ..................................... <tempScore mod 10>
+  [ 50] setlocal 1 .............................. tempOnes = tempScore mod 10
+  [ 52] getlocal 0 .............................. <tempScore>
+  [ 54] getlocal 1 .............................. <tempOnes>
+  [ 56] sub ..................................... <tempScore - tempOnes>
+  [ 57] setlocal 0 .............................. tempScore = tempScore - tempOnes
+  [ 59] getlocal 0 .............................. <tempScore>
+  [ 61] pushint8 100 ............................ <100>
+  [ 63] mod ..................................... <tempScore mod 100>
+  [ 64] pushint8 10 ............................. <10>
+  [ 66] div ..................................... <tempScore mod 100 / 10>
+  [ 67] setlocal 2 .............................. tempTens = tempScore mod 100 / 10
+  [ 69] getlocal 0 .............................. <tempScore>
+  [ 71] getlocal 2 .............................. <tempTens>
+  [ 73] sub ..................................... <tempScore - tempTens>
+  [ 74] setlocal 0 .............................. tempScore = tempScore - tempTens
+  [ 76] getlocal 0 .............................. <tempScore>
+  [ 78] pushint16 1000 .......................... <1000>
+  [ 81] mod ..................................... <tempScore mod 1000>
+  [ 82] pushint8 100 ............................ <100>
+  [ 84] div ..................................... <tempScore mod 1000 / 100>
+  [ 85] setlocal 3 .............................. tempHundreds = tempScore mod 1000 / 100
+  [ 87] getlocal 0 .............................. <tempScore>
+  [ 89] getlocal 3 .............................. <tempHundreds>
+  [ 91] sub ..................................... <tempScore - tempHundreds>
+  [ 92] setlocal 0 .............................. tempScore = tempScore - tempHundreds
+  [ 94] getlocal 0 .............................. <tempScore>
+  [ 96] pushint16 10000 ......................... <10000>
+  [ 99] mod ..................................... <tempScore mod 10000>
+  [100] pushint16 1000 .......................... <1000>
+  [103] div ..................................... <tempScore mod 10000 / 1000>
+  [104] setlocal 4 .............................. tempThousands = tempScore mod 10000 / 1000
+  [106] getlocal 0 .............................. <tempScore>
+  [108] getlocal 4 .............................. <tempThousands>
+  [110] sub ..................................... <tempScore - tempThousands>
+  [111] setlocal 0 .............................. tempScore = tempScore - tempThousands
+  [113] getlocal 0 .............................. <tempScore>
+  [115] pushint32 100000 ........................ <100000>
+  [120] mod ..................................... <tempScore mod 100000>
+  [121] pushint16 10000 ......................... <10000>
+  [124] div ..................................... <tempScore mod 100000 / 10000>
+  [125] setlocal 5 .............................. tempTensThousands = tempScore mod 100000 / 10000
+  [127] getprop 6 ............................... <cam>
+  [129] pushsymb 16 ............................. <#overlay>
+  [131] getprop 997 ............................. <existingOverlays>
+  [134] pushint8 7 .............................. <7>
+  [136] add ..................................... <existingOverlays + 7>
+  [137] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 7>
+  [139] objcall 18 .............................. <cam.overlay[existingOverlays + 7]>
+  [141] getprop 996 ............................. <scoreTextureList>
+  [144] getlocal 5 .............................. <tempTensThousands>
+  [146] pushint8 1 .............................. <1>
+  [148] add ..................................... <tempTensThousands + 1>
+  [149] pusharglist 2 ........................... <scoreTextureList, tempTensThousands + 1>
+  [151] objcall 53 .............................. <scoreTextureList[tempTensThousands + 1]>
+  [153] setobjprop 984 .......................... cam.overlay[existingOverlays + 7].source = scoreTextureList[tempTensThousands + 1]
+  [156] getprop 6 ............................... <cam>
+  [158] pushsymb 16 ............................. <#overlay>
+  [160] getprop 997 ............................. <existingOverlays>
+  [163] pushint8 8 .............................. <8>
+  [165] add ..................................... <existingOverlays + 8>
+  [166] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 8>
+  [168] objcall 18 .............................. <cam.overlay[existingOverlays + 8]>
+  [170] getprop 996 ............................. <scoreTextureList>
+  [173] getlocal 4 .............................. <tempThousands>
+  [175] pushint8 1 .............................. <1>
+  [177] add ..................................... <tempThousands + 1>
+  [178] pusharglist 2 ........................... <scoreTextureList, tempThousands + 1>
+  [180] objcall 53 .............................. <scoreTextureList[tempThousands + 1]>
+  [182] setobjprop 984 .......................... cam.overlay[existingOverlays + 8].source = scoreTextureList[tempThousands + 1]
+  [185] getprop 6 ............................... <cam>
+  [187] pushsymb 16 ............................. <#overlay>
+  [189] getprop 997 ............................. <existingOverlays>
+  [192] pushint8 9 .............................. <9>
+  [194] add ..................................... <existingOverlays + 9>
+  [195] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 9>
+  [197] objcall 18 .............................. <cam.overlay[existingOverlays + 9]>
+  [199] getprop 996 ............................. <scoreTextureList>
+  [202] getlocal 3 .............................. <tempHundreds>
+  [204] pushint8 1 .............................. <1>
+  [206] add ..................................... <tempHundreds + 1>
+  [207] pusharglist 2 ........................... <scoreTextureList, tempHundreds + 1>
+  [209] objcall 53 .............................. <scoreTextureList[tempHundreds + 1]>
+  [211] setobjprop 984 .......................... cam.overlay[existingOverlays + 9].source = scoreTextureList[tempHundreds + 1]
+  [214] getprop 6 ............................... <cam>
+  [216] pushsymb 16 ............................. <#overlay>
+  [218] getprop 997 ............................. <existingOverlays>
+  [221] pushint8 10 ............................. <10>
+  [223] add ..................................... <existingOverlays + 10>
+  [224] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 10>
+  [226] objcall 18 .............................. <cam.overlay[existingOverlays + 10]>
+  [228] getprop 996 ............................. <scoreTextureList>
+  [231] getlocal 2 .............................. <tempTens>
+  [233] pushint8 1 .............................. <1>
+  [235] add ..................................... <tempTens + 1>
+  [236] pusharglist 2 ........................... <scoreTextureList, tempTens + 1>
+  [238] objcall 53 .............................. <scoreTextureList[tempTens + 1]>
+  [240] setobjprop 984 .......................... cam.overlay[existingOverlays + 10].source = scoreTextureList[tempTens + 1]
+  [243] getprop 6 ............................... <cam>
+  [245] pushsymb 16 ............................. <#overlay>
+  [247] getprop 997 ............................. <existingOverlays>
+  [250] pushint8 11 ............................. <11>
+  [252] add ..................................... <existingOverlays + 11>
+  [253] pusharglist 3 ........................... <cam, #overlay, existingOverlays + 11>
+  [255] objcall 18 .............................. <cam.overlay[existingOverlays + 11]>
+  [257] getprop 996 ............................. <scoreTextureList>
+  [260] getlocal 1 .............................. <tempOnes>
+  [262] pushint8 1 .............................. <1>
+  [264] add ..................................... <tempOnes + 1>
+  [265] pusharglist 2 ........................... <scoreTextureList, tempOnes + 1>
+  [267] objcall 53 .............................. <scoreTextureList[tempOnes + 1]>
+  [269] setobjprop 984 .......................... cam.overlay[existingOverlays + 11].source = scoreTextureList[tempOnes + 1]
+  [272] ret
+end

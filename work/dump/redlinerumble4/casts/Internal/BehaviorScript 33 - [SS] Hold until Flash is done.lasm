@@ -1,0 +1,43 @@
+property spriteNum
+
+on mouseEnter me
+  [  0] gettoplevelprop 32 ...................... <_player>
+  [  2] pushint16 280 ........................... <280>
+  [  5] pusharglistnoret 2 ...................... <_player, 280>
+  [  7] objcall 33 .............................. _player.cursor(280)
+  [  9] ret
+end
+
+on mouseLeave me
+  [  0] gettoplevelprop 32 ...................... <_player>
+  [  2] pushint8 1 .............................. <1>
+  [  4] inv ..................................... <-1>
+  [  5] pusharglistnoret 2 ...................... <_player, -1>
+  [  7] objcall 33 .............................. _player.cursor(-1)
+  [  9] ret
+end
+
+on mouseUp
+  [  0] pushcons 0 .............................. <"http://www.addictinggames.com">
+  [  2] pushcons 1 .............................. <"_new">
+  [  4] pusharglistnoret 2 ...................... <"http://www.addictinggames.com", "_new">
+  [  6] extcall 1034 ............................ gotoNetPage("http://www.addictinggames.com", "_new")
+  [  9] ret
+end
+
+on exitFrame me
+  [  0] getprop 1069 ............................ <spriteNum>
+  [  3] pusharglist 1 ........................... <spriteNum>
+  [  5] extcall 3 ............................... <sprite(spriteNum)>
+  [  7] getobjprop 1070 ......................... <sprite(spriteNum).playing>
+  [ 10] jmpifz [ 25] ............................ if sprite(spriteNum).playing then / else
+  [ 13] pusharglist 0 ........................... <>
+  [ 15] thebuiltin 734 .......................... <the frame>
+  [ 18] pusharglistnoret 1 ...................... <the frame>
+  [ 20] extcall 65 .............................. go(the frame)
+  [ 22] jmp [ 31]
+  [ 25] pushint8 5 .............................. <5>
+  [ 27] pusharglistnoret 1 ...................... <5>
+  [ 29] extcall 65 .............................. go(5)
+  [ 31] ret
+end

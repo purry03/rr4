@@ -1,0 +1,289 @@
+global showSiteLock
+
+on AGSitelock me
+  [  0] pusharglist 0 ........................... <>
+  [  2] localcall 1 ............................. <validDomainAddictingGames()>
+  [  4] setlocal 0 .............................. tState = validDomainAddictingGames()
+  [  6] getlocal 0 .............................. <tState>
+  [  8] pusharglistnoret 1 ...................... <tState>
+  [ 10] extcall 52 .............................. return tState
+  [ 12] ret
+end
+
+on validDomainAddictingGames
+  [  0] pushcons 0 .............................. <"xform.nl">
+  [  2] pushcons 1 .............................. <"addictinggames.com">
+  [  4] pushcons 2 .............................. <"shockwave.com">
+  [  6] pushcons 3 .............................. <"mtvi.com">
+  [  8] pusharglist 4 ........................... <["xform.nl", "addictinggames.com", "shockwave.com", "mtvi.com"]>
+  [ 10] pushlist ................................ <["xform.nl", "addictinggames.com", "shockwave.com", "mtvi.com"]>
+  [ 11] setlocal 0 .............................. validDomains = ["xform.nl", "addictinggames.com", "shockwave.com", "mtvi.com"]
+  [ 13] pushcons 4 .............................. <"src">
+  [ 15] pusharglist 1 ........................... <"src">
+  [ 17] extcall 51 .............................. <externalParamValue("src")>
+  [ 19] setlocal 1 .............................. lPath = externalParamValue("src")
+  [ 21] getglobal 1047 .......................... <showSiteLock>
+  [ 24] pushint8 1 .............................. <1>
+  [ 26] eq ...................................... <showSiteLock = 1>
+  [ 27] jmpifz [ 36] ............................ if showSiteLock = 1 then
+  [ 30] getlocal 1 .............................. <lPath>
+  [ 32] pusharglistnoret 1 ...................... <lPath>
+  [ 34] extcall 39 .............................. put lPath
+  [ 36] pushint8 3 .............................. <3>
+  [ 38] setlocal 2 .............................. lIdx = 3
+  [ 40] getlocal 1 .............................. <lPath>
+  [ 42] pushcons 5 .............................. <"http">
+  [ 44] contains0str ............................ <lPath starts "http">
+  [ 45] not ..................................... <not (lPath starts "http")>
+  [ 46] jmpifz [ 53] ............................ if not (lPath starts "http") then
+  [ 49] getmovieprop 54 ......................... <the moviePath>
+  [ 51] setlocal 1 .............................. lPath = the moviePath
+  [ 53] getglobal 1047 .......................... <showSiteLock>
+  [ 56] pushint8 1 .............................. <1>
+  [ 58] eq ...................................... <showSiteLock = 1>
+  [ 59] jmpifz [ 68] ............................ if showSiteLock = 1 then
+  [ 62] getlocal 1 .............................. <lPath>
+  [ 64] pusharglistnoret 1 ...................... <lPath>
+  [ 66] extcall 39 .............................. put lPath
+  [ 68] getlocal 1 .............................. <lPath>
+  [ 70] pushcons 6 .............................. <"/">
+  [ 72] pusharglist 2 ........................... <lPath, "/">
+  [ 74] localcall 2 ............................. <Split(lPath, "/")>
+  [ 76] setlocal 3 .............................. lSplitRes1 = Split(lPath, "/")
+  [ 78] getglobal 1047 .......................... <showSiteLock>
+  [ 81] pushint8 1 .............................. <1>
+  [ 83] eq ...................................... <showSiteLock = 1>
+  [ 84] jmpifz [ 93] ............................ if showSiteLock = 1 then
+  [ 87] getlocal 3 .............................. <lSplitRes1>
+  [ 89] pusharglistnoret 1 ...................... <lSplitRes1>
+  [ 91] extcall 39 .............................. put lSplitRes1
+  [ 93] pushzero ................................ <0>
+  [ 94] setlocal 4 .............................. lTest = 0
+  [ 96] getlocal 3 .............................. <lSplitRes1>
+  [ 98] getobjprop 17 ........................... <lSplitRes1.count>
+  [100] getlocal 2 .............................. <lIdx>
+  [102] gteq .................................... <lSplitRes1.count >= lIdx>
+  [103] jmpifz [165] ............................ if lSplitRes1.count >= lIdx then
+  [106] getlocal 0 .............................. <validDomains>
+  [108] peek 0
+  [110] pusharglist 1
+  [112] extcall 17
+  [114] pushint8 1
+  [116] peek 0
+  [118] peek 2
+  [120] lteq
+  [121] jmpifz [163] ............................ repeat with sDomain in validDomains
+  [124] peek 2
+  [126] peek 1
+  [128] pusharglist 2
+  [130] extcall 53
+  [132] setlocal 5
+  [134] getlocal 3 .............................. <lSplitRes1>
+  [136] getlocal 2 .............................. <lIdx>
+  [138] pusharglist 2 ........................... <lSplitRes1, lIdx>
+  [140] objcall 53 .............................. <lSplitRes1[lIdx]>
+  [142] getlocal 5 .............................. <sDomain>
+  [144] pusharglist 2 ........................... <lSplitRes1[lIdx], sDomain>
+  [146] localcall 3 ............................. <StringEnds(lSplitRes1[lIdx], sDomain)>
+  [148] jmpifz [158] ............................ if StringEnds(lSplitRes1[lIdx], sDomain) then
+  [151] pushint8 1 .............................. <1>
+  [153] setlocal 4 .............................. lTest = 1
+  [155] jmp [163] ............................... exit repeat
+  [158] pushint8 1
+  [160] add
+  [161] endrepeat [116]
+  [163] pop 3
+  [165] getlocal 4 .............................. <lTest>
+  [167] jmpifz [176] ............................ if lTest then
+  [170] getlocal 0 .............................. <validDomains>
+  [172] pusharglistnoret 1 ...................... <validDomains>
+  [174] localcall 4 ............................. validBrowserDomain(validDomains)
+  [176] getlocal 4 .............................. <lTest>
+  [178] pusharglistnoret 1 ...................... <lTest>
+  [180] extcall 52 .............................. return lTest
+  [182] ret
+end
+
+on Split tString, tDelimiter
+  [  0] getparam 1 .............................. <tDelimiter>
+  [  2] setmovieprop 851 ........................ the itemDelimiter = tDelimiter
+  [  5] pusharglist 0 ........................... <[]>
+  [  7] pushlist ................................ <[]>
+  [  8] setlocal 0 .............................. tList = []
+  [ 10] pushint8 1 .............................. <1>
+  [ 12] setlocal 1
+  [ 14] getlocal 1
+  [ 16] getparam 0 .............................. <tString>
+  [ 18] pushsymb 1036 ........................... <#item>
+  [ 21] pusharglist 2 ........................... <tString, #item>
+  [ 23] objcall 17 .............................. <tString.item.count>
+  [ 25] lteq
+  [ 26] jmpifz [ 61] ............................ repeat with i = 1 to tString.item.count
+  [ 29] getparam 0 .............................. <tString>
+  [ 31] pushsymb 1036 ........................... <#item>
+  [ 34] getlocal 1 .............................. <i>
+  [ 36] pusharglist 3 ........................... <tString, #item, i>
+  [ 38] objcall 304 ............................. <tString.item[i]>
+  [ 41] setlocal 2 .............................. tEntry = tString.item[i]
+  [ 43] getlocal 0 .............................. <tList>
+  [ 45] getlocal 2 .............................. <tEntry>
+  [ 47] pusharglistnoret 2 ...................... <tList, tEntry>
+  [ 49] objcall 365 ............................. tList.add(tEntry)
+  [ 52] pushint8 1
+  [ 54] getlocal 1
+  [ 56] add
+  [ 57] setlocal 1
+  [ 59] endrepeat [ 14]
+  [ 61] getlocal 0 .............................. <tList>
+  [ 63] pusharglistnoret 1 ...................... <tList>
+  [ 65] extcall 52 .............................. return tList
+  [ 67] ret
+end
+
+on StringEnds tString1, tString2
+  [  0] getglobal 1047 .......................... <showSiteLock>
+  [  3] pushint8 1 .............................. <1>
+  [  5] eq ...................................... <showSiteLock = 1>
+  [  6] jmpifz [ 18] ............................ if showSiteLock = 1 then
+  [  9] getparam 0 .............................. <tString1>
+  [ 11] getparam 1 .............................. <tString2>
+  [ 13] joinpadstr .............................. <tString1 && tString2>
+  [ 14] pusharglistnoret 1 ...................... <tString1 && tString2>
+  [ 16] extcall 39 .............................. put tString1 && tString2
+  [ 18] pushint8 1 .............................. <1>
+  [ 20] setlocal 0 .............................. tState = 1
+  [ 22] getparam 0 .............................. <tString1>
+  [ 24] getobjprop 1056 ......................... <tString1.length>
+  [ 27] setlocal 1 .............................. tL1 = tString1.length
+  [ 29] getparam 1 .............................. <tString2>
+  [ 31] getobjprop 1056 ......................... <tString2.length>
+  [ 34] setlocal 2 .............................. tL2 = tString2.length
+  [ 36] getlocal 1 .............................. <tL1>
+  [ 38] getlocal 2 .............................. <tL2>
+  [ 40] sub ..................................... <tL1 - tL2>
+  [ 41] pusharglist 1 ........................... <tL1 - tL2>
+  [ 43] extcall 36 .............................. <abs(tL1 - tL2)>
+  [ 45] setlocal 3 .............................. tDiff = abs(tL1 - tL2)
+  [ 47] getglobal 1047 .......................... <showSiteLock>
+  [ 50] pushint8 1 .............................. <1>
+  [ 52] eq ...................................... <showSiteLock = 1>
+  [ 53] jmpifz [ 68] ............................ if showSiteLock = 1 then
+  [ 56] getlocal 1 .............................. <tL1>
+  [ 58] getlocal 2 .............................. <tL2>
+  [ 60] joinpadstr .............................. <tL1 && tL2>
+  [ 61] getlocal 3 .............................. <tDiff>
+  [ 63] joinpadstr .............................. <tL1 && tL2 && tDiff>
+  [ 64] pusharglistnoret 1 ...................... <tL1 && tL2 && tDiff>
+  [ 66] extcall 39 .............................. put tL1 && tL2 && tDiff
+  [ 68] getlocal 1 .............................. <tL1>
+  [ 70] setlocal 4
+  [ 72] getlocal 4
+  [ 74] getlocal 3 .............................. <tDiff>
+  [ 76] gteq
+  [ 77] jmpifz [164] ............................ repeat with i = tL1 down to tDiff
+  [ 80] getparam 0 .............................. <tString1>
+  [ 82] pushsymb 893 ............................ <#char>
+  [ 85] getlocal 4 .............................. <i>
+  [ 87] pusharglist 3 ........................... <tString1, #char, i>
+  [ 89] objcall 304 ............................. <tString1.char[i]>
+  [ 92] setlocal 5 .............................. tChar1 = tString1.char[i]
+  [ 94] getlocal 4 .............................. <i>
+  [ 96] getlocal 3 .............................. <tDiff>
+  [ 98] sub ..................................... <i - tDiff>
+  [ 99] pushzero ................................ <0>
+  [100] eq ...................................... <(i - tDiff) = 0>
+  [101] jmpifz [107] ............................ if (i - tDiff) = 0 then
+  [104] jmp [164] ............................... exit repeat
+  [107] getparam 1 .............................. <tString2>
+  [109] pushsymb 893 ............................ <#char>
+  [112] getlocal 4 .............................. <i>
+  [114] getlocal 3 .............................. <tDiff>
+  [116] sub ..................................... <i - tDiff>
+  [117] pusharglist 3 ........................... <tString2, #char, i - tDiff>
+  [119] objcall 304 ............................. <tString2.char[i - tDiff]>
+  [122] setlocal 6 .............................. tChar2 = tString2.char[i - tDiff]
+  [124] getglobal 1047 .......................... <showSiteLock>
+  [127] pushint8 1 .............................. <1>
+  [129] eq ...................................... <showSiteLock = 1>
+  [130] jmpifz [142] ............................ if showSiteLock = 1 then
+  [133] getlocal 5 .............................. <tChar1>
+  [135] getlocal 6 .............................. <tChar2>
+  [137] joinpadstr .............................. <tChar1 && tChar2>
+  [138] pusharglistnoret 1 ...................... <tChar1 && tChar2>
+  [140] extcall 39 .............................. put tChar1 && tChar2
+  [142] getlocal 5 .............................. <tChar1>
+  [144] getlocal 6 .............................. <tChar2>
+  [146] nteq .................................... <tChar1 <> tChar2>
+  [147] jmpifz [155] ............................ if tChar1 <> tChar2 then
+  [150] pushzero ................................ <0>
+  [151] pusharglistnoret 1 ...................... <0>
+  [153] extcall 52 .............................. return 0
+  [155] pushint8 -1
+  [157] getlocal 4
+  [159] add
+  [160] setlocal 4
+  [162] endrepeat [ 72]
+  [164] getlocal 0 .............................. <tState>
+  [166] pusharglistnoret 1 ...................... <tState>
+  [168] extcall 52 .............................. return tState
+  [170] ret
+end
+
+on validBrowserDomain kValidDomains
+  [  0] getparam 0 .............................. <kValidDomains>
+  [  2] setlocal 0 .............................. validDomains = kValidDomains
+  [  4] pushcons 7 .............................. <"true">
+  [  6] setlocal 1 .............................. lGuard = "true"
+  [  8] getlocal 0 .............................. <validDomains>
+  [ 10] peek 0
+  [ 12] pusharglist 1
+  [ 14] extcall 17
+  [ 16] pushint8 1
+  [ 18] peek 0
+  [ 20] peek 2
+  [ 22] lteq
+  [ 23] jmpifz [ 54] ............................ repeat with sDomain in validDomains
+  [ 26] peek 2
+  [ 28] peek 1
+  [ 30] pusharglist 2
+  [ 32] extcall 53
+  [ 34] setlocal 2
+  [ 36] getlocal 1 .............................. <lGuard>
+  [ 38] pushcons 8 .............................. <" && (!(document.location.host.indexOf('">
+  [ 40] joinstr ................................. <lGuard & " && (!(document.location.host.indexOf('">
+  [ 41] getlocal 2 .............................. <sDomain>
+  [ 43] joinstr ................................. <lGuard & " && (!(document.location.host.indexOf('" & sDomain>
+  [ 44] pushcons 9 .............................. <"') !== -1))">
+  [ 46] joinstr ................................. <lGuard & " && (!(document.location.host.indexOf('" & sDomain & "') !== -1))">
+  [ 47] setlocal 1 .............................. lGuard = lGuard & " && (!(document.location.host.indexOf('" & sDomain & "') !== -1))"
+  [ 49] pushint8 1
+  [ 51] add
+  [ 52] endrepeat [ 18]
+  [ 54] pop 3
+  [ 56] pushcons 10 ............................. <"if(">
+  [ 58] getlocal 1 .............................. <lGuard>
+  [ 60] joinstr ................................. <"if(" & lGuard>
+  [ 61] pushcons 11 ............................. <") document.location.href = 'http://www.">
+  [ 63] joinstr ................................. <"if(" & lGuard & ") document.location.href = 'http://www.">
+  [ 64] getparam 0 .............................. <kValidDomains>
+  [ 66] pushint8 1 .............................. <1>
+  [ 68] pusharglist 2 ........................... <kValidDomains, 1>
+  [ 70] objcall 53 .............................. <kValidDomains[1]>
+  [ 72] joinstr ................................. <"if(" & lGuard & ") document.location.href = 'http://www." & kValidDomains[1]>
+  [ 73] pushcons 12 ............................. <"'">
+  [ 75] joinstr ................................. <"if(" & lGuard & ") document.location.href = 'http://www." & kValidDomains[1] & "'">
+  [ 76] setlocal 3 .............................. lStatement = "if(" & lGuard & ") document.location.href = 'http://www." & kValidDomains[1] & "'"
+  [ 78] pushcons 13 ............................. <"javascript: ">
+  [ 80] getlocal 3 .............................. <lStatement>
+  [ 82] joinstr ................................. <"javascript: " & lStatement>
+  [ 83] pusharglistnoret 1 ...................... <"javascript: " & lStatement>
+  [ 85] extcall 1034 ............................ gotoNetPage("javascript: " & lStatement)
+  [ 88] getglobal 1047 .......................... <showSiteLock>
+  [ 91] pushint8 1 .............................. <1>
+  [ 93] eq ...................................... <showSiteLock = 1>
+  [ 94] jmpifz [103] ............................ if showSiteLock = 1 then
+  [ 97] getlocal 3 .............................. <lStatement>
+  [ 99] pusharglistnoret 1 ...................... <lStatement>
+  [101] extcall 39 .............................. put lStatement
+  [103] ret
+end

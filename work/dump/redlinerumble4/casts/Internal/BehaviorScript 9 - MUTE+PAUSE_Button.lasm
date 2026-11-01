@@ -1,0 +1,554 @@
+property prevMouseDown, tMute, cam, oPaused, oBranding, oBackground, buttonRect
+global g_Muted, g_Paused, g_NextFrame
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setlocal 0 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] pushint8 1 .............................. <1>
+  [ 12] pusharglist 1 ........................... <1>
+  [ 14] extcall 3 ............................... <sprite(1)>
+  [ 16] getobjprop 7 ............................ <sprite(1).camera>
+  [ 18] setprop 6 ............................... cam = sprite(1).camera
+  [ 20] getlocal 0 .............................. <w>
+  [ 22] pushcons 0 .............................. <"MuteTexture">
+  [ 24] pushsymb 9 .............................. <#fromCastMember>
+  [ 26] pushint8 1 .............................. <1>
+  [ 28] pushcons 1 .............................. <"Textures">
+  [ 30] pusharglist 2 ........................... <1, "Textures">
+  [ 32] extcall 5 ............................... <member(1, "Textures")>
+  [ 34] pusharglist 4 ........................... <w, "MuteTexture", #fromCastMember, member(1, "Textures")>
+  [ 36] objcall 10 .............................. <w.newTexture("MuteTexture", #fromCastMember, member(1, "Textures"))>
+  [ 38] setprop 8 ............................... tMute = w.newTexture("MuteTexture", #fromCastMember, member(1, "Textures"))
+  [ 40] getprop 8 ............................... <tMute>
+  [ 42] pushsymb 11 ............................. <#rgba8888>
+  [ 44] setobjprop 12 ........................... tMute.renderFormat = #rgba8888
+  [ 46] pushint8 1 .............................. <1>
+  [ 48] pusharglist 1 ........................... <1>
+  [ 50] extcall 3 ............................... <sprite(1)>
+  [ 52] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 54] getprop 8 ............................... <tMute>
+  [ 56] pushint16 776 ........................... <776>
+  [ 59] pushint16 460 ........................... <460>
+  [ 62] pusharglist 2 ........................... <776, 460>
+  [ 64] extcall 13 .............................. <point(776, 460)>
+  [ 66] pushzero ................................ <0>
+  [ 67] pusharglistnoret 4 ...................... <sprite(1).camera, tMute, point(776, 460), 0>
+  [ 69] objcall 14 .............................. sprite(1).camera.addOverlay(tMute, point(776, 460), 0)
+  [ 71] getlocal 0 .............................. <w>
+  [ 73] pushcons 2 .............................. <"PausedBackground">
+  [ 75] pushsymb 9 .............................. <#fromCastMember>
+  [ 77] pushcons 3 .............................. <"PauseBackground">
+  [ 79] pushcons 1 .............................. <"Textures">
+  [ 81] pusharglist 2 ........................... <"PauseBackground", "Textures">
+  [ 83] extcall 5 ............................... <member("PauseBackground", "Textures")>
+  [ 85] pusharglist 4 ........................... <w, "PausedBackground", #fromCastMember, member("PauseBackground", "Textures")>
+  [ 87] objcall 10 .............................. <w.newTexture("PausedBackground", #fromCastMember, member("PauseBackground", "Textures"))>
+  [ 89] setlocal 1 .............................. tempTexture = w.newTexture("PausedBackground", #fromCastMember, member("PauseBackground", "Textures"))
+  [ 91] getlocal 1 .............................. <tempTexture>
+  [ 93] pushsymb 11 ............................. <#rgba8888>
+  [ 95] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [ 97] pushint8 1 .............................. <1>
+  [ 99] pusharglist 1 ........................... <1>
+  [101] extcall 3 ............................... <sprite(1)>
+  [103] getchainedprop 7 ........................ <sprite(1).camera>
+  [105] getlocal 1 .............................. <tempTexture>
+  [107] pushzero ................................ <0>
+  [108] pushzero ................................ <0>
+  [109] pusharglist 2 ........................... <0, 0>
+  [111] extcall 13 .............................. <point(0, 0)>
+  [113] pushzero ................................ <0>
+  [114] pusharglistnoret 4 ...................... <sprite(1).camera, tempTexture, point(0, 0), 0>
+  [116] objcall 14 .............................. sprite(1).camera.addOverlay(tempTexture, point(0, 0), 0)
+  [118] pushint8 1 .............................. <1>
+  [120] pusharglist 1 ........................... <1>
+  [122] extcall 3 ............................... <sprite(1)>
+  [124] getchainedprop 7 ........................ <sprite(1).camera>
+  [126] pushsymb 16 ............................. <#overlay>
+  [128] pusharglist 2 ........................... <sprite(1).camera, #overlay>
+  [130] objcall 17 .............................. <sprite(1).camera.overlay.count>
+  [132] setprop 15 .............................. oBackground = sprite(1).camera.overlay.count
+  [134] pushint8 1 .............................. <1>
+  [136] pusharglist 1 ........................... <1>
+  [138] extcall 3 ............................... <sprite(1)>
+  [140] getchainedprop 7 ........................ <sprite(1).camera>
+  [142] pushsymb 16 ............................. <#overlay>
+  [144] getprop 15 .............................. <oBackground>
+  [146] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [148] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [150] pushfloat32 12.5 ........................ <12.5>
+  [155] setobjprop 19 ........................... sprite(1).camera.overlay[oBackground].scale = 12.5
+  [157] pushint8 1 .............................. <1>
+  [159] pusharglist 1 ........................... <1>
+  [161] extcall 3 ............................... <sprite(1)>
+  [163] getchainedprop 7 ........................ <sprite(1).camera>
+  [165] pushsymb 16 ............................. <#overlay>
+  [167] getprop 15 .............................. <oBackground>
+  [169] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [171] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [173] pushzero ................................ <0>
+  [174] setobjprop 20 ........................... sprite(1).camera.overlay[oBackground].blend = 0
+  [176] getlocal 0 .............................. <w>
+  [178] pushcons 4 .............................. <"PausedTexture">
+  [180] pushsymb 9 .............................. <#fromCastMember>
+  [182] pushint8 3 .............................. <3>
+  [184] pushcons 1 .............................. <"Textures">
+  [186] pusharglist 2 ........................... <3, "Textures">
+  [188] extcall 5 ............................... <member(3, "Textures")>
+  [190] pusharglist 4 ........................... <w, "PausedTexture", #fromCastMember, member(3, "Textures")>
+  [192] objcall 10 .............................. <w.newTexture("PausedTexture", #fromCastMember, member(3, "Textures"))>
+  [194] setlocal 1 .............................. tempTexture = w.newTexture("PausedTexture", #fromCastMember, member(3, "Textures"))
+  [196] getlocal 1 .............................. <tempTexture>
+  [198] pushsymb 11 ............................. <#rgba8888>
+  [200] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [202] pushint8 1 .............................. <1>
+  [204] pusharglist 1 ........................... <1>
+  [206] extcall 3 ............................... <sprite(1)>
+  [208] getchainedprop 7 ........................ <sprite(1).camera>
+  [210] getlocal 1 .............................. <tempTexture>
+  [212] pushint16 336 ........................... <336>
+  [215] pushint8 100 ............................ <100>
+  [217] pusharglist 2 ........................... <336, 100>
+  [219] extcall 13 .............................. <point(336, 100)>
+  [221] pushzero ................................ <0>
+  [222] pusharglistnoret 4 ...................... <sprite(1).camera, tempTexture, point(336, 100), 0>
+  [224] objcall 14 .............................. sprite(1).camera.addOverlay(tempTexture, point(336, 100), 0)
+  [226] pushint8 1 .............................. <1>
+  [228] pusharglist 1 ........................... <1>
+  [230] extcall 3 ............................... <sprite(1)>
+  [232] getchainedprop 7 ........................ <sprite(1).camera>
+  [234] pushsymb 16 ............................. <#overlay>
+  [236] pusharglist 2 ........................... <sprite(1).camera, #overlay>
+  [238] objcall 17 .............................. <sprite(1).camera.overlay.count>
+  [240] setprop 21 .............................. oPaused = sprite(1).camera.overlay.count
+  [242] pushint8 1 .............................. <1>
+  [244] pusharglist 1 ........................... <1>
+  [246] extcall 3 ............................... <sprite(1)>
+  [248] getchainedprop 7 ........................ <sprite(1).camera>
+  [250] pushsymb 16 ............................. <#overlay>
+  [252] getprop 21 .............................. <oPaused>
+  [254] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [256] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [258] pushzero ................................ <0>
+  [259] setobjprop 20 ........................... sprite(1).camera.overlay[oPaused].blend = 0
+  [261] getlocal 0 .............................. <w>
+  [263] pushcons 5 .............................. <"PauseBranding">
+  [265] pushsymb 9 .............................. <#fromCastMember>
+  [267] pushcons 6 .............................. <"PauseBrandingBtn_Texture">
+  [269] pushcons 1 .............................. <"Textures">
+  [271] pusharglist 2 ........................... <"PauseBrandingBtn_Texture", "Textures">
+  [273] extcall 5 ............................... <member("PauseBrandingBtn_Texture", "Textures")>
+  [275] pusharglist 4 ........................... <w, "PauseBranding", #fromCastMember, member("PauseBrandingBtn_Texture", "Textures")>
+  [277] objcall 10 .............................. <w.newTexture("PauseBranding", #fromCastMember, member("PauseBrandingBtn_Texture", "Textures"))>
+  [279] setlocal 1 .............................. tempTexture = w.newTexture("PauseBranding", #fromCastMember, member("PauseBrandingBtn_Texture", "Textures"))
+  [281] getlocal 1 .............................. <tempTexture>
+  [283] pushsymb 11 ............................. <#rgba8888>
+  [285] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [287] pushint8 1 .............................. <1>
+  [289] pusharglist 1 ........................... <1>
+  [291] extcall 3 ............................... <sprite(1)>
+  [293] getchainedprop 7 ........................ <sprite(1).camera>
+  [295] getlocal 1 .............................. <tempTexture>
+  [297] pushint16 282 ........................... <282>
+  [300] pushint16 430 ........................... <430>
+  [303] pusharglist 2 ........................... <282, 430>
+  [305] extcall 13 .............................. <point(282, 430)>
+  [307] pushzero ................................ <0>
+  [308] pusharglistnoret 4 ...................... <sprite(1).camera, tempTexture, point(282, 430), 0>
+  [310] objcall 14 .............................. sprite(1).camera.addOverlay(tempTexture, point(282, 430), 0)
+  [312] pushint8 1 .............................. <1>
+  [314] pusharglist 1 ........................... <1>
+  [316] extcall 3 ............................... <sprite(1)>
+  [318] getchainedprop 7 ........................ <sprite(1).camera>
+  [320] pushsymb 16 ............................. <#overlay>
+  [322] pusharglist 2 ........................... <sprite(1).camera, #overlay>
+  [324] objcall 17 .............................. <sprite(1).camera.overlay.count>
+  [326] setprop 22 .............................. oBranding = sprite(1).camera.overlay.count
+  [328] pushint8 1 .............................. <1>
+  [330] pusharglist 1 ........................... <1>
+  [332] extcall 3 ............................... <sprite(1)>
+  [334] getchainedprop 7 ........................ <sprite(1).camera>
+  [336] pushsymb 16 ............................. <#overlay>
+  [338] getprop 22 .............................. <oBranding>
+  [340] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBranding>
+  [342] objcall 18 .............................. <sprite(1).camera.overlay[oBranding]>
+  [344] pushzero ................................ <0>
+  [345] setobjprop 20 ........................... sprite(1).camera.overlay[oBranding].blend = 0
+  [347] pushint16 282 ........................... <282>
+  [350] pushint16 450 ........................... <450>
+  [353] pushint16 538 ........................... <538>
+  [356] pushint16 480 ........................... <480>
+  [359] pusharglist 4 ........................... <282, 450, 538, 480>
+  [361] extcall 24 .............................. <rect(282, 450, 538, 480)>
+  [363] setprop 23 .............................. buttonRect = rect(282, 450, 538, 480)
+  [365] getglobal 25 ............................ <g_Muted>
+  [367] pushint8 1 .............................. <1>
+  [369] eq ...................................... <g_Muted = 1>
+  [370] jmpifz [385] ............................ if g_Muted = 1 then
+  [373] getprop 8 ............................... <tMute>
+  [375] pushint8 2 .............................. <2>
+  [377] pushcons 1 .............................. <"Textures">
+  [379] pusharglist 2 ........................... <2, "Textures">
+  [381] extcall 5 ............................... <member(2, "Textures")>
+  [383] setobjprop 5 ............................ tMute.member = member(2, "Textures")
+  [385] ret
+end
+
+on exitFrame
+  [  0] getglobal 28 ............................ <g_Paused>
+  [  2] pushint8 1 .............................. <1>
+  [  4] eq ...................................... <g_Paused = 1>
+  [  5] jmpifz [211] ............................ if g_Paused = 1 then / else
+  [  8] pushint8 1 .............................. <1>
+  [ 10] pusharglist 1 ........................... <1>
+  [ 12] extcall 3 ............................... <sprite(1)>
+  [ 14] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 16] pushsymb 16 ............................. <#overlay>
+  [ 18] getprop 21 .............................. <oPaused>
+  [ 20] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [ 22] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [ 24] getobjprop 20 ........................... <sprite(1).camera.overlay[oPaused].blend>
+  [ 26] pushint8 100 ............................ <100>
+  [ 28] lt ...................................... <sprite(1).camera.overlay[oPaused].blend < 100>
+  [ 29] jmpifz [149] ............................ if sprite(1).camera.overlay[oPaused].blend < 100 then
+  [ 32] pushint8 1 .............................. <1>
+  [ 34] pusharglist 1 ........................... <1>
+  [ 36] extcall 3 ............................... <sprite(1)>
+  [ 38] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 40] pushsymb 16 ............................. <#overlay>
+  [ 42] getprop 21 .............................. <oPaused>
+  [ 44] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [ 46] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [ 48] pushint8 1 .............................. <1>
+  [ 50] pusharglist 1 ........................... <1>
+  [ 52] extcall 3 ............................... <sprite(1)>
+  [ 54] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 56] pushsymb 16 ............................. <#overlay>
+  [ 58] getprop 21 .............................. <oPaused>
+  [ 60] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [ 62] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [ 64] getobjprop 20 ........................... <sprite(1).camera.overlay[oPaused].blend>
+  [ 66] pushint8 5 .............................. <5>
+  [ 68] add ..................................... <sprite(1).camera.overlay[oPaused].blend + 5>
+  [ 69] setobjprop 20 ........................... sprite(1).camera.overlay[oPaused].blend = sprite(1).camera.overlay[oPaused].blend + 5
+  [ 71] pushint8 1 .............................. <1>
+  [ 73] pusharglist 1 ........................... <1>
+  [ 75] extcall 3 ............................... <sprite(1)>
+  [ 77] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 79] pushsymb 16 ............................. <#overlay>
+  [ 81] getprop 22 .............................. <oBranding>
+  [ 83] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBranding>
+  [ 85] objcall 18 .............................. <sprite(1).camera.overlay[oBranding]>
+  [ 87] pushint8 1 .............................. <1>
+  [ 89] pusharglist 1 ........................... <1>
+  [ 91] extcall 3 ............................... <sprite(1)>
+  [ 93] getchainedprop 7 ........................ <sprite(1).camera>
+  [ 95] pushsymb 16 ............................. <#overlay>
+  [ 97] getprop 22 .............................. <oBranding>
+  [ 99] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBranding>
+  [101] objcall 18 .............................. <sprite(1).camera.overlay[oBranding]>
+  [103] getobjprop 20 ........................... <sprite(1).camera.overlay[oBranding].blend>
+  [105] pushint8 5 .............................. <5>
+  [107] add ..................................... <sprite(1).camera.overlay[oBranding].blend + 5>
+  [108] setobjprop 20 ........................... sprite(1).camera.overlay[oBranding].blend = sprite(1).camera.overlay[oBranding].blend + 5
+  [110] pushint8 1 .............................. <1>
+  [112] pusharglist 1 ........................... <1>
+  [114] extcall 3 ............................... <sprite(1)>
+  [116] getchainedprop 7 ........................ <sprite(1).camera>
+  [118] pushsymb 16 ............................. <#overlay>
+  [120] getprop 15 .............................. <oBackground>
+  [122] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [124] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [126] pushint8 1 .............................. <1>
+  [128] pusharglist 1 ........................... <1>
+  [130] extcall 3 ............................... <sprite(1)>
+  [132] getchainedprop 7 ........................ <sprite(1).camera>
+  [134] pushsymb 16 ............................. <#overlay>
+  [136] getprop 15 .............................. <oBackground>
+  [138] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [140] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [142] getobjprop 20 ........................... <sprite(1).camera.overlay[oBackground].blend>
+  [144] pushint8 5 .............................. <5>
+  [146] add ..................................... <sprite(1).camera.overlay[oBackground].blend + 5>
+  [147] setobjprop 20 ........................... sprite(1).camera.overlay[oBackground].blend = sprite(1).camera.overlay[oBackground].blend + 5
+  [149] gettoplevelprop 29 ...................... <_mouse>
+  [151] getobjprop 30 ........................... <_mouse.mouseLoc>
+  [153] setlocal 0 .............................. mousePosition = _mouse.mouseLoc
+  [155] getlocal 0 .............................. <mousePosition>
+  [157] getprop 23 .............................. <buttonRect>
+  [159] pusharglist 2 ........................... <mousePosition, buttonRect>
+  [161] objcall 31 .............................. <mousePosition.inside(buttonRect)>
+  [163] jmpifz [199] ............................ if mousePosition.inside(buttonRect) then / else
+  [166] gettoplevelprop 32 ...................... <_player>
+  [168] pushint16 280 ........................... <280>
+  [171] pusharglistnoret 2 ...................... <_player, 280>
+  [173] objcall 33 .............................. _player.cursor(280)
+  [175] gettoplevelprop 29 ...................... <_mouse>
+  [177] getobjprop 34 ........................... <_mouse.mouseDown>
+  [179] getprop 35 .............................. <prevMouseDown>
+  [181] pushzero ................................ <0>
+  [182] eq ...................................... <prevMouseDown = 0>
+  [183] and ..................................... <_mouse.mouseDown and (prevMouseDown = 0)>
+  [184] jmpifz [196] ............................ if _mouse.mouseDown and (prevMouseDown = 0) then
+  [187] pushcons 7 .............................. <"http://www.addictinggames.com">
+  [189] pushcons 8 .............................. <"_new">
+  [191] pusharglistnoret 2 ...................... <"http://www.addictinggames.com", "_new">
+  [193] extcall 1034 ............................ gotoNetPage("http://www.addictinggames.com", "_new")
+  [196] jmp [208]
+  [199] gettoplevelprop 32 ...................... <_player>
+  [201] pushint8 1 .............................. <1>
+  [203] inv ..................................... <-1>
+  [204] pusharglistnoret 2 ...................... <_player, -1>
+  [206] objcall 33 .............................. _player.cursor(-1)
+  [208] jmp [351]
+  [211] pushint8 1 .............................. <1>
+  [213] pusharglist 1 ........................... <1>
+  [215] extcall 3 ............................... <sprite(1)>
+  [217] getchainedprop 7 ........................ <sprite(1).camera>
+  [219] pushsymb 16 ............................. <#overlay>
+  [221] getprop 21 .............................. <oPaused>
+  [223] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [225] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [227] getobjprop 20 ........................... <sprite(1).camera.overlay[oPaused].blend>
+  [229] pushzero ................................ <0>
+  [230] gt ...................................... <sprite(1).camera.overlay[oPaused].blend > 0>
+  [231] jmpifz [351] ............................ if sprite(1).camera.overlay[oPaused].blend > 0 then
+  [234] pushint8 1 .............................. <1>
+  [236] pusharglist 1 ........................... <1>
+  [238] extcall 3 ............................... <sprite(1)>
+  [240] getchainedprop 7 ........................ <sprite(1).camera>
+  [242] pushsymb 16 ............................. <#overlay>
+  [244] getprop 21 .............................. <oPaused>
+  [246] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [248] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [250] pushint8 1 .............................. <1>
+  [252] pusharglist 1 ........................... <1>
+  [254] extcall 3 ............................... <sprite(1)>
+  [256] getchainedprop 7 ........................ <sprite(1).camera>
+  [258] pushsymb 16 ............................. <#overlay>
+  [260] getprop 21 .............................. <oPaused>
+  [262] pusharglist 3 ........................... <sprite(1).camera, #overlay, oPaused>
+  [264] objcall 18 .............................. <sprite(1).camera.overlay[oPaused]>
+  [266] getobjprop 20 ........................... <sprite(1).camera.overlay[oPaused].blend>
+  [268] pushint8 5 .............................. <5>
+  [270] sub ..................................... <sprite(1).camera.overlay[oPaused].blend - 5>
+  [271] setobjprop 20 ........................... sprite(1).camera.overlay[oPaused].blend = sprite(1).camera.overlay[oPaused].blend - 5
+  [273] pushint8 1 .............................. <1>
+  [275] pusharglist 1 ........................... <1>
+  [277] extcall 3 ............................... <sprite(1)>
+  [279] getchainedprop 7 ........................ <sprite(1).camera>
+  [281] pushsymb 16 ............................. <#overlay>
+  [283] getprop 22 .............................. <oBranding>
+  [285] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBranding>
+  [287] objcall 18 .............................. <sprite(1).camera.overlay[oBranding]>
+  [289] pushint8 1 .............................. <1>
+  [291] pusharglist 1 ........................... <1>
+  [293] extcall 3 ............................... <sprite(1)>
+  [295] getchainedprop 7 ........................ <sprite(1).camera>
+  [297] pushsymb 16 ............................. <#overlay>
+  [299] getprop 22 .............................. <oBranding>
+  [301] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBranding>
+  [303] objcall 18 .............................. <sprite(1).camera.overlay[oBranding]>
+  [305] getobjprop 20 ........................... <sprite(1).camera.overlay[oBranding].blend>
+  [307] pushint8 5 .............................. <5>
+  [309] sub ..................................... <sprite(1).camera.overlay[oBranding].blend - 5>
+  [310] setobjprop 20 ........................... sprite(1).camera.overlay[oBranding].blend = sprite(1).camera.overlay[oBranding].blend - 5
+  [312] pushint8 1 .............................. <1>
+  [314] pusharglist 1 ........................... <1>
+  [316] extcall 3 ............................... <sprite(1)>
+  [318] getchainedprop 7 ........................ <sprite(1).camera>
+  [320] pushsymb 16 ............................. <#overlay>
+  [322] getprop 15 .............................. <oBackground>
+  [324] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [326] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [328] pushint8 1 .............................. <1>
+  [330] pusharglist 1 ........................... <1>
+  [332] extcall 3 ............................... <sprite(1)>
+  [334] getchainedprop 7 ........................ <sprite(1).camera>
+  [336] pushsymb 16 ............................. <#overlay>
+  [338] getprop 15 .............................. <oBackground>
+  [340] pusharglist 3 ........................... <sprite(1).camera, #overlay, oBackground>
+  [342] objcall 18 .............................. <sprite(1).camera.overlay[oBackground]>
+  [344] getobjprop 20 ........................... <sprite(1).camera.overlay[oBackground].blend>
+  [346] pushint8 5 .............................. <5>
+  [348] sub ..................................... <sprite(1).camera.overlay[oBackground].blend - 5>
+  [349] setobjprop 20 ........................... sprite(1).camera.overlay[oBackground].blend = sprite(1).camera.overlay[oBackground].blend - 5
+  [351] pusharglist 0 ........................... <>
+  [353] thebuiltin 34 ........................... <the mouseDown>
+  [355] getprop 35 .............................. <prevMouseDown>
+  [357] pushzero ................................ <0>
+  [358] eq ...................................... <prevMouseDown = 0>
+  [359] and ..................................... <the mouseDown and (prevMouseDown = 0)>
+  [360] jmpifz [507] ............................ if the mouseDown and (prevMouseDown = 0) then
+  [363] getmovieprop 30 ......................... <the mouseLoc>
+  [365] pushint16 776 ........................... <776>
+  [368] pushint16 460 ........................... <460>
+  [371] pusharglist 2 ........................... <776, 460>
+  [373] extcall 13 .............................. <point(776, 460)>
+  [375] sub ..................................... <the mouseLoc - point(776, 460)>
+  [376] setlocal 1 .............................. tempDiff = the mouseLoc - point(776, 460)
+  [378] getlocal 1 .............................. <tempDiff>
+  [380] getobjprop 37 ........................... <tempDiff.locH>
+  [382] pusharglist 1 ........................... <tempDiff.locH>
+  [384] extcall 36 .............................. <abs(tempDiff.locH)>
+  [386] pushint8 16 ............................. <16>
+  [388] lt ...................................... <abs(tempDiff.locH) < 16>
+  [389] getlocal 1 .............................. <tempDiff>
+  [391] getobjprop 38 ........................... <tempDiff.locV>
+  [393] pusharglist 1 ........................... <tempDiff.locV>
+  [395] extcall 36 .............................. <abs(tempDiff.locV)>
+  [397] pushint8 16 ............................. <16>
+  [399] lt ...................................... <abs(tempDiff.locV) < 16>
+  [400] and ..................................... <(abs(tempDiff.locH) < 16) and (abs(tempDiff.locV) < 16)>
+  [401] jmpifz [507] ............................ if (abs(tempDiff.locH) < 16) and (abs(tempDiff.locV) < 16) then
+  [404] pushcons 9 .............................. <"ButtonMuteHit">
+  [406] pusharglistnoret 1 ...................... <"ButtonMuteHit">
+  [408] extcall 39 .............................. put "ButtonMuteHit"
+  [410] getglobal 25 ............................ <g_Muted>
+  [412] pushint8 1 .............................. <1>
+  [414] eq ...................................... <g_Muted = 1>
+  [415] jmpifz [446] ............................ if g_Muted = 1 then / else
+  [418] pushint8 5 .............................. <5>
+  [420] pusharglist 1 ........................... <5>
+  [422] extcall 40 .............................. <sound(5)>
+  [424] pusharglistnoret 1 ...................... <sound(5)>
+  [426] objcall 41 .............................. sound(5).play()
+  [428] pushzero ................................ <0>
+  [429] setglobal 25 ............................ g_Muted = 0
+  [431] getprop 8 ............................... <tMute>
+  [433] pushint8 1 .............................. <1>
+  [435] pushcons 1 .............................. <"Textures">
+  [437] pusharglist 2 ........................... <1, "Textures">
+  [439] extcall 5 ............................... <member(1, "Textures")>
+  [441] setobjprop 5 ............................ tMute.member = member(1, "Textures")
+  [443] jmp [507]
+  [446] pushint8 1 .............................. <1>
+  [448] setglobal 25 ............................ g_Muted = 1
+  [450] pushint8 1 .............................. <1>
+  [452] pushzero ................................ <0>
+  [453] pusharglistnoret 2 ...................... <1, 0>
+  [455] extcall 42 .............................. puppetSound(1, 0)
+  [457] pushint8 2 .............................. <2>
+  [459] pushzero ................................ <0>
+  [460] pusharglistnoret 2 ...................... <2, 0>
+  [462] extcall 42 .............................. puppetSound(2, 0)
+  [464] pushint8 3 .............................. <3>
+  [466] pushzero ................................ <0>
+  [467] pusharglistnoret 2 ...................... <3, 0>
+  [469] extcall 42 .............................. puppetSound(3, 0)
+  [471] pushint8 4 .............................. <4>
+  [473] pushzero ................................ <0>
+  [474] pusharglistnoret 2 ...................... <4, 0>
+  [476] extcall 42 .............................. puppetSound(4, 0)
+  [478] pushint8 5 .............................. <5>
+  [480] pusharglist 1 ........................... <5>
+  [482] extcall 40 .............................. <sound(5)>
+  [484] pusharglistnoret 1 ...................... <sound(5)>
+  [486] objcall 43 .............................. sound(5).pause()
+  [488] pushint8 6 .............................. <6>
+  [490] pushzero ................................ <0>
+  [491] pusharglistnoret 2 ...................... <6, 0>
+  [493] extcall 42 .............................. puppetSound(6, 0)
+  [495] getprop 8 ............................... <tMute>
+  [497] pushint8 2 .............................. <2>
+  [499] pushcons 1 .............................. <"Textures">
+  [501] pusharglist 2 ........................... <2, "Textures">
+  [503] extcall 5 ............................... <member(2, "Textures")>
+  [505] setobjprop 5 ............................ tMute.member = member(2, "Textures")
+  [507] pusharglist 0 ........................... <>
+  [509] thebuiltin 34 ........................... <the mouseDown>
+  [511] setprop 35 .............................. prevMouseDown = the mouseDown
+  [513] ret
+end
+
+on keyDown
+  [  0] pusharglist 0 ........................... <>
+  [  2] thebuiltin 46 ........................... <the key>
+  [  4] pushcons 10 ............................. <"p">
+  [  6] eq ...................................... <the key = "p">
+  [  7] getglobal 47 ............................ <g_NextFrame>
+  [  9] pushint8 19 ............................. <19>
+  [ 11] gt ...................................... <g_NextFrame > 19>
+  [ 12] and ..................................... <(the key = "p") and (g_NextFrame > 19)>
+  [ 13] jmpifz [167] ............................ if (the key = "p") and (g_NextFrame > 19) then
+  [ 16] getglobal 28 ............................ <g_Paused>
+  [ 18] pushzero ................................ <0>
+  [ 19] eq ...................................... <g_Paused = 0>
+  [ 20] jmpifz [ 97] ............................ if g_Paused = 0 then / else
+  [ 23] pushint8 1 .............................. <1>
+  [ 25] setglobal 28 ............................ g_Paused = 1
+  [ 27] getglobal 25 ............................ <g_Muted>
+  [ 29] pushzero ................................ <0>
+  [ 30] eq ...................................... <g_Muted = 0>
+  [ 31] jmpifz [ 94] ............................ if g_Muted = 0 then
+  [ 34] pushint8 1 .............................. <1>
+  [ 36] pusharglist 1 ........................... <1>
+  [ 38] extcall 40 .............................. <sound(1)>
+  [ 40] pusharglistnoret 1 ...................... <sound(1)>
+  [ 42] objcall 43 .............................. sound(1).pause()
+  [ 44] pushint8 2 .............................. <2>
+  [ 46] pusharglist 1 ........................... <2>
+  [ 48] extcall 40 .............................. <sound(2)>
+  [ 50] pusharglistnoret 1 ...................... <sound(2)>
+  [ 52] objcall 43 .............................. sound(2).pause()
+  [ 54] pushint8 3 .............................. <3>
+  [ 56] pusharglist 1 ........................... <3>
+  [ 58] extcall 40 .............................. <sound(3)>
+  [ 60] pusharglistnoret 1 ...................... <sound(3)>
+  [ 62] objcall 43 .............................. sound(3).pause()
+  [ 64] pushint8 4 .............................. <4>
+  [ 66] pusharglist 1 ........................... <4>
+  [ 68] extcall 40 .............................. <sound(4)>
+  [ 70] pusharglistnoret 1 ...................... <sound(4)>
+  [ 72] objcall 43 .............................. sound(4).pause()
+  [ 74] pushint8 5 .............................. <5>
+  [ 76] pusharglist 1 ........................... <5>
+  [ 78] extcall 40 .............................. <sound(5)>
+  [ 80] pusharglistnoret 1 ...................... <sound(5)>
+  [ 82] objcall 43 .............................. sound(5).pause()
+  [ 84] pushint8 6 .............................. <6>
+  [ 86] pusharglist 1 ........................... <6>
+  [ 88] extcall 40 .............................. <sound(6)>
+  [ 90] pusharglistnoret 1 ...................... <sound(6)>
+  [ 92] objcall 43 .............................. sound(6).pause()
+  [ 94] jmp [167]
+  [ 97] pushzero ................................ <0>
+  [ 98] setglobal 28 ............................ g_Paused = 0
+  [100] getglobal 25 ............................ <g_Muted>
+  [102] pushzero ................................ <0>
+  [103] eq ...................................... <g_Muted = 0>
+  [104] jmpifz [167] ............................ if g_Muted = 0 then
+  [107] pushint8 1 .............................. <1>
+  [109] pusharglist 1 ........................... <1>
+  [111] extcall 40 .............................. <sound(1)>
+  [113] pusharglistnoret 1 ...................... <sound(1)>
+  [115] objcall 41 .............................. sound(1).play()
+  [117] pushint8 2 .............................. <2>
+  [119] pusharglist 1 ........................... <2>
+  [121] extcall 40 .............................. <sound(2)>
+  [123] pusharglistnoret 1 ...................... <sound(2)>
+  [125] objcall 41 .............................. sound(2).play()
+  [127] pushint8 3 .............................. <3>
+  [129] pusharglist 1 ........................... <3>
+  [131] extcall 40 .............................. <sound(3)>
+  [133] pusharglistnoret 1 ...................... <sound(3)>
+  [135] objcall 41 .............................. sound(3).play()
+  [137] pushint8 4 .............................. <4>
+  [139] pusharglist 1 ........................... <4>
+  [141] extcall 40 .............................. <sound(4)>
+  [143] pusharglistnoret 1 ...................... <sound(4)>
+  [145] objcall 41 .............................. sound(4).play()
+  [147] pushint8 5 .............................. <5>
+  [149] pusharglist 1 ........................... <5>
+  [151] extcall 40 .............................. <sound(5)>
+  [153] pusharglistnoret 1 ...................... <sound(5)>
+  [155] objcall 41 .............................. sound(5).play()
+  [157] pushint8 6 .............................. <6>
+  [159] pusharglist 1 ........................... <6>
+  [161] extcall 40 .............................. <sound(6)>
+  [163] pusharglistnoret 1 ...................... <sound(6)>
+  [165] objcall 41 .............................. sound(6).play()
+  [167] ret
+end

@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/perry/Dev/rr4/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

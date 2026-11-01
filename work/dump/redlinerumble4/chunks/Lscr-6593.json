@@ -1,0 +1,116 @@
+{
+  "totalLength": 1082,
+  "totalLength2": 1082,
+  "headerLength": 92,
+  "scriptNumber": 7,
+  "unk20": 1,
+  "parentNumber": -1,
+  "scriptFlags": 0,
+  "unk42": 0,
+  "castID": 65546,
+  "factoryNameID": -1,
+  "handlerVectorsCount": 16,
+  "handlerVectorsOffset": 1050,
+  "handlerVectorsSize": 32768,
+  "propertiesCount": 15,
+  "propertiesOffset": 92,
+  "globalsCount": 2,
+  "globalsOffset": 122,
+  "handlersCount": 3,
+  "handlersOffset": 126,
+  "literalsCount": 3,
+  "literalsOffset": 972,
+  "literalsDataCount": 54,
+  "literalsDataOffset": 996,
+  "propertyNameIDs": [
+    735,
+    737,
+    742,
+    740,
+    763,
+    743,
+    744,
+    739,
+    762,
+    761,
+    764,
+    741,
+    746,
+    6,
+    745
+  ],
+  "globalNameIDs": [
+    765,
+    747
+  ],
+  "handlers": [
+    {
+      "nameID": 0,
+      "vectorPos": 65535,
+      "compiledLen": 189,
+      "compiledOffset": 264,
+      "argumentCount": 0,
+      "argumentOffset": 454,
+      "localsCount": 1,
+      "localsOffset": 454,
+      "globalsCount": 0,
+      "globalsOffset": 122,
+      "unknown1": 230,
+      "unknown2": 6,
+      "lineCount": 30,
+      "lineOffset": 456,
+      "stackHeight": 6
+    },
+    {
+      "nameID": 1,
+      "vectorPos": 15,
+      "compiledLen": 151,
+      "compiledOffset": 486,
+      "argumentCount": 0,
+      "argumentOffset": 638,
+      "localsCount": 0,
+      "localsOffset": 638,
+      "globalsCount": 0,
+      "globalsOffset": 122,
+      "unknown1": 1291,
+      "unknown2": 39,
+      "lineCount": 27,
+      "lineOffset": 638,
+      "stackHeight": 4
+    },
+    {
+      "nameID": 323,
+      "vectorPos": 65535,
+      "compiledLen": 256,
+      "compiledOffset": 666,
+      "argumentCount": 4,
+      "argumentOffset": 922,
+      "localsCount": 3,
+      "localsOffset": 930,
+      "globalsCount": 0,
+      "globalsOffset": 122,
+      "unknown1": 1969,
+      "unknown2": 69,
+      "lineCount": 35,
+      "lineOffset": 936,
+      "stackHeight": 8
+    }
+  ],
+  "literals": [
+    {
+      "type": 1,
+      "offset": 0,
+      "value": "Textures"
+    },
+    {
+      "type": 1,
+      "offset": 14,
+      "value": "PanelOverlayTexture"
+    },
+    {
+      "type": 1,
+      "offset": 38,
+      "value": "infoPanels"
+    }
+  ]
+}

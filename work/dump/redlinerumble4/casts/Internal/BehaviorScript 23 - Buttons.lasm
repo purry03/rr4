@@ -1,0 +1,104 @@
+property nextFrame, this, startWidth, startHeight
+global g_NextFrame
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getchainedprop 5 ........................ <sprite(the currentSpriteNum).member>
+  [  8] getobjprop 864 .......................... <sprite(the currentSpriteNum).member.name>
+  [ 11] pushsymb 1036 ........................... <#item>
+  [ 14] pushint8 1 .............................. <1>
+  [ 16] pusharglist 3 ........................... <sprite(the currentSpriteNum).member.name, #item, 1>
+  [ 18] objcall 304 ............................. <sprite(the currentSpriteNum).member.name.item[1]>
+  [ 21] pusharglist 1 ........................... <sprite(the currentSpriteNum).member.name.item[1]>
+  [ 23] extcall 208 ............................. <integer(sprite(the currentSpriteNum).member.name.item[1])>
+  [ 25] setprop 1035 ............................ nextFrame = integer(sprite(the currentSpriteNum).member.name.item[1])
+  [ 28] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 30] setprop 1037 ............................ this = the currentSpriteNum
+  [ 33] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 35] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 37] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 39] getchainedprop 5 ........................ <sprite(the currentSpriteNum).member>
+  [ 41] getobjprop 750 .......................... <sprite(the currentSpriteNum).member.width>
+  [ 44] setprop 1038 ............................ startWidth = sprite(the currentSpriteNum).member.width
+  [ 47] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 49] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 51] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 53] getchainedprop 5 ........................ <sprite(the currentSpriteNum).member>
+  [ 55] getobjprop 751 .......................... <sprite(the currentSpriteNum).member.height>
+  [ 58] setprop 1039 ............................ startHeight = sprite(the currentSpriteNum).member.height
+  [ 61] ret
+end
+
+on exitFrame
+  [  0] pusharglist 0 ........................... <>
+  [  2] thebuiltin 1040 ......................... <the rollover>
+  [  5] getprop 1037 ............................ <this>
+  [  8] eq ...................................... <the rollover = this>
+  [  9] jmpifz [101] ............................ if the rollover = this then / else
+  [ 12] pusharglist 0 ........................... <>
+  [ 14] thebuiltin 34 ........................... <the mouseDown>
+  [ 16] jmpifz [ 52] ............................ if the mouseDown then / else
+  [ 19] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 21] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 23] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 25] getprop 1038 ............................ <startWidth>
+  [ 28] pushcons 0 .............................. <0.80000000000000004>
+  [ 30] mul ..................................... <startWidth * 0.80000000000000004>
+  [ 31] setobjprop 750 .......................... sprite(the currentSpriteNum).width = startWidth * 0.80000000000000004
+  [ 34] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 36] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 38] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 40] getprop 1039 ............................ <startHeight>
+  [ 43] pushcons 0 .............................. <0.80000000000000004>
+  [ 45] mul ..................................... <startHeight * 0.80000000000000004>
+  [ 46] setobjprop 751 .......................... sprite(the currentSpriteNum).height = startHeight * 0.80000000000000004
+  [ 49] jmp [ 88]
+  [ 52] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 54] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 56] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 58] getprop 1038 ............................ <startWidth>
+  [ 61] pushfloat32 1.0 ......................... <1.0>
+  [ 66] mul ..................................... <startWidth * 1.0>
+  [ 67] setobjprop 750 .......................... sprite(the currentSpriteNum).width = startWidth * 1.0
+  [ 70] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 72] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 74] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 76] getprop 1039 ............................ <startHeight>
+  [ 79] pushfloat32 1.0 ......................... <1.0>
+  [ 84] mul ..................................... <startHeight * 1.0>
+  [ 85] setobjprop 751 .......................... sprite(the currentSpriteNum).height = startHeight * 1.0
+  [ 88] getmovieprop 4 .......................... <the currentSpriteNum>
+  [ 90] pusharglist 1 ........................... <the currentSpriteNum>
+  [ 92] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [ 94] pushint8 100 ............................ <100>
+  [ 96] setobjprop 20 ........................... sprite(the currentSpriteNum).blend = 100
+  [ 98] jmp [147]
+  [101] getmovieprop 4 .......................... <the currentSpriteNum>
+  [103] pusharglist 1 ........................... <the currentSpriteNum>
+  [105] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [107] pushint8 50 ............................. <50>
+  [109] setobjprop 20 ........................... sprite(the currentSpriteNum).blend = 50
+  [111] getmovieprop 4 .......................... <the currentSpriteNum>
+  [113] pusharglist 1 ........................... <the currentSpriteNum>
+  [115] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [117] getprop 1038 ............................ <startWidth>
+  [120] pushfloat32 1.0 ......................... <1.0>
+  [125] mul ..................................... <startWidth * 1.0>
+  [126] setobjprop 750 .......................... sprite(the currentSpriteNum).width = startWidth * 1.0
+  [129] getmovieprop 4 .......................... <the currentSpriteNum>
+  [131] pusharglist 1 ........................... <the currentSpriteNum>
+  [133] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [135] getprop 1039 ............................ <startHeight>
+  [138] pushfloat32 1.0 ......................... <1.0>
+  [143] mul ..................................... <startHeight * 1.0>
+  [144] setobjprop 751 .......................... sprite(the currentSpriteNum).height = startHeight * 1.0
+  [147] ret
+end
+
+on mouseUp
+  [  0] getprop 1035 ............................ <nextFrame>
+  [  3] setglobal 47 ............................ g_NextFrame = nextFrame
+  [  5] ret
+end

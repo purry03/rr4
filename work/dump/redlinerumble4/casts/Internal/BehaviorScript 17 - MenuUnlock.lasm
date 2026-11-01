@@ -1,0 +1,524 @@
+property cam, startTicks, shaunState, mShaun, loopCounter, blinkStartTicks, blinkInterval, changeAnimStartTicks, animState, lookOffset, mBackdrop, oStartButton, theMouseDown, prevMouseDown, prevMouseOver, flashCounter, oTextBox, oAddOn, g_ShaunHandle, mLandrover, gLandrover
+global g_Muted, g_NextFrame, g_FadeToBlack, g_NextFramePlease, g_MissionID, g_AddOnList
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setlocal 0 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] getlocal 0 .............................. <w>
+  [ 12] pusharglistnoret 1 ...................... <w>
+  [ 14] objcall 149 ............................. w.resetWorld()
+  [ 16] pushzero ................................ <0>
+  [ 17] setprop 859 ............................. shaunState = 0
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 860 ............................. loopCounter = 0
+  [ 24] pushzero ................................ <0>
+  [ 25] setprop 861 ............................. flashCounter = 0
+  [ 28] getlocal 0 .............................. <w>
+  [ 30] pushint8 1 .............................. <1>
+  [ 32] pusharglist 2 ........................... <w, 1>
+  [ 34] objcall 153 ............................. <w.model(1)>
+  [ 36] setprop 862 ............................. mShaun = w.model(1)
+  [ 39] getlocal 0 .............................. <w>
+  [ 41] pushcons 0 .............................. <"ShaunShapeUpMotion">
+  [ 43] pushint8 13 ............................. <13>
+  [ 45] pushcons 1 .............................. <"Motions">
+  [ 47] pusharglist 2 ........................... <13, "Motions">
+  [ 49] extcall 5 ............................... <member(13, "Motions")>
+  [ 51] pushsymb 863 ............................ <#motion>
+  [ 54] pushint8 2 .............................. <2>
+  [ 56] pusharglist 3 ........................... <member(13, "Motions"), #motion, 2>
+  [ 58] objcall 18 .............................. <member(13, "Motions").motion[2]>
+  [ 60] getobjprop 864 .......................... <member(13, "Motions").motion[2].name>
+  [ 63] pushint8 13 ............................. <13>
+  [ 65] pushcons 1 .............................. <"Motions">
+  [ 67] pusharglist 2 ........................... <13, "Motions">
+  [ 69] extcall 5 ............................... <member(13, "Motions")>
+  [ 71] pusharglistnoret 4 ...................... <w, "ShaunShapeUpMotion", member(13, "Motions").motion[2].name, member(13, "Motions")>
+  [ 73] objcall 865 ............................. w.cloneMotionFromCastmember("ShaunShapeUpMotion", member(13, "Motions").motion[2].name, member(13, "Motions"))
+  [ 76] getprop 862 ............................. <mShaun>
+  [ 79] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [ 82] pushcons 0 .............................. <"ShaunShapeUpMotion">
+  [ 84] pushint8 1 .............................. <1>
+  [ 86] pusharglistnoret 3 ...................... <mShaun.bonesPlayer, "ShaunShapeUpMotion", 1>
+  [ 88] objcall 868 ............................. mShaun.bonesPlayer.queue("ShaunShapeUpMotion", 1)
+  [ 91] getprop 862 ............................. <mShaun>
+  [ 94] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [ 97] pushcons 2 .............................. <1.19999999999999996>
+  [ 99] setobjprop 985 .......................... mShaun.bonesPlayer.playRate = 1.19999999999999996
+  [102] getprop 862 ............................. <mShaun>
+  [105] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [108] pusharglistnoret 1 ...................... <mShaun.bonesPlayer>
+  [110] objcall 869 ............................. mShaun.bonesPlayer.playNext()
+  [113] pusharglist 0 ........................... <>
+  [115] thebuiltin 181 .......................... <the ticks>
+  [117] setprop 870 ............................. changeAnimStartTicks = the ticks
+  [120] pushint8 2 .............................. <2>
+  [122] setprop 871 ............................. animState = 2
+  [125] pushzero ................................ <0>
+  [126] pushzero ................................ <0>
+  [127] pushzero ................................ <0>
+  [128] pusharglist 3 ........................... <0, 0, 0>
+  [130] extcall 151 ............................. <vector(0, 0, 0)>
+  [132] setprop 872 ............................. lookOffset = vector(0, 0, 0)
+  [135] getprop 862 ............................. <mShaun>
+  [138] pushzero ................................ <0>
+  [139] pushint16 180 ........................... <180>
+  [142] pushzero ................................ <0>
+  [143] pusharglistnoret 4 ...................... <mShaun, 0, 180, 0>
+  [145] objcall 374 ............................. mShaun.rotate(0, 180, 0)
+  [148] getprop 862 ............................. <mShaun>
+  [151] pushint8 40 ............................. <40>
+  [153] pushint8 30 ............................. <30>
+  [155] pushzero ................................ <0>
+  [156] pusharglist 3 ........................... <40, 30, 0>
+  [158] extcall 151 ............................. <vector(40, 30, 0)>
+  [160] setobjprop 287 .......................... mShaun.worldPosition = vector(40, 30, 0)
+  [163] getprop 862 ............................. <mShaun>
+  [166] getchainedprop 311 ...................... <mShaun.transform>
+  [169] pushcons 3 .............................. <0.59999999999999998>
+  [171] pushcons 3 .............................. <0.59999999999999998>
+  [173] pushcons 3 .............................. <0.59999999999999998>
+  [175] pusharglist 3 ........................... <0.59999999999999998, 0.59999999999999998, 0.59999999999999998>
+  [177] extcall 151 ............................. <vector(0.59999999999999998, 0.59999999999999998, 0.59999999999999998)>
+  [179] setobjprop 19 ........................... mShaun.transform.scale = vector(0.59999999999999998, 0.59999999999999998, 0.59999999999999998)
+  [181] getlocal 0 .............................. <w>
+  [183] pushcons 4 .............................. <"ShaunHandleGroup">
+  [185] pusharglist 2 ........................... <w, "ShaunHandleGroup">
+  [187] objcall 447 ............................. <w.newGroup("ShaunHandleGroup")>
+  [190] setlocal 1 .............................. gShaunHandle = w.newGroup("ShaunHandleGroup")
+  [192] getlocal 1 .............................. <gShaunHandle>
+  [194] getprop 862 ............................. <mShaun>
+  [197] pusharglistnoret 2 ...................... <gShaunHandle, mShaun>
+  [199] objcall 410 ............................. gShaunHandle.addChild(mShaun)
+  [202] pusharglist 0 ........................... <>
+  [204] thebuiltin 181 .......................... <the ticks>
+  [206] setprop 873 ............................. blinkStartTicks = the ticks
+  [209] pushint8 100 ............................ <100>
+  [211] setprop 874 ............................. blinkInterval = 100
+  [214] pushzero ................................ <0>
+  [215] setprop 875 ............................. prevMouseOver = 0
+  [218] pushint8 1 .............................. <1>
+  [220] pusharglist 1 ........................... <1>
+  [222] extcall 3 ............................... <sprite(1)>
+  [224] getobjprop 7 ............................ <sprite(1).camera>
+  [226] setprop 6 ............................... cam = sprite(1).camera
+  [228] getprop 6 ............................... <cam>
+  [230] pushint8 10 ............................. <10>
+  [232] setobjprop 610 .......................... cam.fieldOfView = 10
+  [235] getprop 6 ............................... <cam>
+  [237] getchainedprop 287 ...................... <cam.worldPosition>
+  [240] pushint8 15 ............................. <15>
+  [242] inv ..................................... <-15>
+  [243] setobjprop 309 .......................... cam.worldPosition.x = -15
+  [246] getprop 6 ............................... <cam>
+  [248] getchainedprop 311 ...................... <cam.transform>
+  [251] getchainedprop 312 ...................... <cam.transform.rotation>
+  [254] pushint8 5 .............................. <5>
+  [256] inv ..................................... <-5>
+  [257] setobjprop 309 .......................... cam.transform.rotation.x = -5
+  [260] getlocal 0 .............................. <w>
+  [262] pushcons 5 .............................. <"menuBackdropTexture">
+  [264] pushsymb 9 .............................. <#fromCastMember>
+  [266] pushint8 51 ............................. <51>
+  [268] pushcons 6 .............................. <"Textures">
+  [270] pusharglist 2 ........................... <51, "Textures">
+  [272] extcall 5 ............................... <member(51, "Textures")>
+  [274] pusharglist 4 ........................... <w, "menuBackdropTexture", #fromCastMember, member(51, "Textures")>
+  [276] objcall 10 .............................. <w.newTexture("menuBackdropTexture", #fromCastMember, member(51, "Textures"))>
+  [278] setlocal 2 .............................. tempTexture = w.newTexture("menuBackdropTexture", #fromCastMember, member(51, "Textures"))
+  [280] getlocal 2 .............................. <tempTexture>
+  [282] pushsymb 11 ............................. <#rgba8888>
+  [284] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [286] getlocal 0 .............................. <w>
+  [288] pushcons 7 .............................. <"MenuBackdropResource">
+  [290] pushsymb 878 ............................ <#plane>
+  [293] pushsymb 879 ............................ <#both>
+  [296] pusharglist 4 ........................... <w, "MenuBackdropResource", #plane, #both>
+  [298] objcall 629 ............................. <w.newModelResource("MenuBackdropResource", #plane, #both)>
+  [301] setlocal 3 .............................. nmr = w.newModelResource("MenuBackdropResource", #plane, #both)
+  [303] getlocal 0 .............................. <w>
+  [305] pushcons 8 .............................. <"MenuBackdropModel">
+  [307] getlocal 3 .............................. <nmr>
+  [309] pusharglist 3 ........................... <w, "MenuBackdropModel", nmr>
+  [311] objcall 630 ............................. <w.newModel("MenuBackdropModel", nmr)>
+  [314] setprop 880 ............................. mBackdrop = w.newModel("MenuBackdropModel", nmr)
+  [317] getprop 880 ............................. <mBackdrop>
+  [320] pushint16 180 ........................... <180>
+  [323] pushzero ................................ <0>
+  [324] pushzero ................................ <0>
+  [325] pusharglistnoret 4 ...................... <mBackdrop, 180, 0, 0>
+  [327] objcall 374 ............................. mBackdrop.rotate(180, 0, 0)
+  [330] getprop 880 ............................. <mBackdrop>
+  [333] pushsymb 303 ............................ <#shaderList>
+  [336] pushint8 1 .............................. <1>
+  [338] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [340] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [342] getlocal 2 .............................. <tempTexture>
+  [344] setobjprop 369 .......................... mBackdrop.shaderList[1].texture = tempTexture
+  [347] getprop 880 ............................. <mBackdrop>
+  [350] pushint8 100 ............................ <100>
+  [352] pushint8 90 ............................. <90>
+  [354] pushint8 100 ............................ <100>
+  [356] pusharglistnoret 4 ...................... <mBackdrop, 100, 90, 100>
+  [358] objcall 19 .............................. mBackdrop.scale(100, 90, 100)
+  [360] getprop 880 ............................. <mBackdrop>
+  [363] pushint8 15 ............................. <15>
+  [365] inv ..................................... <-15>
+  [366] pushint8 60 ............................. <60>
+  [368] pushint8 100 ............................ <100>
+  [370] inv ..................................... <-100>
+  [371] pusharglist 3 ........................... <-15, 60, -100>
+  [373] extcall 151 ............................. <vector(-15, 60, -100)>
+  [375] setobjprop 287 .......................... mBackdrop.worldPosition = vector(-15, 60, -100)
+  [378] getprop 880 ............................. <mBackdrop>
+  [381] pushsymb 303 ............................ <#shaderList>
+  [384] pushint8 1 .............................. <1>
+  [386] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [388] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [390] getchainedprop 307 ...................... <mBackdrop.shaderList[1].textureTransform>
+  [393] pushcons 9 .............................. <0.69999999999999996>
+  [395] pushcons 9 .............................. <0.69999999999999996>
+  [397] pushcons 9 .............................. <0.69999999999999996>
+  [399] pusharglistnoret 4 ...................... <mBackdrop.shaderList[1].textureTransform, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996>
+  [401] objcall 19 .............................. mBackdrop.shaderList[1].textureTransform.scale(0.69999999999999996, 0.69999999999999996, 0.69999999999999996)
+  [403] getglobal 70 ............................ <g_MissionID>
+  [405] peek 0 .................................. case g_MissionID of
+  [407] pushint8 3 .............................. <3>
+  [409] eq
+  [410] jmpifz [467] ............................ (case) 3:
+  [413] getlocal 0 .............................. <w>
+  [415] pushcons 10 ............................. <"TextBox1Texture">
+  [417] pushsymb 9 .............................. <#fromCastMember>
+  [419] pushint8 105 ............................ <105>
+  [421] pushcons 6 .............................. <"Textures">
+  [423] pusharglist 2 ........................... <105, "Textures">
+  [425] extcall 5 ............................... <member(105, "Textures")>
+  [427] pusharglist 4 ........................... <w, "TextBox1Texture", #fromCastMember, member(105, "Textures")>
+  [429] objcall 10 .............................. <w.newTexture("TextBox1Texture", #fromCastMember, member(105, "Textures"))>
+  [431] setlocal 2 .............................. tempTexture = w.newTexture("TextBox1Texture", #fromCastMember, member(105, "Textures"))
+  [433] getlocal 0 .............................. <w>
+  [435] pushcons 11 ............................. <"AddOnTexture">
+  [437] pushsymb 9 .............................. <#fromCastMember>
+  [439] pushint8 20 ............................. <20>
+  [441] pushcons 6 .............................. <"Textures">
+  [443] pusharglist 2 ........................... <20, "Textures">
+  [445] extcall 5 ............................... <member(20, "Textures")>
+  [447] pusharglist 4 ........................... <w, "AddOnTexture", #fromCastMember, member(20, "Textures")>
+  [449] objcall 10 .............................. <w.newTexture("AddOnTexture", #fromCastMember, member(20, "Textures"))>
+  [451] setlocal 4 .............................. tempTexture1 = w.newTexture("AddOnTexture", #fromCastMember, member(20, "Textures"))
+  [453] getglobal 896 ........................... <g_AddOnList>
+  [456] pushint8 2 .............................. <2>
+  [458] pushint8 1 .............................. <1>
+  [460] pusharglistnoret 3 ...................... <g_AddOnList, 2, 1>
+  [462] objcall 193 ............................. g_AddOnList[2] = 1
+  [464] jmp [712]
+  [467] peek 0
+  [469] pushint8 4 .............................. <4>
+  [471] eq
+  [472] jmpifz [529] ............................ (case) 4:
+  [475] getlocal 0 .............................. <w>
+  [477] pushcons 10 ............................. <"TextBox1Texture">
+  [479] pushsymb 9 .............................. <#fromCastMember>
+  [481] pushint8 108 ............................ <108>
+  [483] pushcons 6 .............................. <"Textures">
+  [485] pusharglist 2 ........................... <108, "Textures">
+  [487] extcall 5 ............................... <member(108, "Textures")>
+  [489] pusharglist 4 ........................... <w, "TextBox1Texture", #fromCastMember, member(108, "Textures")>
+  [491] objcall 10 .............................. <w.newTexture("TextBox1Texture", #fromCastMember, member(108, "Textures"))>
+  [493] setlocal 2 .............................. tempTexture = w.newTexture("TextBox1Texture", #fromCastMember, member(108, "Textures"))
+  [495] getlocal 0 .............................. <w>
+  [497] pushcons 11 ............................. <"AddOnTexture">
+  [499] pushsymb 9 .............................. <#fromCastMember>
+  [501] pushint8 23 ............................. <23>
+  [503] pushcons 6 .............................. <"Textures">
+  [505] pusharglist 2 ........................... <23, "Textures">
+  [507] extcall 5 ............................... <member(23, "Textures")>
+  [509] pusharglist 4 ........................... <w, "AddOnTexture", #fromCastMember, member(23, "Textures")>
+  [511] objcall 10 .............................. <w.newTexture("AddOnTexture", #fromCastMember, member(23, "Textures"))>
+  [513] setlocal 4 .............................. tempTexture1 = w.newTexture("AddOnTexture", #fromCastMember, member(23, "Textures"))
+  [515] getglobal 896 ........................... <g_AddOnList>
+  [518] pushint8 5 .............................. <5>
+  [520] pushint8 1 .............................. <1>
+  [522] pusharglistnoret 3 ...................... <g_AddOnList, 5, 1>
+  [524] objcall 193 ............................. g_AddOnList[5] = 1
+  [526] jmp [712]
+  [529] peek 0
+  [531] pushint8 5 .............................. <5>
+  [533] eq
+  [534] jmpifz [591] ............................ (case) 5:
+  [537] getlocal 0 .............................. <w>
+  [539] pushcons 10 ............................. <"TextBox1Texture">
+  [541] pushsymb 9 .............................. <#fromCastMember>
+  [543] pushint8 107 ............................ <107>
+  [545] pushcons 6 .............................. <"Textures">
+  [547] pusharglist 2 ........................... <107, "Textures">
+  [549] extcall 5 ............................... <member(107, "Textures")>
+  [551] pusharglist 4 ........................... <w, "TextBox1Texture", #fromCastMember, member(107, "Textures")>
+  [553] objcall 10 .............................. <w.newTexture("TextBox1Texture", #fromCastMember, member(107, "Textures"))>
+  [555] setlocal 2 .............................. tempTexture = w.newTexture("TextBox1Texture", #fromCastMember, member(107, "Textures"))
+  [557] getlocal 0 .............................. <w>
+  [559] pushcons 11 ............................. <"AddOnTexture">
+  [561] pushsymb 9 .............................. <#fromCastMember>
+  [563] pushint8 22 ............................. <22>
+  [565] pushcons 6 .............................. <"Textures">
+  [567] pusharglist 2 ........................... <22, "Textures">
+  [569] extcall 5 ............................... <member(22, "Textures")>
+  [571] pusharglist 4 ........................... <w, "AddOnTexture", #fromCastMember, member(22, "Textures")>
+  [573] objcall 10 .............................. <w.newTexture("AddOnTexture", #fromCastMember, member(22, "Textures"))>
+  [575] setlocal 4 .............................. tempTexture1 = w.newTexture("AddOnTexture", #fromCastMember, member(22, "Textures"))
+  [577] getglobal 896 ........................... <g_AddOnList>
+  [580] pushint8 4 .............................. <4>
+  [582] pushint8 1 .............................. <1>
+  [584] pusharglistnoret 3 ...................... <g_AddOnList, 4, 1>
+  [586] objcall 193 ............................. g_AddOnList[4] = 1
+  [588] jmp [712]
+  [591] peek 0
+  [593] pushint8 9 .............................. <9>
+  [595] eq
+  [596] jmpifz [653] ............................ (case) 9:
+  [599] getlocal 0 .............................. <w>
+  [601] pushcons 10 ............................. <"TextBox1Texture">
+  [603] pushsymb 9 .............................. <#fromCastMember>
+  [605] pushint8 106 ............................ <106>
+  [607] pushcons 6 .............................. <"Textures">
+  [609] pusharglist 2 ........................... <106, "Textures">
+  [611] extcall 5 ............................... <member(106, "Textures")>
+  [613] pusharglist 4 ........................... <w, "TextBox1Texture", #fromCastMember, member(106, "Textures")>
+  [615] objcall 10 .............................. <w.newTexture("TextBox1Texture", #fromCastMember, member(106, "Textures"))>
+  [617] setlocal 2 .............................. tempTexture = w.newTexture("TextBox1Texture", #fromCastMember, member(106, "Textures"))
+  [619] getlocal 0 .............................. <w>
+  [621] pushcons 11 ............................. <"AddOnTexture">
+  [623] pushsymb 9 .............................. <#fromCastMember>
+  [625] pushint8 21 ............................. <21>
+  [627] pushcons 6 .............................. <"Textures">
+  [629] pusharglist 2 ........................... <21, "Textures">
+  [631] extcall 5 ............................... <member(21, "Textures")>
+  [633] pusharglist 4 ........................... <w, "AddOnTexture", #fromCastMember, member(21, "Textures")>
+  [635] objcall 10 .............................. <w.newTexture("AddOnTexture", #fromCastMember, member(21, "Textures"))>
+  [637] setlocal 4 .............................. tempTexture1 = w.newTexture("AddOnTexture", #fromCastMember, member(21, "Textures"))
+  [639] getglobal 896 ........................... <g_AddOnList>
+  [642] pushint8 3 .............................. <3>
+  [644] pushint8 1 .............................. <1>
+  [646] pusharglistnoret 3 ...................... <g_AddOnList, 3, 1>
+  [648] objcall 193 ............................. g_AddOnList[3] = 1
+  [650] jmp [712]
+  [653] peek 0
+  [655] pushint8 10 ............................. <10>
+  [657] eq
+  [658] jmpifz [712] ............................ (case) 10:
+  [661] getlocal 0 .............................. <w>
+  [663] pushcons 10 ............................. <"TextBox1Texture">
+  [665] pushsymb 9 .............................. <#fromCastMember>
+  [667] pushint8 109 ............................ <109>
+  [669] pushcons 6 .............................. <"Textures">
+  [671] pusharglist 2 ........................... <109, "Textures">
+  [673] extcall 5 ............................... <member(109, "Textures")>
+  [675] pusharglist 4 ........................... <w, "TextBox1Texture", #fromCastMember, member(109, "Textures")>
+  [677] objcall 10 .............................. <w.newTexture("TextBox1Texture", #fromCastMember, member(109, "Textures"))>
+  [679] setlocal 2 .............................. tempTexture = w.newTexture("TextBox1Texture", #fromCastMember, member(109, "Textures"))
+  [681] getlocal 0 .............................. <w>
+  [683] pushcons 11 ............................. <"AddOnTexture">
+  [685] pushsymb 9 .............................. <#fromCastMember>
+  [687] pushint8 24 ............................. <24>
+  [689] pushcons 6 .............................. <"Textures">
+  [691] pusharglist 2 ........................... <24, "Textures">
+  [693] extcall 5 ............................... <member(24, "Textures")>
+  [695] pusharglist 4 ........................... <w, "AddOnTexture", #fromCastMember, member(24, "Textures")>
+  [697] objcall 10 .............................. <w.newTexture("AddOnTexture", #fromCastMember, member(24, "Textures"))>
+  [699] setlocal 4 .............................. tempTexture1 = w.newTexture("AddOnTexture", #fromCastMember, member(24, "Textures"))
+  [701] getglobal 896 ........................... <g_AddOnList>
+  [704] pushint8 6 .............................. <6>
+  [706] pushint8 1 .............................. <1>
+  [708] pusharglistnoret 3 ...................... <g_AddOnList, 6, 1>
+  [710] objcall 193 ............................. g_AddOnList[6] = 1
+  [712] pop 1 ................................... end case
+  [714] getlocal 2 .............................. <tempTexture>
+  [716] pushsymb 11 ............................. <#rgba8888>
+  [718] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [720] getprop 6 ............................... <cam>
+  [722] getlocal 2 .............................. <tempTexture>
+  [724] pushint8 80 ............................. <80>
+  [726] pushint16 340 ........................... <340>
+  [729] pusharglist 2 ........................... <80, 340>
+  [731] extcall 13 .............................. <point(80, 340)>
+  [733] pushzero ................................ <0>
+  [734] pusharglistnoret 4 ...................... <cam, tempTexture, point(80, 340), 0>
+  [736] objcall 14 .............................. cam.addOverlay(tempTexture, point(80, 340), 0)
+  [738] getprop 6 ............................... <cam>
+  [740] pushsymb 16 ............................. <#overlay>
+  [742] pusharglist 2 ........................... <cam, #overlay>
+  [744] objcall 17 .............................. <cam.overlay.count>
+  [746] setprop 933 ............................. oTextBox = cam.overlay.count
+  [749] getprop 6 ............................... <cam>
+  [751] pushsymb 16 ............................. <#overlay>
+  [753] getprop 933 ............................. <oTextBox>
+  [756] pusharglist 3 ........................... <cam, #overlay, oTextBox>
+  [758] objcall 18 .............................. <cam.overlay[oTextBox]>
+  [760] pushint8 100 ............................ <100>
+  [762] setobjprop 20 ........................... cam.overlay[oTextBox].blend = 100
+  [764] getlocal 4 .............................. <tempTexture1>
+  [766] pushsymb 11 ............................. <#rgba8888>
+  [768] setobjprop 12 ........................... tempTexture1.renderFormat = #rgba8888
+  [770] getprop 6 ............................... <cam>
+  [772] getlocal 4 .............................. <tempTexture1>
+  [774] pushint8 80 ............................. <80>
+  [776] pushint8 50 ............................. <50>
+  [778] pusharglist 2 ........................... <80, 50>
+  [780] extcall 13 .............................. <point(80, 50)>
+  [782] pushint8 90 ............................. <90>
+  [784] pusharglistnoret 4 ...................... <cam, tempTexture1, point(80, 50), 90>
+  [786] objcall 14 .............................. cam.addOverlay(tempTexture1, point(80, 50), 90)
+  [788] getprop 6 ............................... <cam>
+  [790] pushsymb 16 ............................. <#overlay>
+  [792] pusharglist 2 ........................... <cam, #overlay>
+  [794] objcall 17 .............................. <cam.overlay.count>
+  [796] setprop 986 ............................. oAddOn = cam.overlay.count
+  [799] getprop 6 ............................... <cam>
+  [801] pushsymb 16 ............................. <#overlay>
+  [803] getprop 986 ............................. <oAddOn>
+  [806] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [808] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [810] pushint8 100 ............................ <100>
+  [812] setobjprop 20 ........................... cam.overlay[oAddOn].blend = 100
+  [814] getprop 6 ............................... <cam>
+  [816] pushsymb 16 ............................. <#overlay>
+  [818] getprop 986 ............................. <oAddOn>
+  [821] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [823] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [825] pushint8 2 .............................. <2>
+  [827] setobjprop 19 ........................... cam.overlay[oAddOn].scale = 2
+  [829] getprop 6 ............................... <cam>
+  [831] pushsymb 16 ............................. <#overlay>
+  [833] getprop 986 ............................. <oAddOn>
+  [836] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [838] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [840] pushint8 90 ............................. <90>
+  [842] setobjprop 312 .......................... cam.overlay[oAddOn].rotation = 90
+  [845] getglobal 25 ............................ <g_Muted>
+  [847] pushzero ................................ <0>
+  [848] eq ...................................... <g_Muted = 0>
+  [849] jmpifz [880] ............................ if g_Muted = 0 then
+  [852] pushint8 1 .............................. <1>
+  [854] pushint8 34 ............................. <34>
+  [856] pushcons 12 ............................. <"Sfx">
+  [858] pusharglist 2 ........................... <34, "Sfx">
+  [860] extcall 5 ............................... <member(34, "Sfx")>
+  [862] pusharglistnoret 2 ...................... <1, member(34, "Sfx")>
+  [864] extcall 42 .............................. puppetSound(1, member(34, "Sfx"))
+  [866] pushint8 2 .............................. <2>
+  [868] pushint8 32 ............................. <32>
+  [870] pushcons 12 ............................. <"Sfx">
+  [872] pusharglist 2 ........................... <32, "Sfx">
+  [874] extcall 5 ............................... <member(32, "Sfx")>
+  [876] pusharglistnoret 2 ...................... <2, member(32, "Sfx")>
+  [878] extcall 42 .............................. puppetSound(2, member(32, "Sfx"))
+  [880] pusharglist 0 ........................... <>
+  [882] thebuiltin 181 .......................... <the ticks>
+  [884] setprop 729 ............................. startTicks = the ticks
+  [887] ret
+end
+
+on exitFrame
+  [  0] pusharglist 0 ........................... <>
+  [  2] thebuiltin 34 ........................... <the mouseDown>
+  [  4] setprop 881 ............................. theMouseDown = the mouseDown
+  [  7] getprop 6 ............................... <cam>
+  [  9] pushsymb 16 ............................. <#overlay>
+  [ 11] getprop 933 ............................. <oTextBox>
+  [ 14] pusharglist 3 ........................... <cam, #overlay, oTextBox>
+  [ 16] objcall 18 .............................. <cam.overlay[oTextBox]>
+  [ 18] getobjprop 20 ........................... <cam.overlay[oTextBox].blend>
+  [ 20] pushint8 100 ............................ <100>
+  [ 22] lt ...................................... <cam.overlay[oTextBox].blend < 100>
+  [ 23] jmpifz [ 55] ............................ if cam.overlay[oTextBox].blend < 100 then
+  [ 26] getprop 6 ............................... <cam>
+  [ 28] pushsymb 16 ............................. <#overlay>
+  [ 30] getprop 933 ............................. <oTextBox>
+  [ 33] pusharglist 3 ........................... <cam, #overlay, oTextBox>
+  [ 35] objcall 18 .............................. <cam.overlay[oTextBox]>
+  [ 37] getprop 6 ............................... <cam>
+  [ 39] pushsymb 16 ............................. <#overlay>
+  [ 41] getprop 933 ............................. <oTextBox>
+  [ 44] pusharglist 3 ........................... <cam, #overlay, oTextBox>
+  [ 46] objcall 18 .............................. <cam.overlay[oTextBox]>
+  [ 48] getobjprop 20 ........................... <cam.overlay[oTextBox].blend>
+  [ 50] pushint8 1 .............................. <1>
+  [ 52] add ..................................... <cam.overlay[oTextBox].blend + 1>
+  [ 53] setobjprop 20 ........................... cam.overlay[oTextBox].blend = cam.overlay[oTextBox].blend + 1
+  [ 55] getprop 6 ............................... <cam>
+  [ 57] pushsymb 16 ............................. <#overlay>
+  [ 59] getprop 986 ............................. <oAddOn>
+  [ 62] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [ 64] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [ 66] getobjprop 20 ........................... <cam.overlay[oAddOn].blend>
+  [ 68] pushint8 100 ............................ <100>
+  [ 70] lt ...................................... <cam.overlay[oAddOn].blend < 100>
+  [ 71] jmpifz [103] ............................ if cam.overlay[oAddOn].blend < 100 then
+  [ 74] getprop 6 ............................... <cam>
+  [ 76] pushsymb 16 ............................. <#overlay>
+  [ 78] getprop 986 ............................. <oAddOn>
+  [ 81] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [ 83] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [ 85] getprop 6 ............................... <cam>
+  [ 87] pushsymb 16 ............................. <#overlay>
+  [ 89] getprop 986 ............................. <oAddOn>
+  [ 92] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [ 94] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [ 96] getobjprop 20 ........................... <cam.overlay[oAddOn].blend>
+  [ 98] pushint8 1 .............................. <1>
+  [100] add ..................................... <cam.overlay[oAddOn].blend + 1>
+  [101] setobjprop 20 ........................... cam.overlay[oAddOn].blend = cam.overlay[oAddOn].blend + 1
+  [103] getprop 6 ............................... <cam>
+  [105] pushsymb 16 ............................. <#overlay>
+  [107] getprop 986 ............................. <oAddOn>
+  [110] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [112] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [114] getprop 6 ............................... <cam>
+  [116] pushsymb 16 ............................. <#overlay>
+  [118] getprop 986 ............................. <oAddOn>
+  [121] pusharglist 3 ........................... <cam, #overlay, oAddOn>
+  [123] objcall 18 .............................. <cam.overlay[oAddOn]>
+  [125] getobjprop 312 .......................... <cam.overlay[oAddOn].rotation>
+  [128] inv ..................................... <-cam.overlay[oAddOn].rotation>
+  [129] pushcons 13 ............................. <0.94999999999999996>
+  [131] mul ..................................... <-cam.overlay[oAddOn].rotation * 0.94999999999999996>
+  [132] setobjprop 312 .......................... cam.overlay[oAddOn].rotation = -cam.overlay[oAddOn].rotation * 0.94999999999999996
+  [135] getprop 880 ............................. <mBackdrop>
+  [138] pushsymb 303 ............................ <#shaderList>
+  [141] pushint8 1 .............................. <1>
+  [143] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [145] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [147] getchainedprop 307 ...................... <mBackdrop.shaderList[1].textureTransform>
+  [150] pushcons 14 ............................. <0.001>
+  [152] inv ..................................... <-0.001>
+  [153] pushcons 14 ............................. <0.001>
+  [155] inv ..................................... <-0.001>
+  [156] pushzero ................................ <0>
+  [157] pusharglistnoret 4 ...................... <mBackdrop.shaderList[1].textureTransform, -0.001, -0.001, 0>
+  [159] objcall 314 ............................. mBackdrop.shaderList[1].textureTransform.translate(-0.001, -0.001, 0)
+  [162] getprop 862 ............................. <mShaun>
+  [165] getchainedprop 287 ...................... <mShaun.worldPosition>
+  [168] getprop 862 ............................. <mShaun>
+  [171] getchainedprop 287 ...................... <mShaun.worldPosition>
+  [174] getobjprop 309 .......................... <mShaun.worldPosition.x>
+  [177] pushcons 15 ............................. <0.90000000000000002>
+  [179] mul ..................................... <mShaun.worldPosition.x * 0.90000000000000002>
+  [180] setobjprop 309 .......................... mShaun.worldPosition.x = mShaun.worldPosition.x * 0.90000000000000002
+  [183] getprop 881 ............................. <theMouseDown>
+  [186] setprop 35 .............................. prevMouseDown = theMouseDown
+  [188] pusharglist 0 ........................... <>
+  [190] thebuiltin 181 .......................... <the ticks>
+  [192] getprop 729 ............................. <startTicks>
+  [195] sub ..................................... <the ticks - startTicks>
+  [196] pushint16 500 ........................... <500>
+  [199] gt ...................................... <(the ticks - startTicks) > 500>
+  [200] jmpifz [212] ............................ if (the ticks - startTicks) > 500 then
+  [203] pushint8 10 ............................. <10>
+  [205] setglobal 69 ............................ g_NextFramePlease = 10
+  [207] pushint8 1 .............................. <1>
+  [209] setglobal 728 ........................... g_FadeToBlack = 1
+  [212] ret
+end

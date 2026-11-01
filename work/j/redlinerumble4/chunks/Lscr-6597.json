@@ -1,0 +1,279 @@
+{
+  "totalLength": 5102,
+  "totalLength2": 5102,
+  "headerLength": 92,
+  "scriptNumber": 11,
+  "unk20": 1,
+  "parentNumber": -1,
+  "scriptFlags": 0,
+  "unk42": 0,
+  "castID": 65551,
+  "factoryNameID": -1,
+  "handlerVectorsCount": 16,
+  "handlerVectorsOffset": 5070,
+  "handlerVectorsSize": 32769,
+  "propertiesCount": 24,
+  "propertiesOffset": 92,
+  "globalsCount": 11,
+  "globalsOffset": 140,
+  "handlersCount": 3,
+  "handlersOffset": 162,
+  "literalsCount": 32,
+  "literalsOffset": 4280,
+  "literalsDataCount": 534,
+  "literalsDataOffset": 4536,
+  "propertyNameIDs": [
+    6,
+    729,
+    886,
+    887,
+    860,
+    873,
+    874,
+    870,
+    871,
+    872,
+    880,
+    876,
+    881,
+    35,
+    875,
+    888,
+    897,
+    898,
+    891,
+    900,
+    899,
+    861,
+    889,
+    890
+  ],
+  "globalNameIDs": [
+    25,
+    47,
+    728,
+    69,
+    70,
+    93,
+    92,
+    894,
+    895,
+    896,
+    67
+  ],
+  "handlers": [
+    {
+      "nameID": 0,
+      "vectorPos": 65535,
+      "compiledLen": 1855,
+      "compiledOffset": 300,
+      "argumentCount": 0,
+      "argumentOffset": 2156,
+      "localsCount": 15,
+      "localsOffset": 2156,
+      "globalsCount": 0,
+      "globalsOffset": 140,
+      "unknown1": 532,
+      "unknown2": 7,
+      "lineCount": 164,
+      "lineOffset": 2186,
+      "stackHeight": 7
+    },
+    {
+      "nameID": 1,
+      "vectorPos": 15,
+      "compiledLen": 1707,
+      "compiledOffset": 2350,
+      "argumentCount": 0,
+      "argumentOffset": 4058,
+      "localsCount": 6,
+      "localsOffset": 4058,
+      "globalsCount": 0,
+      "globalsOffset": 140,
+      "unknown1": 6759,
+      "unknown2": 177,
+      "lineCount": 202,
+      "lineOffset": 4070,
+      "stackHeight": 6
+    },
+    {
+      "nameID": 34,
+      "vectorPos": 0,
+      "compiledLen": 1,
+      "compiledOffset": 4272,
+      "argumentCount": 1,
+      "argumentOffset": 4274,
+      "localsCount": 0,
+      "localsOffset": 4276,
+      "globalsCount": 0,
+      "globalsOffset": 140,
+      "unknown1": 13257,
+      "unknown2": 383,
+      "lineCount": 3,
+      "lineOffset": 4276,
+      "stackHeight": 0
+    }
+  ],
+  "literals": [
+    {
+      "type": 1,
+      "offset": 0,
+      "value": "BitzerSaluteMotion"
+    },
+    {
+      "type": 1,
+      "offset": 24,
+      "value": "Motions"
+    },
+    {
+      "type": 1,
+      "offset": 36,
+      "value": "BitzerClipBoardMotion"
+    },
+    {
+      "type": 1,
+      "offset": 62,
+      "value": "BitzerTeaTimeMotion"
+    },
+    {
+      "type": 1,
+      "offset": 86,
+      "value": "0"
+    },
+    {
+      "type": 1,
+      "offset": 92,
+      "value": "Textures"
+    },
+    {
+      "type": 1,
+      "offset": 106,
+      "value": "Score"
+    },
+    {
+      "type": 1,
+      "offset": 116,
+      "value": "Texture"
+    },
+    {
+      "type": 1,
+      "offset": 128,
+      "value": ""
+    },
+    {
+      "type": 1,
+      "offset": 134,
+      "value": ","
+    },
+    {
+      "type": 1,
+      "offset": 140,
+      "value": "Points"
+    },
+    {
+      "type": 1,
+      "offset": 152,
+      "value": "TotalTexture"
+    },
+    {
+      "type": 1,
+      "offset": 170,
+      "value": "BitzerTitleTexture"
+    },
+    {
+      "type": 1,
+      "offset": 194,
+      "value": "tab"
+    },
+    {
+      "type": 1,
+      "offset": 202,
+      "value": "LPlateTexture"
+    },
+    {
+      "type": 1,
+      "offset": 220,
+      "value": "PPlateTexture"
+    },
+    {
+      "type": 1,
+      "offset": 238,
+      "value": "LockedPlateTexture"
+    },
+    {
+      "type": 1,
+      "offset": 262,
+      "value": "BackButtonTexture"
+    },
+    {
+      "type": 1,
+      "offset": 284,
+      "value": "Projector"
+    },
+    {
+      "type": 1,
+      "offset": 298,
+      "value": "GoToShockwaveTexture"
+    },
+    {
+      "type": 1,
+      "offset": 324,
+      "value": "SubmitButtonTexture"
+    },
+    {
+      "type": 1,
+      "offset": 348,
+      "value": "menuBackdropTexture"
+    },
+    {
+      "type": 1,
+      "offset": 372,
+      "value": "MenuBackdropResource"
+    },
+    {
+      "type": 1,
+      "offset": 398,
+      "value": "MenuBackdropModel"
+    },
+    {
+      "type": 9,
+      "offset": 420,
+      "value": 0.20000000000000001
+    },
+    {
+      "type": 1,
+      "offset": 432,
+      "value": "Sfx"
+    },
+    {
+      "type": 9,
+      "offset": 440,
+      "value": 0.90000000000000002
+    },
+    {
+      "type": 9,
+      "offset": 452,
+      "value": 1.10000000000000009
+    },
+    {
+      "type": 1,
+      "offset": 464,
+      "value": "SUBMIT CALLED!"
+    },
+    {
+      "type": 1,
+      "offset": 484,
+      "value": "shaunthesheep"
+    },
+    {
+      "type": 1,
+      "offset": 502,
+      "value": "Lamb Rover 4x4"
+    },
+    {
+      "type": 9,
+      "offset": 522,
+      "value": 0.001
+    }
+  ]
+}

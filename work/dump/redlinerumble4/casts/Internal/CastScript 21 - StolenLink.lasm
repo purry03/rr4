@@ -1,0 +1,6 @@
+on mouseUp
+  [  0] pushcons 0 .............................. <"http://www.addictinggames.com">
+  [  2] pusharglistnoret 1 ...................... <"http://www.addictinggames.com">
+  [  4] extcall 1034 ............................ gotoNetPage("http://www.addictinggames.com")
+  [  7] ret
+end

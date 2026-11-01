@@ -1,0 +1,15 @@
+{
+  "type": 6,
+  "infoLen": 55,
+  "specificDataLen": 0,
+  "info": {
+    "dataOffset": 20,
+    "unk1": 0,
+    "unk2": 0,
+    "flags": 0,
+    "scriptId": 0,
+    "scriptSrcText": "",
+    "name": "ChemicalBro_loop_001"
+  },
+  "member": {}
+}

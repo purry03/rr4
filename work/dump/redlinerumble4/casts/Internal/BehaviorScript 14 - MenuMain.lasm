@@ -1,0 +1,846 @@
+property cam, startTicks, shaunState, mShaun, loopCounter, blinkStartTicks, blinkInterval, changeAnimStartTicks, animState, lookOffset, mBackdrop, oStartButton, theMouseDown, prevMouseDown, prevMouseOver, flashCounter
+global g_Muted, g_NextFrame, g_FadeToBlack, g_NextFramePlease
+
+on beginSprite
+  [  0] getmovieprop 4 .......................... <the currentSpriteNum>
+  [  2] pusharglist 1 ........................... <the currentSpriteNum>
+  [  4] extcall 3 ............................... <sprite(the currentSpriteNum)>
+  [  6] getobjprop 5 ............................ <sprite(the currentSpriteNum).member>
+  [  8] setlocal 0 .............................. w = sprite(the currentSpriteNum).member
+  [ 10] getlocal 0 .............................. <w>
+  [ 12] pusharglistnoret 1 ...................... <w>
+  [ 14] objcall 149 ............................. w.resetWorld()
+  [ 16] pushzero ................................ <0>
+  [ 17] setprop 859 ............................. shaunState = 0
+  [ 20] pushzero ................................ <0>
+  [ 21] setprop 860 ............................. loopCounter = 0
+  [ 24] pushzero ................................ <0>
+  [ 25] setprop 861 ............................. flashCounter = 0
+  [ 28] getlocal 0 .............................. <w>
+  [ 30] pushint8 1 .............................. <1>
+  [ 32] pusharglist 2 ........................... <w, 1>
+  [ 34] objcall 153 ............................. <w.model(1)>
+  [ 36] setprop 862 ............................. mShaun = w.model(1)
+  [ 39] getlocal 0 .............................. <w>
+  [ 41] pushcons 0 .............................. <"ShaunShapeUpMotion">
+  [ 43] pushint8 13 ............................. <13>
+  [ 45] pushcons 1 .............................. <"Motions">
+  [ 47] pusharglist 2 ........................... <13, "Motions">
+  [ 49] extcall 5 ............................... <member(13, "Motions")>
+  [ 51] pushsymb 863 ............................ <#motion>
+  [ 54] pushint8 2 .............................. <2>
+  [ 56] pusharglist 3 ........................... <member(13, "Motions"), #motion, 2>
+  [ 58] objcall 18 .............................. <member(13, "Motions").motion[2]>
+  [ 60] getobjprop 864 .......................... <member(13, "Motions").motion[2].name>
+  [ 63] pushint8 13 ............................. <13>
+  [ 65] pushcons 1 .............................. <"Motions">
+  [ 67] pusharglist 2 ........................... <13, "Motions">
+  [ 69] extcall 5 ............................... <member(13, "Motions")>
+  [ 71] pusharglistnoret 4 ...................... <w, "ShaunShapeUpMotion", member(13, "Motions").motion[2].name, member(13, "Motions")>
+  [ 73] objcall 865 ............................. w.cloneMotionFromCastmember("ShaunShapeUpMotion", member(13, "Motions").motion[2].name, member(13, "Motions"))
+  [ 76] getlocal 0 .............................. <w>
+  [ 78] pushcons 2 .............................. <"ShaunBleatingMotion">
+  [ 80] pushint8 14 ............................. <14>
+  [ 82] pushcons 1 .............................. <"Motions">
+  [ 84] pusharglist 2 ........................... <14, "Motions">
+  [ 86] extcall 5 ............................... <member(14, "Motions")>
+  [ 88] pushsymb 863 ............................ <#motion>
+  [ 91] pushint8 2 .............................. <2>
+  [ 93] pusharglist 3 ........................... <member(14, "Motions"), #motion, 2>
+  [ 95] objcall 18 .............................. <member(14, "Motions").motion[2]>
+  [ 97] getobjprop 864 .......................... <member(14, "Motions").motion[2].name>
+  [100] pushint8 14 ............................. <14>
+  [102] pushcons 1 .............................. <"Motions">
+  [104] pusharglist 2 ........................... <14, "Motions">
+  [106] extcall 5 ............................... <member(14, "Motions")>
+  [108] pusharglistnoret 4 ...................... <w, "ShaunBleatingMotion", member(14, "Motions").motion[2].name, member(14, "Motions")>
+  [110] objcall 865 ............................. w.cloneMotionFromCastmember("ShaunBleatingMotion", member(14, "Motions").motion[2].name, member(14, "Motions"))
+  [113] getlocal 0 .............................. <w>
+  [115] pushcons 3 .............................. <"ShaunGrinMotion">
+  [117] pushint8 15 ............................. <15>
+  [119] pushcons 1 .............................. <"Motions">
+  [121] pusharglist 2 ........................... <15, "Motions">
+  [123] extcall 5 ............................... <member(15, "Motions")>
+  [125] pushsymb 863 ............................ <#motion>
+  [128] pushint8 2 .............................. <2>
+  [130] pusharglist 3 ........................... <member(15, "Motions"), #motion, 2>
+  [132] objcall 18 .............................. <member(15, "Motions").motion[2]>
+  [134] getobjprop 864 .......................... <member(15, "Motions").motion[2].name>
+  [137] pushint8 15 ............................. <15>
+  [139] pushcons 1 .............................. <"Motions">
+  [141] pusharglist 2 ........................... <15, "Motions">
+  [143] extcall 5 ............................... <member(15, "Motions")>
+  [145] pusharglistnoret 4 ...................... <w, "ShaunGrinMotion", member(15, "Motions").motion[2].name, member(15, "Motions")>
+  [147] objcall 865 ............................. w.cloneMotionFromCastmember("ShaunGrinMotion", member(15, "Motions").motion[2].name, member(15, "Motions"))
+  [150] getlocal 0 .............................. <w>
+  [152] pushcons 4 .............................. <"ShaunMunchingMotion">
+  [154] pushint8 16 ............................. <16>
+  [156] pushcons 1 .............................. <"Motions">
+  [158] pusharglist 2 ........................... <16, "Motions">
+  [160] extcall 5 ............................... <member(16, "Motions")>
+  [162] pushsymb 863 ............................ <#motion>
+  [165] pushint8 2 .............................. <2>
+  [167] pusharglist 3 ........................... <member(16, "Motions"), #motion, 2>
+  [169] objcall 18 .............................. <member(16, "Motions").motion[2]>
+  [171] getobjprop 864 .......................... <member(16, "Motions").motion[2].name>
+  [174] pushint8 16 ............................. <16>
+  [176] pushcons 1 .............................. <"Motions">
+  [178] pusharglist 2 ........................... <16, "Motions">
+  [180] extcall 5 ............................... <member(16, "Motions")>
+  [182] pusharglistnoret 4 ...................... <w, "ShaunMunchingMotion", member(16, "Motions").motion[2].name, member(16, "Motions")>
+  [184] objcall 865 ............................. w.cloneMotionFromCastmember("ShaunMunchingMotion", member(16, "Motions").motion[2].name, member(16, "Motions"))
+  [187] getprop 862 ............................. <mShaun>
+  [190] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [193] pushint16 800 ........................... <800>
+  [196] setobjprop 867 .......................... mShaun.bonesPlayer.blendTime = 800
+  [199] getprop 862 ............................. <mShaun>
+  [202] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [205] pushcons 3 .............................. <"ShaunGrinMotion">
+  [207] pushint8 1 .............................. <1>
+  [209] pusharglistnoret 3 ...................... <mShaun.bonesPlayer, "ShaunGrinMotion", 1>
+  [211] objcall 868 ............................. mShaun.bonesPlayer.queue("ShaunGrinMotion", 1)
+  [214] getprop 862 ............................. <mShaun>
+  [217] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [220] pusharglistnoret 1 ...................... <mShaun.bonesPlayer>
+  [222] objcall 869 ............................. mShaun.bonesPlayer.playNext()
+  [225] pusharglist 0 ........................... <>
+  [227] thebuiltin 181 .......................... <the ticks>
+  [229] setprop 870 ............................. changeAnimStartTicks = the ticks
+  [232] pushint8 2 .............................. <2>
+  [234] setprop 871 ............................. animState = 2
+  [237] pushzero ................................ <0>
+  [238] pushzero ................................ <0>
+  [239] pushzero ................................ <0>
+  [240] pusharglist 3 ........................... <0, 0, 0>
+  [242] extcall 151 ............................. <vector(0, 0, 0)>
+  [244] setprop 872 ............................. lookOffset = vector(0, 0, 0)
+  [247] getprop 862 ............................. <mShaun>
+  [250] pushzero ................................ <0>
+  [251] pushint16 180 ........................... <180>
+  [254] pushzero ................................ <0>
+  [255] pusharglistnoret 4 ...................... <mShaun, 0, 180, 0>
+  [257] objcall 374 ............................. mShaun.rotate(0, 180, 0)
+  [260] getprop 862 ............................. <mShaun>
+  [263] pushint8 100 ............................ <100>
+  [265] inv ..................................... <-100>
+  [266] pushzero ................................ <0>
+  [267] pushzero ................................ <0>
+  [268] pusharglist 3 ........................... <-100, 0, 0>
+  [270] extcall 151 ............................. <vector(-100, 0, 0)>
+  [272] setobjprop 287 .......................... mShaun.worldPosition = vector(-100, 0, 0)
+  [275] pusharglist 0 ........................... <>
+  [277] thebuiltin 181 .......................... <the ticks>
+  [279] setprop 873 ............................. blinkStartTicks = the ticks
+  [282] pushint8 100 ............................ <100>
+  [284] setprop 874 ............................. blinkInterval = 100
+  [287] pushzero ................................ <0>
+  [288] setprop 875 ............................. prevMouseOver = 0
+  [291] pushint8 1 .............................. <1>
+  [293] pusharglist 1 ........................... <1>
+  [295] extcall 3 ............................... <sprite(1)>
+  [297] getobjprop 7 ............................ <sprite(1).camera>
+  [299] setprop 6 ............................... cam = sprite(1).camera
+  [301] getprop 6 ............................... <cam>
+  [303] pushint8 10 ............................. <10>
+  [305] setobjprop 610 .......................... cam.fieldOfView = 10
+  [308] getprop 6 ............................... <cam>
+  [310] getchainedprop 311 ...................... <cam.transform>
+  [313] getchainedprop 312 ...................... <cam.transform.rotation>
+  [316] pushint8 5 .............................. <5>
+  [318] inv ..................................... <-5>
+  [319] setobjprop 309 .......................... cam.transform.rotation.x = -5
+  [322] getlocal 0 .............................. <w>
+  [324] pushcons 5 .............................. <"AardmanLogoTexture">
+  [326] pushsymb 9 .............................. <#fromCastMember>
+  [328] pushint8 8 .............................. <8>
+  [330] pushcons 6 .............................. <"Textures">
+  [332] pusharglist 2 ........................... <8, "Textures">
+  [334] extcall 5 ............................... <member(8, "Textures")>
+  [336] pusharglist 4 ........................... <w, "AardmanLogoTexture", #fromCastMember, member(8, "Textures")>
+  [338] objcall 10 .............................. <w.newTexture("AardmanLogoTexture", #fromCastMember, member(8, "Textures"))>
+  [340] setlocal 1 .............................. tempTexture = w.newTexture("AardmanLogoTexture", #fromCastMember, member(8, "Textures"))
+  [342] getlocal 1 .............................. <tempTexture>
+  [344] pushsymb 11 ............................. <#rgba8888>
+  [346] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [348] getprop 6 ............................... <cam>
+  [350] getlocal 1 .............................. <tempTexture>
+  [352] pushint8 10 ............................. <10>
+  [354] pushint16 410 ........................... <410>
+  [357] pusharglist 2 ........................... <10, 410>
+  [359] extcall 13 .............................. <point(10, 410)>
+  [361] pushzero ................................ <0>
+  [362] pusharglistnoret 4 ...................... <cam, tempTexture, point(10, 410), 0>
+  [364] objcall 14 .............................. cam.addOverlay(tempTexture, point(10, 410), 0)
+  [366] getlocal 0 .............................. <w>
+  [368] pushcons 7 .............................. <"ShaunTheSheepLogoTexture">
+  [370] pushsymb 9 .............................. <#fromCastMember>
+  [372] pushint8 9 .............................. <9>
+  [374] pushcons 6 .............................. <"Textures">
+  [376] pusharglist 2 ........................... <9, "Textures">
+  [378] extcall 5 ............................... <member(9, "Textures")>
+  [380] pusharglist 4 ........................... <w, "ShaunTheSheepLogoTexture", #fromCastMember, member(9, "Textures")>
+  [382] objcall 10 .............................. <w.newTexture("ShaunTheSheepLogoTexture", #fromCastMember, member(9, "Textures"))>
+  [384] setlocal 1 .............................. tempTexture = w.newTexture("ShaunTheSheepLogoTexture", #fromCastMember, member(9, "Textures"))
+  [386] getlocal 1 .............................. <tempTexture>
+  [388] pushsymb 11 ............................. <#rgba8888>
+  [390] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [392] getprop 6 ............................... <cam>
+  [394] getlocal 1 .............................. <tempTexture>
+  [396] pushint8 20 ............................. <20>
+  [398] pushint8 20 ............................. <20>
+  [400] pusharglist 2 ........................... <20, 20>
+  [402] extcall 13 .............................. <point(20, 20)>
+  [404] pushzero ................................ <0>
+  [405] pusharglistnoret 4 ...................... <cam, tempTexture, point(20, 20), 0>
+  [407] objcall 14 .............................. cam.addOverlay(tempTexture, point(20, 20), 0)
+  [409] getlocal 0 .............................. <w>
+  [411] pushcons 8 .............................. <"StartButtonTexture">
+  [413] pushsymb 9 .............................. <#fromCastMember>
+  [415] pushint8 50 ............................. <50>
+  [417] pushcons 6 .............................. <"Textures">
+  [419] pusharglist 2 ........................... <50, "Textures">
+  [421] extcall 5 ............................... <member(50, "Textures")>
+  [423] pusharglist 4 ........................... <w, "StartButtonTexture", #fromCastMember, member(50, "Textures")>
+  [425] objcall 10 .............................. <w.newTexture("StartButtonTexture", #fromCastMember, member(50, "Textures"))>
+  [427] setlocal 1 .............................. tempTexture = w.newTexture("StartButtonTexture", #fromCastMember, member(50, "Textures"))
+  [429] getlocal 1 .............................. <tempTexture>
+  [431] pushsymb 11 ............................. <#rgba8888>
+  [433] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [435] getprop 6 ............................... <cam>
+  [437] getlocal 1 .............................. <tempTexture>
+  [439] pushint16 130 ........................... <130>
+  [442] pushint16 350 ........................... <350>
+  [445] pusharglist 2 ........................... <130, 350>
+  [447] extcall 13 .............................. <point(130, 350)>
+  [449] pushzero ................................ <0>
+  [450] pusharglistnoret 4 ...................... <cam, tempTexture, point(130, 350), 0>
+  [452] objcall 14 .............................. cam.addOverlay(tempTexture, point(130, 350), 0)
+  [454] getprop 6 ............................... <cam>
+  [456] pushsymb 16 ............................. <#overlay>
+  [458] pusharglist 2 ........................... <cam, #overlay>
+  [460] objcall 17 .............................. <cam.overlay.count>
+  [462] setprop 876 ............................. oStartButton = cam.overlay.count
+  [465] getprop 6 ............................... <cam>
+  [467] pushsymb 16 ............................. <#overlay>
+  [469] getprop 876 ............................. <oStartButton>
+  [472] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [474] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [476] pushint8 64 ............................. <64>
+  [478] pushint8 32 ............................. <32>
+  [480] pusharglist 2 ........................... <64, 32>
+  [482] extcall 13 .............................. <point(64, 32)>
+  [484] setobjprop 877 .......................... cam.overlay[oStartButton].regPoint = point(64, 32)
+  [487] getlocal 0 .............................. <w>
+  [489] pushcons 9 .............................. <"menuBackdropTexture">
+  [491] pushsymb 9 .............................. <#fromCastMember>
+  [493] pushint8 51 ............................. <51>
+  [495] pushcons 6 .............................. <"Textures">
+  [497] pusharglist 2 ........................... <51, "Textures">
+  [499] extcall 5 ............................... <member(51, "Textures")>
+  [501] pusharglist 4 ........................... <w, "menuBackdropTexture", #fromCastMember, member(51, "Textures")>
+  [503] objcall 10 .............................. <w.newTexture("menuBackdropTexture", #fromCastMember, member(51, "Textures"))>
+  [505] setlocal 1 .............................. tempTexture = w.newTexture("menuBackdropTexture", #fromCastMember, member(51, "Textures"))
+  [507] getlocal 1 .............................. <tempTexture>
+  [509] pushsymb 11 ............................. <#rgba8888>
+  [511] setobjprop 12 ........................... tempTexture.renderFormat = #rgba8888
+  [513] getlocal 0 .............................. <w>
+  [515] pushcons 10 ............................. <"MenuBackdropResource">
+  [517] pushsymb 878 ............................ <#plane>
+  [520] pushsymb 879 ............................ <#both>
+  [523] pusharglist 4 ........................... <w, "MenuBackdropResource", #plane, #both>
+  [525] objcall 629 ............................. <w.newModelResource("MenuBackdropResource", #plane, #both)>
+  [528] setlocal 2 .............................. nmr = w.newModelResource("MenuBackdropResource", #plane, #both)
+  [530] getlocal 0 .............................. <w>
+  [532] pushcons 11 ............................. <"MenuBackdropModel">
+  [534] getlocal 2 .............................. <nmr>
+  [536] pusharglist 3 ........................... <w, "MenuBackdropModel", nmr>
+  [538] objcall 630 ............................. <w.newModel("MenuBackdropModel", nmr)>
+  [541] setprop 880 ............................. mBackdrop = w.newModel("MenuBackdropModel", nmr)
+  [544] getprop 880 ............................. <mBackdrop>
+  [547] pushint16 180 ........................... <180>
+  [550] pushzero ................................ <0>
+  [551] pushzero ................................ <0>
+  [552] pusharglistnoret 4 ...................... <mBackdrop, 180, 0, 0>
+  [554] objcall 374 ............................. mBackdrop.rotate(180, 0, 0)
+  [557] getprop 880 ............................. <mBackdrop>
+  [560] pushsymb 303 ............................ <#shaderList>
+  [563] pushint8 1 .............................. <1>
+  [565] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [567] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [569] getlocal 1 .............................. <tempTexture>
+  [571] setobjprop 369 .......................... mBackdrop.shaderList[1].texture = tempTexture
+  [574] getprop 880 ............................. <mBackdrop>
+  [577] pushint8 100 ............................ <100>
+  [579] pushint8 90 ............................. <90>
+  [581] pushint8 100 ............................ <100>
+  [583] pusharglistnoret 4 ...................... <mBackdrop, 100, 90, 100>
+  [585] objcall 19 .............................. mBackdrop.scale(100, 90, 100)
+  [587] getprop 880 ............................. <mBackdrop>
+  [590] pushzero ................................ <0>
+  [591] pushint8 60 ............................. <60>
+  [593] pushint8 100 ............................ <100>
+  [595] inv ..................................... <-100>
+  [596] pusharglist 3 ........................... <0, 60, -100>
+  [598] extcall 151 ............................. <vector(0, 60, -100)>
+  [600] setobjprop 287 .......................... mBackdrop.worldPosition = vector(0, 60, -100)
+  [603] getprop 880 ............................. <mBackdrop>
+  [606] pushsymb 303 ............................ <#shaderList>
+  [609] pushint8 1 .............................. <1>
+  [611] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [613] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [615] getchainedprop 307 ...................... <mBackdrop.shaderList[1].textureTransform>
+  [618] pushcons 12 ............................. <0.69999999999999996>
+  [620] pushcons 12 ............................. <0.69999999999999996>
+  [622] pushcons 12 ............................. <0.69999999999999996>
+  [624] pusharglistnoret 4 ...................... <mBackdrop.shaderList[1].textureTransform, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996>
+  [626] objcall 19 .............................. mBackdrop.shaderList[1].textureTransform.scale(0.69999999999999996, 0.69999999999999996, 0.69999999999999996)
+  [628] getglobal 25 ............................ <g_Muted>
+  [630] pushzero ................................ <0>
+  [631] eq ...................................... <g_Muted = 0>
+  [632] jmpifz [663] ............................ if g_Muted = 0 then
+  [635] pushint8 1 .............................. <1>
+  [637] pushint8 17 ............................. <17>
+  [639] pushcons 13 ............................. <"Sfx">
+  [641] pusharglist 2 ........................... <17, "Sfx">
+  [643] extcall 5 ............................... <member(17, "Sfx")>
+  [645] pusharglistnoret 2 ...................... <1, member(17, "Sfx")>
+  [647] extcall 42 .............................. puppetSound(1, member(17, "Sfx"))
+  [649] pushint8 2 .............................. <2>
+  [651] pushint8 32 ............................. <32>
+  [653] pushcons 13 ............................. <"Sfx">
+  [655] pusharglist 2 ........................... <32, "Sfx">
+  [657] extcall 5 ............................... <member(32, "Sfx")>
+  [659] pusharglistnoret 2 ...................... <2, member(32, "Sfx")>
+  [661] extcall 42 .............................. puppetSound(2, member(32, "Sfx"))
+  [663] pusharglist 0 ........................... <>
+  [665] thebuiltin 181 .......................... <the ticks>
+  [667] setprop 729 ............................. startTicks = the ticks
+  [670] ret
+end
+
+on exitFrame
+  [  0] getglobal 25 ............................ <g_Muted>
+  [  2] pushzero ................................ <0>
+  [  3] eq ...................................... <g_Muted = 0>
+  [  4] pushint8 1 .............................. <1>
+  [  6] pusharglist 1 ........................... <1>
+  [  8] extcall 40 .............................. <sound(1)>
+  [ 10] getobjprop 5 ............................ <sound(1).member>
+  [ 12] pushint8 17 ............................. <17>
+  [ 14] pushcons 13 ............................. <"Sfx">
+  [ 16] pusharglist 2 ........................... <17, "Sfx">
+  [ 18] extcall 5 ............................... <member(17, "Sfx")>
+  [ 20] nteq .................................... <sound(1).member <> member(17, "Sfx")>
+  [ 21] and ..................................... <(g_Muted = 0) and (sound(1).member <> member(17, "Sfx"))>
+  [ 22] getglobal 69 ............................ <g_NextFramePlease>
+  [ 24] getglobal 47 ............................ <g_NextFrame>
+  [ 26] eq ...................................... <g_NextFramePlease = g_NextFrame>
+  [ 27] and ..................................... <(g_Muted = 0) and (sound(1).member <> member(17, "Sfx")) and (g_NextFramePlease = g_NextFrame)>
+  [ 28] jmpifz [ 45] ............................ if (g_Muted = 0) and (sound(1).member <> member(17, "Sfx")) and (g_NextFramePlease = g_NextFrame) then
+  [ 31] pushint8 1 .............................. <1>
+  [ 33] pushint8 17 ............................. <17>
+  [ 35] pushcons 13 ............................. <"Sfx">
+  [ 37] pusharglist 2 ........................... <17, "Sfx">
+  [ 39] extcall 5 ............................... <member(17, "Sfx")>
+  [ 41] pusharglistnoret 2 ...................... <1, member(17, "Sfx")>
+  [ 43] extcall 42 .............................. puppetSound(1, member(17, "Sfx"))
+  [ 45] pusharglist 0 ........................... <>
+  [ 47] thebuiltin 34 ........................... <the mouseDown>
+  [ 49] setprop 881 ............................. theMouseDown = the mouseDown
+  [ 52] getprop 861 ............................. <flashCounter>
+  [ 55] pushint8 1 .............................. <1>
+  [ 57] add ..................................... <flashCounter + 1>
+  [ 58] setprop 861 ............................. flashCounter = flashCounter + 1
+  [ 61] getprop 861 ............................. <flashCounter>
+  [ 64] pushint8 18 ............................. <18>
+  [ 66] gt ...................................... <flashCounter > 18>
+  [ 67] jmpifz [ 74] ............................ if flashCounter > 18 then
+  [ 70] pushzero ................................ <0>
+  [ 71] setprop 861 ............................. flashCounter = 0
+  [ 74] getprop 861 ............................. <flashCounter>
+  [ 77] pushint8 10 ............................. <10>
+  [ 79] lteq .................................... <flashCounter <= 10>
+  [ 80] jmpifz [101] ............................ if flashCounter <= 10 then / else
+  [ 83] getprop 6 ............................... <cam>
+  [ 85] pushsymb 16 ............................. <#overlay>
+  [ 87] getprop 876 ............................. <oStartButton>
+  [ 90] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [ 92] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [ 94] pushint8 100 ............................ <100>
+  [ 96] setobjprop 20 ........................... cam.overlay[oStartButton].blend = 100
+  [ 98] jmp [116]
+  [101] getprop 6 ............................... <cam>
+  [103] pushsymb 16 ............................. <#overlay>
+  [105] getprop 876 ............................. <oStartButton>
+  [108] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [110] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [112] pushint8 50 ............................. <50>
+  [114] setobjprop 20 ........................... cam.overlay[oStartButton].blend = 50
+  [116] pusharglist 0 ........................... <>
+  [118] thebuiltin 181 .......................... <the ticks>
+  [120] getprop 870 ............................. <changeAnimStartTicks>
+  [123] sub ..................................... <the ticks - changeAnimStartTicks>
+  [124] pushint16 500 ........................... <500>
+  [127] gt ...................................... <(the ticks - changeAnimStartTicks) > 500>
+  [128] jmpifz [323] ............................ if (the ticks - changeAnimStartTicks) > 500 then
+  [131] getprop 871 ............................. <animState>
+  [134] pushint8 1 .............................. <1>
+  [136] add ..................................... <animState + 1>
+  [137] setprop 871 ............................. animState = animState + 1
+  [140] pusharglist 0 ........................... <>
+  [142] thebuiltin 181 .......................... <the ticks>
+  [144] setprop 870 ............................. changeAnimStartTicks = the ticks
+  [147] getprop 871 ............................. <animState>
+  [150] pushint8 2 .............................. <2>
+  [152] gt ...................................... <animState > 2>
+  [153] jmpifz [161] ............................ if animState > 2 then
+  [156] pushint8 1 .............................. <1>
+  [158] setprop 871 ............................. animState = 1
+  [161] getprop 871 ............................. <animState>
+  [164] peek 0 .................................. case animState of
+  [166] pushint8 1 .............................. <1>
+  [168] eq
+  [169] jmpifz [258] ............................ (case) 1:
+  [172] getprop 862 ............................. <mShaun>
+  [175] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [178] pushint16 300 ........................... <300>
+  [181] setobjprop 867 .......................... mShaun.bonesPlayer.blendTime = 300
+  [184] getprop 862 ............................. <mShaun>
+  [187] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [190] pushcons 4 .............................. <"ShaunMunchingMotion">
+  [192] pushint8 1 .............................. <1>
+  [194] pusharglistnoret 3 ...................... <mShaun.bonesPlayer, "ShaunMunchingMotion", 1>
+  [196] objcall 868 ............................. mShaun.bonesPlayer.queue("ShaunMunchingMotion", 1)
+  [199] getprop 862 ............................. <mShaun>
+  [202] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [205] pusharglistnoret 1 ...................... <mShaun.bonesPlayer>
+  [207] objcall 869 ............................. mShaun.bonesPlayer.playNext()
+  [210] getprop 862 ............................. <mShaun>
+  [213] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [216] pushint16 400 ........................... <400>
+  [219] setobjprop 522 .......................... mShaun.bonesPlayer.currentTime = 400
+  [222] pushzero ................................ <0>
+  [223] pushint8 100 ............................ <100>
+  [225] pushint8 120 ............................ <120>
+  [227] pusharglist 3 ........................... <0, 100, 120>
+  [229] extcall 151 ............................. <vector(0, 100, 120)>
+  [231] setprop 872 ............................. lookOffset = vector(0, 100, 120)
+  [234] getglobal 25 ............................ <g_Muted>
+  [236] pushzero ................................ <0>
+  [237] eq ...................................... <g_Muted = 0>
+  [238] jmpifz [255] ............................ if g_Muted = 0 then
+  [241] pushint8 3 .............................. <3>
+  [243] pushint8 18 ............................. <18>
+  [245] pushcons 13 ............................. <"Sfx">
+  [247] pusharglist 2 ........................... <18, "Sfx">
+  [249] extcall 5 ............................... <member(18, "Sfx")>
+  [251] pusharglistnoret 2 ...................... <3, member(18, "Sfx")>
+  [253] extcall 42 .............................. puppetSound(3, member(18, "Sfx"))
+  [255] jmp [321]
+  [258] peek 0
+  [260] pushint8 2 .............................. <2>
+  [262] eq
+  [263] jmpifz [321] ............................ (case) 2:
+  [266] getprop 862 ............................. <mShaun>
+  [269] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [272] pushint16 300 ........................... <300>
+  [275] setobjprop 867 .......................... mShaun.bonesPlayer.blendTime = 300
+  [278] getprop 862 ............................. <mShaun>
+  [281] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [284] pushcons 3 .............................. <"ShaunGrinMotion">
+  [286] pushint8 1 .............................. <1>
+  [288] pusharglistnoret 3 ...................... <mShaun.bonesPlayer, "ShaunGrinMotion", 1>
+  [290] objcall 868 ............................. mShaun.bonesPlayer.queue("ShaunGrinMotion", 1)
+  [293] getprop 862 ............................. <mShaun>
+  [296] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [299] pusharglistnoret 1 ...................... <mShaun.bonesPlayer>
+  [301] objcall 869 ............................. mShaun.bonesPlayer.playNext()
+  [304] pushzero ................................ <0>
+  [305] pushzero ................................ <0>
+  [306] pushzero ................................ <0>
+  [307] pusharglist 3 ........................... <0, 0, 0>
+  [309] extcall 151 ............................. <vector(0, 0, 0)>
+  [311] setprop 872 ............................. lookOffset = vector(0, 0, 0)
+  [314] pushint8 3 .............................. <3>
+  [316] pushzero ................................ <0>
+  [317] pusharglistnoret 2 ...................... <3, 0>
+  [319] extcall 42 .............................. puppetSound(3, 0)
+  [321] pop 1 ................................... end case
+  [323] getmovieprop 30 ......................... <the mouseLoc>
+  [325] getprop 6 ............................... <cam>
+  [327] pushsymb 16 ............................. <#overlay>
+  [329] getprop 876 ............................. <oStartButton>
+  [332] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [334] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [336] getobjprop 386 .......................... <cam.overlay[oStartButton].loc>
+  [339] sub ..................................... <the mouseLoc - cam.overlay[oStartButton].loc>
+  [340] setlocal 0 .............................. tempDiff = the mouseLoc - cam.overlay[oStartButton].loc
+  [342] getlocal 0 .............................. <tempDiff>
+  [344] getobjprop 37 ........................... <tempDiff.locH>
+  [346] pusharglist 1 ........................... <tempDiff.locH>
+  [348] extcall 36 .............................. <abs(tempDiff.locH)>
+  [350] pushint8 64 ............................. <64>
+  [352] lt ...................................... <abs(tempDiff.locH) < 64>
+  [353] getlocal 0 .............................. <tempDiff>
+  [355] getobjprop 38 ........................... <tempDiff.locV>
+  [357] pusharglist 1 ........................... <tempDiff.locV>
+  [359] extcall 36 .............................. <abs(tempDiff.locV)>
+  [361] pushint8 32 ............................. <32>
+  [363] lt ...................................... <abs(tempDiff.locV) < 32>
+  [364] and ..................................... <(abs(tempDiff.locH) < 64) and (abs(tempDiff.locV) < 32)>
+  [365] jmpifz [580] ............................ if (abs(tempDiff.locH) < 64) and (abs(tempDiff.locV) < 32) then / else
+  [368] getprop 6 ............................... <cam>
+  [370] pushsymb 16 ............................. <#overlay>
+  [372] getprop 876 ............................. <oStartButton>
+  [375] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [377] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [379] pushint8 100 ............................ <100>
+  [381] setobjprop 20 ........................... cam.overlay[oStartButton].blend = 100
+  [383] getprop 875 ............................. <prevMouseOver>
+  [386] pushzero ................................ <0>
+  [387] eq ...................................... <prevMouseOver = 0>
+  [388] jmpifz [412] ............................ if prevMouseOver = 0 then
+  [391] getglobal 25 ............................ <g_Muted>
+  [393] pushzero ................................ <0>
+  [394] eq ...................................... <g_Muted = 0>
+  [395] jmpifz [412] ............................ if g_Muted = 0 then
+  [398] pushint8 2 .............................. <2>
+  [400] pushint8 24 ............................. <24>
+  [402] pushcons 13 ............................. <"Sfx">
+  [404] pusharglist 2 ........................... <24, "Sfx">
+  [406] extcall 5 ............................... <member(24, "Sfx")>
+  [408] pusharglistnoret 2 ...................... <2, member(24, "Sfx")>
+  [410] extcall 42 .............................. puppetSound(2, member(24, "Sfx"))
+  [412] pushint8 1 .............................. <1>
+  [414] setprop 875 ............................. prevMouseOver = 1
+  [417] getprop 881 ............................. <theMouseDown>
+  [420] pushint8 1 .............................. <1>
+  [422] eq ...................................... <theMouseDown = 1>
+  [423] jmpifz [475] ............................ if theMouseDown = 1 then / else
+  [426] getprop 6 ............................... <cam>
+  [428] pushsymb 16 ............................. <#overlay>
+  [430] getprop 876 ............................. <oStartButton>
+  [433] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [435] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [437] pushcons 14 ............................. <0.90000000000000002>
+  [439] setobjprop 19 ........................... cam.overlay[oStartButton].scale = 0.90000000000000002
+  [441] getprop 6 ............................... <cam>
+  [443] pushsymb 16 ............................. <#overlay>
+  [445] getprop 876 ............................. <oStartButton>
+  [448] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [450] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [452] pushint8 64 ............................. <64>
+  [454] pushint8 32 ............................. <32>
+  [456] pusharglist 2 ........................... <64, 32>
+  [458] extcall 13 .............................. <point(64, 32)>
+  [460] pushint8 5 .............................. <5>
+  [462] pushint8 5 .............................. <5>
+  [464] pusharglist 2 ........................... <5, 5>
+  [466] extcall 13 .............................. <point(5, 5)>
+  [468] sub ..................................... <point(64, 32) - point(5, 5)>
+  [469] setobjprop 877 .......................... cam.overlay[oStartButton].regPoint = point(64, 32) - point(5, 5)
+  [472] jmp [523]
+  [475] getprop 6 ............................... <cam>
+  [477] pushsymb 16 ............................. <#overlay>
+  [479] getprop 876 ............................. <oStartButton>
+  [482] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [484] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [486] pushcons 15 ............................. <1.10000000000000009>
+  [488] setobjprop 19 ........................... cam.overlay[oStartButton].scale = 1.10000000000000009
+  [490] getprop 6 ............................... <cam>
+  [492] pushsymb 16 ............................. <#overlay>
+  [494] getprop 876 ............................. <oStartButton>
+  [497] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [499] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [501] pushint8 64 ............................. <64>
+  [503] pushint8 32 ............................. <32>
+  [505] pusharglist 2 ........................... <64, 32>
+  [507] extcall 13 .............................. <point(64, 32)>
+  [509] pushint8 5 .............................. <5>
+  [511] inv ..................................... <-5>
+  [512] pushint8 5 .............................. <5>
+  [514] inv ..................................... <-5>
+  [515] pusharglist 2 ........................... <-5, -5>
+  [517] extcall 13 .............................. <point(-5, -5)>
+  [519] sub ..................................... <point(64, 32) - point(-5, -5)>
+  [520] setobjprop 877 .......................... cam.overlay[oStartButton].regPoint = point(64, 32) - point(-5, -5)
+  [523] getprop 881 ............................. <theMouseDown>
+  [526] pushzero ................................ <0>
+  [527] eq ...................................... <theMouseDown = 0>
+  [528] getprop 35 .............................. <prevMouseDown>
+  [530] pushint8 1 .............................. <1>
+  [532] eq ...................................... <prevMouseDown = 1>
+  [533] and ..................................... <(theMouseDown = 0) and (prevMouseDown = 1)>
+  [534] jmpifz [577] ............................ if (theMouseDown = 0) and (prevMouseDown = 1) then / else
+  [537] pushint8 10 ............................. <10>
+  [539] setglobal 69 ............................ g_NextFramePlease = 10
+  [541] pushint8 1 .............................. <1>
+  [543] setglobal 728 ........................... g_FadeToBlack = 1
+  [546] getglobal 25 ............................ <g_Muted>
+  [548] pushzero ................................ <0>
+  [549] eq ...................................... <g_Muted = 0>
+  [550] jmpifz [574] ............................ if g_Muted = 0 then
+  [553] pushint8 1 .............................. <1>
+  [555] pushint8 25 ............................. <25>
+  [557] pushcons 13 ............................. <"Sfx">
+  [559] pusharglist 2 ........................... <25, "Sfx">
+  [561] extcall 5 ............................... <member(25, "Sfx")>
+  [563] pusharglistnoret 2 ...................... <1, member(25, "Sfx")>
+  [565] extcall 42 .............................. puppetSound(1, member(25, "Sfx"))
+  [567] pushint8 2 .............................. <2>
+  [569] pushzero ................................ <0>
+  [570] pusharglistnoret 2 ...................... <2, 0>
+  [572] extcall 42 .............................. puppetSound(2, 0)
+  [574] jmp [577]
+  [577] jmp [621]
+  [580] pushzero ................................ <0>
+  [581] setprop 875 ............................. prevMouseOver = 0
+  [584] getprop 6 ............................... <cam>
+  [586] pushsymb 16 ............................. <#overlay>
+  [588] getprop 876 ............................. <oStartButton>
+  [591] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [593] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [595] pushint8 1 .............................. <1>
+  [597] setobjprop 19 ........................... cam.overlay[oStartButton].scale = 1
+  [599] getprop 6 ............................... <cam>
+  [601] pushsymb 16 ............................. <#overlay>
+  [603] getprop 876 ............................. <oStartButton>
+  [606] pusharglist 3 ........................... <cam, #overlay, oStartButton>
+  [608] objcall 18 .............................. <cam.overlay[oStartButton]>
+  [610] pushint8 64 ............................. <64>
+  [612] pushint8 32 ............................. <32>
+  [614] pusharglist 2 ........................... <64, 32>
+  [616] extcall 13 .............................. <point(64, 32)>
+  [618] setobjprop 877 .......................... cam.overlay[oStartButton].regPoint = point(64, 32)
+  [621] getprop 880 ............................. <mBackdrop>
+  [624] pushsymb 303 ............................ <#shaderList>
+  [627] pushint8 1 .............................. <1>
+  [629] pusharglist 3 ........................... <mBackdrop, #shaderList, 1>
+  [631] objcall 18 .............................. <mBackdrop.shaderList[1]>
+  [633] getchainedprop 307 ...................... <mBackdrop.shaderList[1].textureTransform>
+  [636] pushcons 16 ............................. <0.001>
+  [638] inv ..................................... <-0.001>
+  [639] pushcons 16 ............................. <0.001>
+  [641] inv ..................................... <-0.001>
+  [642] pushzero ................................ <0>
+  [643] pusharglistnoret 4 ...................... <mBackdrop.shaderList[1].textureTransform, -0.001, -0.001, 0>
+  [645] objcall 314 ............................. mBackdrop.shaderList[1].textureTransform.translate(-0.001, -0.001, 0)
+  [648] getprop 862 ............................. <mShaun>
+  [651] getprop 862 ............................. <mShaun>
+  [654] getobjprop 287 .......................... <mShaun.worldPosition>
+  [657] pushcons 14 ............................. <0.90000000000000002>
+  [659] mul ..................................... <mShaun.worldPosition * 0.90000000000000002>
+  [660] setobjprop 287 .......................... mShaun.worldPosition = mShaun.worldPosition * 0.90000000000000002
+  [663] pusharglist 0 ........................... <>
+  [665] thebuiltin 181 .......................... <the ticks>
+  [667] getprop 873 ............................. <blinkStartTicks>
+  [670] sub ..................................... <the ticks - blinkStartTicks>
+  [671] setlocal 1 .............................. tickDiff = the ticks - blinkStartTicks
+  [673] getlocal 1 .............................. <tickDiff>
+  [675] getprop 874 ............................. <blinkInterval>
+  [678] lt ...................................... <tickDiff < blinkInterval>
+  [679] jmpifz [756] ............................ if tickDiff < blinkInterval then
+  [682] getprop 862 ............................. <mShaun>
+  [685] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [688] pushsymb 882 ............................ <#bone>
+  [691] pushint8 22 ............................. <22>
+  [693] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 22>
+  [695] objcall 18 .............................. <mShaun.bonesPlayer.bone[22]>
+  [697] getobjprop 311 .......................... <mShaun.bonesPlayer.bone[22].transform>
+  [700] pusharglist 1 ........................... <mShaun.bonesPlayer.bone[22].transform>
+  [702] objcall 283 ............................. <mShaun.bonesPlayer.bone[22].transform.duplicate()>
+  [705] setlocal 2 .............................. tempTransform = mShaun.bonesPlayer.bone[22].transform.duplicate()
+  [707] getlocal 2 .............................. <tempTransform>
+  [709] pushint8 12 ............................. <12>
+  [711] inv ..................................... <-12>
+  [712] pushint8 4 .............................. <4>
+  [714] pushzero ................................ <0>
+  [715] pusharglist 3 ........................... <-12, 4, 0>
+  [717] extcall 151 ............................. <vector(-12, 4, 0)>
+  [719] setobjprop 308 .......................... tempTransform.position = vector(-12, 4, 0)
+  [722] getlocal 2 .............................. <tempTransform>
+  [724] pushzero ................................ <0>
+  [725] pushzero ................................ <0>
+  [726] pushint8 80 ............................. <80>
+  [728] inv ..................................... <-80>
+  [729] pusharglist 3 ........................... <0, 0, -80>
+  [731] extcall 151 ............................. <vector(0, 0, -80)>
+  [733] setobjprop 312 .......................... tempTransform.rotation = vector(0, 0, -80)
+  [736] getprop 862 ............................. <mShaun>
+  [739] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [742] pushsymb 882 ............................ <#bone>
+  [745] pushint8 22 ............................. <22>
+  [747] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 22>
+  [749] objcall 18 .............................. <mShaun.bonesPlayer.bone[22]>
+  [751] getlocal 2 .............................. <tempTransform>
+  [753] setobjprop 311 .......................... mShaun.bonesPlayer.bone[22].transform = tempTransform
+  [756] getlocal 1 .............................. <tickDiff>
+  [758] getprop 874 ............................. <blinkInterval>
+  [761] gteq .................................... <tickDiff >= blinkInterval>
+  [762] pusharglist 0 ........................... <>
+  [764] thebuiltin 34 ........................... <the mouseDown>
+  [766] or ...................................... <(tickDiff >= blinkInterval) or the mouseDown>
+  [767] jmpifz [844] ............................ if (tickDiff >= blinkInterval) or the mouseDown then
+  [770] getprop 862 ............................. <mShaun>
+  [773] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [776] pushsymb 882 ............................ <#bone>
+  [779] pushint8 22 ............................. <22>
+  [781] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 22>
+  [783] objcall 18 .............................. <mShaun.bonesPlayer.bone[22]>
+  [785] getobjprop 311 .......................... <mShaun.bonesPlayer.bone[22].transform>
+  [788] pusharglist 1 ........................... <mShaun.bonesPlayer.bone[22].transform>
+  [790] objcall 283 ............................. <mShaun.bonesPlayer.bone[22].transform.duplicate()>
+  [793] setlocal 2 .............................. tempTransform = mShaun.bonesPlayer.bone[22].transform.duplicate()
+  [795] getlocal 2 .............................. <tempTransform>
+  [797] pushint8 8 .............................. <8>
+  [799] inv ..................................... <-8>
+  [800] pushint8 4 .............................. <4>
+  [802] pushzero ................................ <0>
+  [803] pusharglist 3 ........................... <-8, 4, 0>
+  [805] extcall 151 ............................. <vector(-8, 4, 0)>
+  [807] setobjprop 308 .......................... tempTransform.position = vector(-8, 4, 0)
+  [810] getlocal 2 .............................. <tempTransform>
+  [812] pushzero ................................ <0>
+  [813] pushzero ................................ <0>
+  [814] pushint8 80 ............................. <80>
+  [816] inv ..................................... <-80>
+  [817] pusharglist 3 ........................... <0, 0, -80>
+  [819] extcall 151 ............................. <vector(0, 0, -80)>
+  [821] setobjprop 312 .......................... tempTransform.rotation = vector(0, 0, -80)
+  [824] getprop 862 ............................. <mShaun>
+  [827] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [830] pushsymb 882 ............................ <#bone>
+  [833] pushint8 22 ............................. <22>
+  [835] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 22>
+  [837] objcall 18 .............................. <mShaun.bonesPlayer.bone[22]>
+  [839] getlocal 2 .............................. <tempTransform>
+  [841] setobjprop 311 .......................... mShaun.bonesPlayer.bone[22].transform = tempTransform
+  [844] getlocal 1 .............................. <tickDiff>
+  [846] getprop 874 ............................. <blinkInterval>
+  [849] pushint8 8 .............................. <8>
+  [851] add ..................................... <blinkInterval + 8>
+  [852] gt ...................................... <tickDiff > (blinkInterval + 8)>
+  [853] jmpifz [876] ............................ if tickDiff > (blinkInterval + 8) then
+  [856] pushint8 100 ............................ <100>
+  [858] pushint8 100 ............................ <100>
+  [860] pusharglist 1 ........................... <100>
+  [862] extcall 583 ............................. <random(100)>
+  [865] add ..................................... <100 + random(100)>
+  [866] setprop 874 ............................. blinkInterval = 100 + random(100)
+  [869] pusharglist 0 ........................... <>
+  [871] thebuiltin 181 .......................... <the ticks>
+  [873] setprop 873 ............................. blinkStartTicks = the ticks
+  [876] pushzero ................................ <0>
+  [877] pushint16 520 ........................... <520>
+  [880] pusharglist 0 ........................... <>
+  [882] thebuiltin 243 .......................... <the mouseH>
+  [884] sub ..................................... <520 - the mouseH>
+  [885] inv ..................................... <-(520 - the mouseH)>
+  [886] pushint8 65 ............................. <65>
+  [888] pusharglist 0 ........................... <>
+  [890] thebuiltin 241 .......................... <the mouseV>
+  [892] sub ..................................... <65 - the mouseV>
+  [893] pusharglist 3 ........................... <0, -(520 - the mouseH), 65 - the mouseV>
+  [895] extcall 151 ............................. <vector(0, -(520 - the mouseH), 65 - the mouseV)>
+  [897] getprop 872 ............................. <lookOffset>
+  [900] add ..................................... <vector(0, -(520 - the mouseH), 65 - the mouseV) + lookOffset>
+  [901] setlocal 3 .............................. lookVector = vector(0, -(520 - the mouseH), 65 - the mouseV) + lookOffset
+  [903] getlocal 3 .............................. <lookVector>
+  [905] getobjprop 310 .......................... <lookVector.magnitude>
+  [908] pushint16 400 ........................... <400>
+  [911] gt ...................................... <lookVector.magnitude > 400>
+  [912] jmpifz [928] ............................ if lookVector.magnitude > 400 then
+  [915] getlocal 3 .............................. <lookVector>
+  [917] pusharglist 1 ........................... <lookVector>
+  [919] objcall 346 ............................. <lookVector.getNormalized()>
+  [922] pushint16 400 ........................... <400>
+  [925] mul ..................................... <lookVector.getNormalized() * 400>
+  [926] setlocal 3 .............................. lookVector = lookVector.getNormalized() * 400
+  [928] getprop 862 ............................. <mShaun>
+  [931] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [934] pushsymb 882 ............................ <#bone>
+  [937] pushint8 7 .............................. <7>
+  [939] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 7>
+  [941] objcall 18 .............................. <mShaun.bonesPlayer.bone[7]>
+  [943] getobjprop 311 .......................... <mShaun.bonesPlayer.bone[7].transform>
+  [946] pusharglist 1 ........................... <mShaun.bonesPlayer.bone[7].transform>
+  [948] objcall 283 ............................. <mShaun.bonesPlayer.bone[7].transform.duplicate()>
+  [951] setlocal 2 .............................. tempTransform = mShaun.bonesPlayer.bone[7].transform.duplicate()
+  [953] getlocal 2 .............................. <tempTransform>
+  [955] getlocal 3 .............................. <lookVector>
+  [957] pushcons 17 ............................. <0.10000000000000001>
+  [959] mul ..................................... <lookVector * 0.10000000000000001>
+  [960] setobjprop 312 .......................... tempTransform.rotation = lookVector * 0.10000000000000001
+  [963] getprop 862 ............................. <mShaun>
+  [966] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [969] pushsymb 882 ............................ <#bone>
+  [972] pushint8 7 .............................. <7>
+  [974] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 7>
+  [976] objcall 18 .............................. <mShaun.bonesPlayer.bone[7]>
+  [978] getlocal 2 .............................. <tempTransform>
+  [980] setobjprop 311 .......................... mShaun.bonesPlayer.bone[7].transform = tempTransform
+  [983] getprop 862 ............................. <mShaun>
+  [986] getchainedprop 866 ...................... <mShaun.bonesPlayer>
+  [989] pushsymb 882 ............................ <#bone>
+  [992] pushint8 20 ............................. <20>
+  [994] pusharglist 3 ........................... <mShaun.bonesPlayer, #bone, 20>
+  [996] objcall 18 .............................. <mShaun.bonesPlayer.bone[20]>
+  [998] getobjprop 311 .......................... <mShaun.bonesPlayer.bone[20].transform>
+  [1001] pusharglist 1 .......................... <mShaun.bonesPlayer.bone[20].transform>
+  [1003] objcall 283 ............................ <mShaun.bonesPlayer.bone[20].transform.duplicate()>
+  [1006] setlocal 2 ............................. tempTransform = mShaun.bonesPlayer.bone[20].transform.duplicate()
+  [1008] getlocal 2 ............................. <tempTransform>
+  [1010] getlocal 3 ............................. <lookVector>
+  [1012] pushcons 18 ............................ <0.05>
+  [1014] mul .................................... <lookVector * 0.05>
+  [1015] setobjprop 312 ......................... tempTransform.rotation = lookVector * 0.05
+  [1018] getprop 862 ............................ <mShaun>
+  [1021] getchainedprop 866 ..................... <mShaun.bonesPlayer>
+  [1024] pushsymb 882 ........................... <#bone>
+  [1027] pushint8 20 ............................ <20>
+  [1029] pusharglist 3 .......................... <mShaun.bonesPlayer, #bone, 20>
+  [1031] objcall 18 ............................. <mShaun.bonesPlayer.bone[20]>
+  [1033] getlocal 2 ............................. <tempTransform>
+  [1035] setobjprop 311 ......................... mShaun.bonesPlayer.bone[20].transform = tempTransform
+  [1038] getprop 862 ............................ <mShaun>
+  [1041] getchainedprop 866 ..................... <mShaun.bonesPlayer>
+  [1044] pushsymb 882 ........................... <#bone>
+  [1047] pushint8 21 ............................ <21>
+  [1049] pusharglist 3 .......................... <mShaun.bonesPlayer, #bone, 21>
+  [1051] objcall 18 ............................. <mShaun.bonesPlayer.bone[21]>
+  [1053] getobjprop 311 ......................... <mShaun.bonesPlayer.bone[21].transform>
+  [1056] pusharglist 1 .......................... <mShaun.bonesPlayer.bone[21].transform>
+  [1058] objcall 283 ............................ <mShaun.bonesPlayer.bone[21].transform.duplicate()>
+  [1061] setlocal 2 ............................. tempTransform = mShaun.bonesPlayer.bone[21].transform.duplicate()
+  [1063] getlocal 2 ............................. <tempTransform>
+  [1065] getlocal 3 ............................. <lookVector>
+  [1067] pushcons 18 ............................ <0.05>
+  [1069] mul .................................... <lookVector * 0.05>
+  [1070] setobjprop 312 ......................... tempTransform.rotation = lookVector * 0.05
+  [1073] getprop 862 ............................ <mShaun>
+  [1076] getchainedprop 866 ..................... <mShaun.bonesPlayer>
+  [1079] pushsymb 882 ........................... <#bone>
+  [1082] pushint8 21 ............................ <21>
+  [1084] pusharglist 3 .......................... <mShaun.bonesPlayer, #bone, 21>
+  [1086] objcall 18 ............................. <mShaun.bonesPlayer.bone[21]>
+  [1088] getlocal 2 ............................. <tempTransform>
+  [1090] setobjprop 311 ......................... mShaun.bonesPlayer.bone[21].transform = tempTransform
+  [1093] getprop 881 ............................ <theMouseDown>
+  [1096] setprop 35 ............................. prevMouseDown = theMouseDown
+  [1098] ret
+end
+
+on mouseDown me
+  [  0] getglobal 25 ............................ <g_Muted>
+  [  2] pushzero ................................ <0>
+  [  3] eq ...................................... <g_Muted = 0>
+  [  4] jmpifz [ 21] ............................ if g_Muted = 0 then
+  [  7] pushint8 2 .............................. <2>
+  [  9] pushint8 35 ............................. <35>
+  [ 11] pushcons 13 ............................. <"Sfx">
+  [ 13] pusharglist 2 ........................... <35, "Sfx">
+  [ 15] extcall 5 ............................... <member(35, "Sfx")>
+  [ 17] pusharglistnoret 2 ...................... <2, member(35, "Sfx")>
+  [ 19] extcall 42 .............................. puppetSound(2, member(35, "Sfx"))
+  [ 21] ret
+end
