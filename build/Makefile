@@ -249,6 +249,30 @@ src/collision_cases.gen.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s
 .PHONY : src/collision_cases.gen.cpp.s
 
+src/ferris.o: src/ferris.cpp.o
+.PHONY : src/ferris.o
+
+# target to build an object file
+src/ferris.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/ferris.cpp.o
+.PHONY : src/ferris.cpp.o
+
+src/ferris.i: src/ferris.cpp.i
+.PHONY : src/ferris.i
+
+# target to preprocess a source file
+src/ferris.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/ferris.cpp.i
+.PHONY : src/ferris.cpp.i
+
+src/ferris.s: src/ferris.cpp.s
+.PHONY : src/ferris.s
+
+# target to generate assembly for a file
+src/ferris.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/ferris.cpp.s
+.PHONY : src/ferris.cpp.s
+
 src/font.o: src/font.cpp.o
 .PHONY : src/font.o
 
@@ -320,6 +344,78 @@ src/main.s: src/main.cpp.s
 src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
+
+src/material_data.gen.o: src/material_data.gen.cpp.o
+.PHONY : src/material_data.gen.o
+
+# target to build an object file
+src/material_data.gen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/material_data.gen.cpp.o
+.PHONY : src/material_data.gen.cpp.o
+
+src/material_data.gen.i: src/material_data.gen.cpp.i
+.PHONY : src/material_data.gen.i
+
+# target to preprocess a source file
+src/material_data.gen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/material_data.gen.cpp.i
+.PHONY : src/material_data.gen.cpp.i
+
+src/material_data.gen.s: src/material_data.gen.cpp.s
+.PHONY : src/material_data.gen.s
+
+# target to generate assembly for a file
+src/material_data.gen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/material_data.gen.cpp.s
+.PHONY : src/material_data.gen.cpp.s
+
+src/race.o: src/race.cpp.o
+.PHONY : src/race.o
+
+# target to build an object file
+src/race.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race.cpp.o
+.PHONY : src/race.cpp.o
+
+src/race.i: src/race.cpp.i
+.PHONY : src/race.i
+
+# target to preprocess a source file
+src/race.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race.cpp.i
+.PHONY : src/race.cpp.i
+
+src/race.s: src/race.cpp.s
+.PHONY : src/race.s
+
+# target to generate assembly for a file
+src/race.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race.cpp.s
+.PHONY : src/race.cpp.s
+
+src/race_data.gen.o: src/race_data.gen.cpp.o
+.PHONY : src/race_data.gen.o
+
+# target to build an object file
+src/race_data.gen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race_data.gen.cpp.o
+.PHONY : src/race_data.gen.cpp.o
+
+src/race_data.gen.i: src/race_data.gen.cpp.i
+.PHONY : src/race_data.gen.i
+
+# target to preprocess a source file
+src/race_data.gen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race_data.gen.cpp.i
+.PHONY : src/race_data.gen.cpp.i
+
+src/race_data.gen.s: src/race_data.gen.cpp.s
+.PHONY : src/race_data.gen.s
+
+# target to generate assembly for a file
+src/race_data.gen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/race_data.gen.cpp.s
+.PHONY : src/race_data.gen.cpp.s
 
 src/renderer.o: src/renderer.cpp.o
 .PHONY : src/renderer.o
@@ -393,6 +489,9 @@ help:
 	@echo "... src/collision_cases.gen.o"
 	@echo "... src/collision_cases.gen.i"
 	@echo "... src/collision_cases.gen.s"
+	@echo "... src/ferris.o"
+	@echo "... src/ferris.i"
+	@echo "... src/ferris.s"
 	@echo "... src/font.o"
 	@echo "... src/font.i"
 	@echo "... src/font.s"
@@ -402,6 +501,15 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/material_data.gen.o"
+	@echo "... src/material_data.gen.i"
+	@echo "... src/material_data.gen.s"
+	@echo "... src/race.o"
+	@echo "... src/race.i"
+	@echo "... src/race.s"
+	@echo "... src/race_data.gen.o"
+	@echo "... src/race_data.gen.i"
+	@echo "... src/race_data.gen.s"
 	@echo "... src/renderer.o"
 	@echo "... src/renderer.i"
 	@echo "... src/renderer.s"

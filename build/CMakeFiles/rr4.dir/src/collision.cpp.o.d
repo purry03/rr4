@@ -176,4 +176,5 @@ CMakeFiles/rr4.dir/src/collision.cpp.o: \
  /usr/include/c++/15/bits/enable_special_members.h \
  /usr/include/c++/15/bits/node_handle.h \
  /usr/include/c++/15/bits/erase_if.h /usr/include/c++/15/array \
- /home/perry/Dev/rr4/src/world.hpp /home/perry/Dev/rr4/src/assets.hpp
+ /home/perry/Dev/rr4/src/world.hpp /home/perry/Dev/rr4/src/ferris.hpp \
+ /home/perry/Dev/rr4/src/race.hpp /home/perry/Dev/rr4/src/assets.hpp

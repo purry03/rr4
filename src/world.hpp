@@ -1,4 +1,6 @@
 #pragma once
+#include "ferris.hpp"
+#include "race.hpp"
 #include "assets.hpp"
 #include "math.hpp"
 #include "renderer.hpp"
@@ -57,6 +59,17 @@ struct World {
     std::array<TileProto, 38> protos;
     std::array<std::vector<HeightCell>, 38> heights;
     std::vector<WorldProp> props;
+    int rixDoorProp = -1;           // RixGarageDoor_000 in props
+    FerrisWheel ferris;
+    Race race;
+    bool objectsReady = false;
+    // g_CarsOwnedList: 2 = driven, 1 = waiting in the Ferris wheel, 0 = not
+    // owned. Starts as the original save: only the driven car.
+    int carsOwned[6] = {};
+    struct NitroPickup { Vec3 pos; bool visible; };
+    std::vector<NitroPickup> nitroPickups;   // mIgNitroList
+    int nitroMesh = -1;
+    bool firstIgNitro = true;
     bool ready = false;
 
     void build();
@@ -64,13 +77,18 @@ struct World {
     // doCollisions(): the tile radial pushes. Safe to call from inside
     // Car::update, before the car moves (frame order matters, see Car::update).
     void resolveCarCollision(Car &car) const;
-    // doRayCasting(): ground height and surface tilt, plus the map edge fence.
-    // Call after the step.
+    // The ported enterFrame handlers, run between doCollisions and
+    // doBodyRoll: doOpponent, doFerrisWheel, doRixRapidRepairs, doIgNitro,
+    // doRaceFlag and doRacePods.
+    void doWorldObjects(Car &car, const CarInput &in);
+    // doRayCasting(): twelve cage rays, the hoist and the suspension torques.
+    // Runs first in the step, before doControls.
     void updateGround(Car &car) const;
 
     // Highest original tile surface under (x, z) that is reachable from nearY.
     float groundHeightAt(float x, float z, float nearY) const;
-
+    // Surface normal of the tile height field at (x, z), for doRayCasting.
+    Vec3 groundNormalAt(float x, float z, float nearY) const;
     // Original: onTileCol = integer(worldPosition.x / 5000 + 0.5). Lingo's
     // integer() rounds, so the tile owning x is floor(x / 5000) + 1 and its
     // centre (mVisTileList worldPosition) is col * 5000 - 2500.
@@ -94,6 +112,8 @@ private:
     void buildProtos();
     void buildHeights();
     void buildProps();
+    void doRixRapidRepairs(Car &car);
+    void doIgNitro(Car &car);
 };
 
 } // namespace rr4

@@ -55,7 +55,9 @@ private:
     const sf::SoundBuffer *engineDownPtr_ = nullptr;
     sf::SoundBuffer reverse_, brake_;
     sf::SoundBuffer skidLeft_, skidRight_;
-    sf::SoundBuffer suspension_, landing_, nitro_;
+    sf::SoundBuffer suspension_, landing_, nitro_, repairs_, pickup_, ferris_;
+    sf::SoundBuffer raceStart_, raceStop_, podBonus_;
+    int carId_ = 1;
     std::array<sf::SoundBuffer, 4> crash_; // small, standard, medium, big
 
     sf::Sound engine_{engineUp_[0]};
@@ -63,6 +65,7 @@ private:
     sf::Sound skid_{skidLeft_};
     sf::Sound oneShot_{suspension_};
 
+    const sf::SoundBuffer *lastOneShot_ = nullptr;   // soundMemberList[1]
     bool loaded_ = false;
     bool muted_ = false;
 

@@ -31,11 +31,16 @@ struct HudAssets {
     Texture timer[10];
     Texture timerColon;
     Texture radarRing;
+    Texture panel[45];          // indexed by infoPanels member   // InfoPanels messages, tools/render_panels.py
+    Texture fadeToBlack;
 };
 
 extern HudAssets gHud;
 
 bool loadHudAssets(const std::string &dir = "assets/hud");
+// Per-frame overlay logic (Overlays.ls / InfoPanels.ls / FadeToBlack.ls
+// exitFrame). Call once per 60 Hz simulation step, after Car::update.
+void tickHud(const Car &car);
 void drawHud(Renderer &r, const Car &car, bool muted);
 
 } // namespace rr4

@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <atomic>
+#include <thread>
 
 namespace rr4 {
 
@@ -199,144 +201,404 @@ Mat4 Camera::projection(float aspect) const {
     return r;
 }
 
+void Texture::buildMips() {
+    mips.clear();
+    while (true) {
+        const Texture &src = mips.empty() ? *this : mips.back();
+        if (src.w <= 1 && src.h <= 1) break;
+        Texture m;
+        m.w = std::max(1, src.w / 2);
+        m.h = std::max(1, src.h / 2);
+        m.px.resize(size_t(m.w) * m.h);
+        int fx = src.w / m.w, fy = src.h / m.h;   // 1 or 2 (odd edge texel dropped)
+        for (int y = 0; y < m.h; ++y)
+            for (int x = 0; x < m.w; ++x) {
+                // Alpha-weighted box filter so transparent texels do not
+                // darken the edges of cut-out textures.
+                int r = 0, g = 0, b = 0, a = 0, n = 0;
+                for (int j = 0; j < fy; ++j)
+                    for (int i = 0; i < fx; ++i) {
+                        uint32_t c = src.px[size_t(y * fy + j) * src.w + x * fx + i];
+                        int ca = int(c >> 24);
+                        r += int(c & 255) * ca; g += int((c >> 8) & 255) * ca;
+                        b += int((c >> 16) & 255) * ca; a += ca; ++n;
+                    }
+                m.px[size_t(y) * m.w + x] = a > 0 ? packRGBA(r / a, g / a, b / a, a / n) : 0u;
+            }
+        mips.push_back(std::move(m));
+    }
+}
+
+Renderer::Renderer(int w, int h)
+    : width(w), height(h), color(size_t(w) * h), depth(size_t(w) * h, 1e30f) {}
+
+static constexpr int kStripRows = 8;
+
 void Renderer::clearSky(const Vec3 &, float) {
+    // Deferred: each strip clears its own rows at the start of flush().
+    tris_.clear();
+    states_.clear();
     uint32_t top = packRGBA(64, 122, 190);
     uint32_t horizon = packRGBA(196, 218, 238);
+    skyRow_.resize(size_t(height));
     for (int y = 0; y < height; ++y) {
         float t = float(y) / std::max(1, height - 1);
         t = std::pow(t, 0.75f);
-        uint32_t c = mixColor(top, horizon, t);
-        std::fill(color.begin() + size_t(y) * width, color.begin() + size_t(y + 1) * width, c);
+        skyRow_[size_t(y)] = mixColor(top, horizon, t);
     }
-    std::fill(depth.begin(), depth.end(), 1e30f);
+    clearPending_ = true;
 }
 
-void Renderer::project(const ClipVert &v, float &sx, float &sy, float &sz) const {
-    float invz = 1.0f / (-v.view.z);
-    float f = 1.0f / std::tan(deg2rad(fov_) * 0.5f);
-    float ndcx = v.view.x * f / aspect_ * invz;
-    float ndcy = v.view.y * f * invz;
-    sx = (ndcx * 0.5f + 0.5f) * width;
-    sy = (1.0f - (ndcy * 0.5f + 0.5f)) * height;
-    sz = -v.view.z;
-}
+void Renderer::setupTri(const ClipVert &a, const ClipVert &b, const ClipVert &c, int cull) {
+    const ClipVert *v[3] = {&a, &b, &c};
+    float sx[3], sy[3], iz[3];
+    for (int k = 0; k < 3; ++k) {
+        float d = -v[k]->view.z;
+        iz[k] = 1.0f / d;
+        sx[k] = (v[k]->view.x * projX_ * iz[k] * 0.5f + 0.5f) * float(width);
+        sy[k] = (0.5f - v[k]->view.y * projY_ * iz[k] * 0.5f) * float(height);
+    }
 
-void Renderer::rasterize(ClipVert a, ClipVert b, ClipVert c,
-                         const Texture *tex, uint32_t tint, bool unlit, float alpha, bool depthWrite,
-                         int cull) {
-    float x0, y0, z0, x1, y1, z1, x2, y2, z2;
-    project(a, x0, y0, z0);
-    project(b, x1, y1, z1);
-    project(c, x2, y2, z2);
-
-    float area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
+    float area = (sx[1] - sx[0]) * (sy[2] - sy[0]) - (sy[1] - sy[0]) * (sx[2] - sx[0]);
     if (std::fabs(area) < 0.0001f) return;
     if (area > 0) {
         // cull 1: front faces are the negative-area winding (3DOM default).
         // cull 2: mirrored geometry, front faces use the positive winding.
         if (cull == 1) return;
         if (cull == 0) {
-            std::swap(x1, x2); std::swap(y1, y2); std::swap(z1, z2);
-            std::swap(b, c);
+            std::swap(sx[1], sx[2]); std::swap(sy[1], sy[2]); std::swap(iz[1], iz[2]);
+            std::swap(v[1], v[2]);
             area = -area;
         }
     } else if (cull == 2) {
         return;
     }
-    float invArea = 1.0f / area;
 
-    int minX = std::max(0, int(std::floor(std::min({x0, x1, x2}))));
-    int maxX = std::min(width - 1, int(std::ceil(std::max({x0, x1, x2}))));
-    int minY = std::max(0, int(std::floor(std::min({y0, y1, y2}))));
-    int maxY = std::min(height - 1, int(std::ceil(std::max({y0, y1, y2}))));
-    if (minX > maxX || minY > maxY) return;
+    RasterTri t;
+    t.minX = std::max(0, int(std::floor(std::min({sx[0], sx[1], sx[2]}))));
+    t.maxX = std::min(width - 1, int(std::ceil(std::max({sx[0], sx[1], sx[2]}))));
+    t.minY = std::max(0, int(std::floor(std::min({sy[0], sy[1], sy[2]}))));
+    t.maxY = std::min(height - 1, int(std::ceil(std::max({sy[0], sy[1], sy[2]}))));
+    if (t.minX > t.maxX || t.minY > t.maxY) return;
 
-    float iz0 = 1.0f / z0, iz1 = 1.0f / z1, iz2 = 1.0f / z2;
-    int tr = tint & 255, tg = (tint >> 8) & 255, tb = (tint >> 16) & 255;
-    int tA = (tint >> 24) & 255;
+    // Barycentric k is the edge function of the edge opposite vertex k:
+    // w_k(x, y) = ((x_i - x)(y_j - y) - (y_i - y)(x_j - x)) / area.
+    float inv = 1.0f / area;
+    for (int k = 0; k < 3; ++k) {
+        int i = (k + 1) % 3, j = (k + 2) % 3;
+        t.ex[k] = (sy[i] - sy[j]) * inv;
+        t.ey[k] = (sx[j] - sx[i]) * inv;
+        t.ec[k] = (sx[i] * sy[j] - sy[i] * sx[j]) * inv;
+    }
+    auto plane = [&](float a0, float a1, float a2) {
+        Plane p;
+        p.dx = a0 * t.ex[0] + a1 * t.ex[1] + a2 * t.ex[2];
+        p.dy = a0 * t.ey[0] + a1 * t.ey[1] + a2 * t.ey[2];
+        p.c  = a0 * t.ec[0] + a1 * t.ec[1] + a2 * t.ec[2];
+        return p;
+    };
+    t.iz = plane(iz[0], iz[1], iz[2]);
+    t.uz = plane(v[0]->u * iz[0], v[1]->u * iz[1], v[2]->u * iz[2]);
+    t.vz = plane(v[0]->v * iz[0], v[1]->v * iz[1], v[2]->v * iz[2]);
+    t.fz = plane(v[0]->fog * iz[0], v[1]->fog * iz[1], v[2]->fog * iz[2]);
+    const DrawState &st = states_.back();
+    auto vplane = [&](float ClipVert::*m) { return plane(v[0]->*m * iz[0], v[1]->*m * iz[1], v[2]->*m * iz[2]); };
+    auto cplane = [&](Vec3 ClipVert::*m, float Vec3::*c) {
+        return plane((v[0]->*m).*c * iz[0], (v[1]->*m).*c * iz[1], (v[2]->*m).*c * iz[2]);
+    };
+    if (!st.unlit) {
+        t.lr = cplane(&ClipVert::lit, &Vec3::x);
+        t.lg = cplane(&ClipVert::lit, &Vec3::y);
+        t.lb = cplane(&ClipVert::lit, &Vec3::z);
+    }
+    if (st.hasSpec) {
+        t.sr = cplane(&ClipVert::spec, &Vec3::x);
+        t.sg = cplane(&ClipVert::spec, &Vec3::y);
+        t.sb = cplane(&ClipVert::spec, &Vec3::z);
+    }
+    if (st.reflect256 > 0) {
+        t.ru = vplane(&ClipVert::ru);
+        t.rv = vplane(&ClipVert::rv);
+    }
+    t.state = uint32_t(states_.size() - 1);
+    tris_.push_back(t);
+}
 
-    for (int y = minY; y <= maxY; ++y) {
-        float py = y + 0.5f;
-        for (int x = minX; x <= maxX; ++x) {
-            float px = x + 0.5f;
-            float w0 = ((x1 - px) * (y2 - py) - (y1 - py) * (x2 - px)) * invArea;
-            float w1 = ((x2 - px) * (y0 - py) - (y2 - py) * (x0 - px)) * invArea;
-            float w2 = 1.0f - w0 - w1;
-            if (w0 < -0.0001f || w1 < -0.0001f || w2 < -0.0001f) continue;
+void Renderer::rasterStrip(const RasterTri &t, int yBegin, int yEnd) {
+    const DrawState &st = states_[t.state];
+    const Texture *tex = st.tex && !st.tex->px.empty() ? st.tex : nullptr;
+    const float texW = tex ? float(tex->w) : 0.0f, texH = tex ? float(tex->h) : 0.0f;
+    const int maxLevel = tex ? tex->levels() - 1 : 0;
+    const int fr = (st.fogColor & 255), fg = (st.fogColor >> 8) & 255, fb = (st.fogColor >> 16) & 255;
+    constexpr float eps = -0.0001f;
 
-            float z = 1.0f / (w0 * iz0 + w1 * iz1 + w2 * iz2);
-            size_t off = size_t(y) * width + x;
+    for (int y = std::max(yBegin, t.minY); y <= std::min(yEnd - 1, t.maxY); ++y) {
+        const float py = float(y) + 0.5f;
+        // Span of pixel centres inside all three edges on this row.
+        float xl = float(t.minX) + 0.5f, xr = float(t.maxX) + 0.5f;
+        bool empty = false;
+        for (int k = 0; k < 3; ++k) {
+            float rowC = t.ey[k] * py + t.ec[k];
+            if (t.ex[k] > 0.0f)      xl = std::max(xl, (eps - rowC) / t.ex[k]);
+            else if (t.ex[k] < 0.0f) xr = std::min(xr, (eps - rowC) / t.ex[k]);
+            else if (rowC < eps) { empty = true; break; }
+        }
+        if (empty) continue;
+        int x0 = std::max(t.minX, int(std::ceil(xl - 0.5f)));
+        int x1 = std::min(t.maxX, int(std::floor(xr - 0.5f)));
+        if (x0 > x1) continue;
+
+        float px = float(x0) + 0.5f;
+        float izv = t.iz.c + t.iz.dx * px + t.iz.dy * py;
+        float uzv = t.uz.c + t.uz.dx * px + t.uz.dy * py;
+        float vzv = t.vz.c + t.vz.dx * px + t.vz.dy * py;
+        float fzv = t.fz.c + t.fz.dx * px + t.fz.dy * py;
+        auto at = [&](const Plane &p) { return p.c + p.dx * px + p.dy * py; };
+        float lrv = 0, lgv = 0, lbv = 0, srv = 0, sgv = 0, sbv = 0, ruv = 0, rvv = 0;
+        if (!st.unlit) { lrv = at(t.lr); lgv = at(t.lg); lbv = at(t.lb); }
+        if (st.hasSpec) { srv = at(t.sr); sgv = at(t.sg); sbv = at(t.sb); }
+        if (st.reflect256 > 0) { ruv = at(t.ru); rvv = at(t.rv); }
+        size_t off = size_t(y) * width + x0;
+
+        for (int x = x0; x <= x1; ++x, ++off,
+                 izv += t.iz.dx, uzv += t.uz.dx, vzv += t.vz.dx, fzv += t.fz.dx,
+                 lrv += t.lr.dx, lgv += t.lg.dx, lbv += t.lb.dx,
+                 srv += t.sr.dx, sgv += t.sg.dx, sbv += t.sb.dx,
+                 ruv += t.ru.dx, rvv += t.rv.dx) {
+            if (izv <= 0.0f) continue;
+            float z = 1.0f / izv;
             if (z >= depth[off]) continue;
 
-            float u = (a.u * w0 * iz0 + b.u * w1 * iz1 + c.u * w2 * iz2) * z;
-            float v = (a.v * w0 * iz0 + b.v * w1 * iz1 + c.v * w2 * iz2) * z;
-            float fog = (a.fog * w0 * iz0 + b.fog * w1 * iz1 + c.fog * w2 * iz2) * z;
-            float shade = unlit ? 1.0f : (a.shade * w0 * iz0 + b.shade * w1 * iz1 + c.shade * w2 * iz2) * z;
+            uint32_t texel = 0xffffffffu;
+            if (tex) {
+                float u = uzv * z, v = vzv * z;
+                int lvl = 0;
+                if (maxLevel > 0) {
+                    // Exact screen derivatives of the perspective-correct UV:
+                    // d(U/W)/dx = (dU/dx - u dW/dx) / W.
+                    float dudx = (t.uz.dx - u * t.iz.dx) * z * texW;
+                    float dvdx = (t.vz.dx - v * t.iz.dx) * z * texH;
+                    float dudy = (t.uz.dy - u * t.iz.dy) * z * texW;
+                    float dvdy = (t.vz.dy - v * t.iz.dy) * z * texH;
+                    // Isotropic LOD from the longer axis blurs road surfaces
+                    // seen at grazing angles; blend toward the geometric mean
+                    // of both axes (2 * texel area), never above the longer one.
+                    float rho2 = std::min(std::max(dudx * dudx + dvdx * dvdx, dudy * dudy + dvdy * dvdy),
+                                          2.0f * std::fabs(dudx * dvdy - dvdx * dudy));
+                    // floor(log2(rho)) from the float exponent of rho^2.
+                    uint32_t bits; std::memcpy(&bits, &rho2, 4);
+                    int e = int((bits >> 23) & 255) - 127;
+                    lvl = std::clamp(e >> 1, 0, maxLevel);
+                }
+                texel = tex->level(lvl).sample(u, v, gSmoothTextures);
+            }
 
-            bool smoothTex = gSmoothTextures && z < 1600.0f;
-            uint32_t texel = tex ? tex->sample(u, v, smoothTex) : packRGBA(255, 255, 255);
-            int r = texel & 255, g = (texel >> 8) & 255, bb = (texel >> 16) & 255;
-            int texA = (texel >> 24) & 255;
-            r = int(r * (tr / 255.0f) * shade);
-            g = int(g * (tg / 255.0f) * shade);
-            bb = int(bb * (tb / 255.0f) * shade);
-            uint32_t c = packRGBA(r, g, bb, texA);
+            int texA = int(texel >> 24);
+            int a = (st.alpha256 * texA) >> 8;   // 0..256
+            if (a <= 0) continue;
 
-            if (fog > 0.0f) c = mixColor(c, fogColor_, fog);
+            int r, g, b;
+            if (st.unlit) {
+                r = (int(texel & 255) * st.tr) >> 8;
+                g = (int((texel >> 8) & 255) * st.tg) >> 8;
+                b = (int((texel >> 16) & 255) * st.tb) >> 8;
+            } else {
+                // Lit colour is clamped to 1 before it modulates the texture.
+                int l0 = std::min(256, int(lrv * z * 256.0f));
+                int l1 = std::min(256, int(lgv * z * 256.0f));
+                int l2 = std::min(256, int(lbv * z * 256.0f));
+                r = (int(texel & 255) * st.tr * l0) >> 16;
+                g = (int((texel >> 8) & 255) * st.tg * l1) >> 16;
+                b = (int((texel >> 16) & 255) * st.tb * l2) >> 16;
+            }
+            if (st.reflect256 > 0) {
+                // Texture layer 2: #reflection mode, #blend by a constant.
+                uint32_t rt = st.reflectTex->sample(ruv * z, rvv * z, true);
+                int k = st.reflect256;
+                r += (((int(rt & 255)) - r) * k) >> 8;
+                g += (((int((rt >> 8) & 255)) - g) * k) >> 8;
+                b += (((int((rt >> 16) & 255)) - b) * k) >> 8;
+            }
+            if (st.hasSpec) {
+                r = std::min(255, r + int(srv * z * 255.0f));
+                g = std::min(255, g + int(sgv * z * 255.0f));
+                b = std::min(255, b + int(sbv * z * 255.0f));
+            }
 
-            float aOut = alpha * (tA / 255.0f) * (texA / 255.0f);
-            if (aOut >= 0.999f) {
-                color[off] = c | 0xff000000u;
-            } else if (aOut > 0.003f) {
+            float fog = fzv * z;
+            if (fog > 0.0f) {
+                int f = std::min(256, int(fog * 256.0f));
+                r += ((fr - r) * f) >> 8;
+                g += ((fg - g) * f) >> 8;
+                b += ((fb - b) * f) >> 8;
+            }
+
+            if (a >= 255) {
+                color[off] = uint32_t(r) | (uint32_t(g) << 8) | (uint32_t(b) << 16) | 0xff000000u;
+            } else {
                 uint32_t dst = color[off];
                 int dr = dst & 255, dg = (dst >> 8) & 255, db = (dst >> 16) & 255;
-                int sr = c & 255, sg = (c >> 8) & 255, sb = (c >> 16) & 255;
-                int rr = int(sr * aOut + dr * (1 - aOut));
-                int gg = int(sg * aOut + dg * (1 - aOut));
-                int bbb = int(sb * aOut + db * (1 - aOut));
-                color[off] = packRGBA(rr, gg, bbb);
+                r = dr + (((r - dr) * a) >> 8);
+                g = dg + (((g - dg) * a) >> 8);
+                b = db + (((b - db) * a) >> 8);
+                color[off] = uint32_t(r) | (uint32_t(g) << 8) | (uint32_t(b) << 16) | 0xff000000u;
             }
-            if (depthWrite && aOut > 0.5f) depth[off] = z;
+            if (st.depthWrite && a > 128) depth[off] = z;
         }
     }
+}
+
+void Renderer::flush() {
+    if (tris_.empty() && !clearPending_) return;
+    const int nStrips = (height + kStripRows - 1) / kStripRows;
+    bins_.resize(size_t(nStrips));
+    for (auto &b : bins_) b.clear();
+    for (uint32_t i = 0; i < tris_.size(); ++i) {
+        const RasterTri &t = tris_[i];
+        for (int s = t.minY / kStripRows; s <= t.maxY / kStripRows; ++s) bins_[size_t(s)].push_back(i);
+    }
+
+    std::atomic<int> next{0};
+    auto work = [&] {
+        for (int s; (s = next.fetch_add(1)) < nStrips;) {
+            int y0 = s * kStripRows, y1 = std::min(height, y0 + kStripRows);
+            if (clearPending_) {
+                for (int y = y0; y < y1; ++y)
+                    std::fill_n(color.begin() + size_t(y) * width, width, skyRow_[size_t(y)]);
+                std::fill(depth.begin() + size_t(y0) * width, depth.begin() + size_t(y1) * width, 1e30f);
+            }
+            for (uint32_t i : bins_[size_t(s)]) rasterStrip(tris_[i], y0, y1);
+        }
+    };
+    unsigned n = std::max(1u, std::thread::hardware_concurrency());
+    {
+        std::vector<std::jthread> pool;
+        pool.reserve(n - 1);
+        for (unsigned i = 1; i < n; ++i) pool.emplace_back(work);
+        work();
+    }
+    tris_.clear();
+    states_.clear();
+    clearPending_ = false;
 }
 
 void Renderer::drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
                         const Texture *tex, uint32_t tint, bool unlit, int cull,
                         float alpha, bool depthWrite, size_t idxBegin, size_t idxCount) {
-    view_ = cam.view();
-    aspect_ = float(width) / float(height);
-    camPos_ = cam.pos;
-    fov_ = cam.fovDeg;
+    const Mat4 view = cam.view();
+    const Mat4 mv = view * model;
+    const float aspect = float(width) / float(height);
+    const float f = 1.0f / std::tan(deg2rad(cam.fovDeg) * 0.5f);
+    projX_ = f / aspect;
+    projY_ = f;
 
-    Vec3 sun = Vec3(0.45f, 0.82f, 0.35f).normalized();
+    DrawState st;
+    st.tex = tex;
+    // 0..255 mapped to 0..256 so a white tint is an exact identity multiply.
+    auto ch = [&](int sh) { int c = int((tint >> sh) & 255); return c + (c >> 7); };
+    st.tr = ch(0); st.tg = ch(8); st.tb = ch(16);
+    st.alpha256 = int(clampf(alpha, 0, 1) * float((tint >> 24) & 255) * (256.0f / 255.0f) + 0.5f);
+    st.fogColor = fogColor_;
+    st.unlit = unlit;
+    st.depthWrite = depthWrite;
+    const SurfaceLighting &sf = surface_;
+    st.hasSpec = !unlit && (sf.specular.x + sf.specular.y + sf.specular.z) > 0.0f;
+    st.reflectTex = sf.reflectTex && !sf.reflectTex->px.empty() ? sf.reflectTex : nullptr;
+    st.reflect256 = (!unlit && st.reflectTex) ? int(clampf(sf.reflect, 0, 1) * 256.0f) : 0;
+    // Diffuse is ignored when the shader is textured (useDiffuseWithTexture).
+    const Vec3 diffuse = tex ? Vec3(1, 1, 1) : sf.diffuse;
+    const float shinyExp = std::max(1.0f, sf.shininess * 128.0f);
+    if (st.alpha256 <= 0) return;
+    states_.push_back(st);
+    const size_t trisBefore = tris_.size();
+
     const float nearZ = cam.nearZ;
+    const float fogScale = 1.0f / std::max(1.0f, fogEnd_ - fogStart_);
+
+    if (vstamp_.size() < mesh.verts.size()) {
+        vstamp_.resize(mesh.verts.size(), 0);
+        vcache_.resize(mesh.verts.size());
+    }
+    if (++stamp_ == 0) { std::fill(vstamp_.begin(), vstamp_.end(), 0); stamp_ = 1; }
+    auto vert = [&](uint32_t vi) -> const ClipVert & {
+        ClipVert &cv = vcache_[vi];
+        if (vstamp_[vi] == stamp_) return cv;
+        vstamp_[vi] = stamp_;
+        const Vertex &v = mesh.verts[vi];
+        cv.view = mv.transformPoint(v.p);
+        cv.u = v.u + uOffset_;
+        cv.v = v.v + vOffset_;
+        cv.fog = clampf((-cv.view.z - fogStart_) * fogScale, 0, 1);
+        cv.lit = {1, 1, 1};
+        cv.spec = {};
+        cv.ru = cv.rv = 0.0f;
+        if (!unlit) {
+            Vec3 wn = model.transformVector(v.n).normalized();
+            Vec3 lit = sf.emissive;
+            Vec3 spec{};
+            Vec3 toEye{};
+            if (st.hasSpec) toEye = (cam.pos - model.transformPoint(v.p)).normalized();
+            for (const SceneLight &l : lights_) {
+                if (l.kind == 0) {
+                    lit += Vec3(l.color.x * sf.ambient.x, l.color.y * sf.ambient.y,
+                                l.color.z * sf.ambient.z);
+                    continue;
+                }
+                float ndl = wn.dot(l.toward);
+                if (ndl <= 0.0f) continue;
+                lit += Vec3(l.color.x * diffuse.x, l.color.y * diffuse.y, l.color.z * diffuse.z) * ndl;
+                if (st.hasSpec) {
+                    float ndh = wn.dot((l.toward + toEye).normalized());
+                    if (ndh > 0.0f) {
+                        float s = std::pow(ndh, shinyExp);
+                        spec += Vec3(l.color.x * sf.specular.x, l.color.y * sf.specular.y,
+                                     l.color.z * sf.specular.z) * s;
+                    }
+                }
+            }
+            cv.lit = lit;
+            cv.spec = spec;
+            if (st.reflect256 > 0) {
+                // #reflection: sphere map from the camera-space reflection
+                // vector (OpenGL GL_SPHERE_MAP); V flipped like mesh UVs, so
+                // surfaces facing up pick the sky rows of the map.
+                Vec3 e = cv.view.normalized();
+                Vec3 n = mv.transformVector(v.n).normalized();
+                Vec3 rf = e - n * (2.0f * n.dot(e));
+                float m = 2.0f * std::sqrt(rf.x * rf.x + rf.y * rf.y + (rf.z + 1.0f) * (rf.z + 1.0f));
+                if (m < 1e-6f) m = 1e-6f;
+                cv.ru = rf.x / m + 0.5f;
+                cv.rv = 1.0f - (rf.y / m + 0.5f);
+            }
+        }
+        return cv;
+    };
+    // Frustum outcode: left, right, bottom, top, near.
+    auto outcode = [&](const Vec3 &p) {
+        float d = -p.z;
+        float x = p.x * projX_, y = p.y * projY_;
+        return int(x < -d) | (int(x > d) << 1) | (int(y < -d) << 2) | (int(y > d) << 3) |
+               (int(d < nearZ) << 4);
+    };
 
     size_t idxEnd = mesh.idx.size();
     if (idxBegin < idxEnd) idxEnd = std::min(idxEnd, idxBegin + idxCount);
     else idxEnd = idxBegin;
     for (size_t i = idxBegin; i + 2 < idxEnd; i += 3) {
-        ClipVert cv[3];
-        for (int k = 0; k < 3; ++k) {
-            const Vertex &v = mesh.verts[mesh.idx[i + k]];
-            Vec3 wp = model.transformPoint(v.p);
-            Vec3 wn = model.transformVector(v.n).normalized();
-            cv[k].view = view_.transformPoint(wp);
-            cv[k].normal = wn;
-            cv[k].u = v.u;
-            cv[k].v = v.v;
-            float dist = -cv[k].view.z;
-            cv[k].fog = clampf((dist - fogStart_) / std::max(1.0f, fogEnd_ - fogStart_), 0, 1);
-            float ndl = std::max(0.0f, wn.dot(sun));
-            cv[k].shade = unlit ? 1.0f : (0.60f + 0.55f * ndl);
+        const ClipVert *cv[3] = {&vert(mesh.idx[i]), &vert(mesh.idx[i + 1]), &vert(mesh.idx[i + 2])};
+        int o0 = outcode(cv[0]->view), o1 = outcode(cv[1]->view), o2 = outcode(cv[2]->view);
+        if (o0 & o1 & o2) continue;              // entirely outside one plane
+        if (!((o0 | o1 | o2) & 16)) {            // fully in front of the near plane
+            setupTri(*cv[0], *cv[1], *cv[2], cull);
+            continue;
         }
 
         // near-plane clipping
-        ClipVert poly[8];
+        ClipVert poly[4];
         int n = 0;
         for (int k = 0; k < 3; ++k) {
-            const ClipVert &cur = cv[k];
-            const ClipVert &nxt = cv[(k + 1) % 3];
+            const ClipVert &cur = *cv[k];
+            const ClipVert &nxt = *cv[(k + 1) % 3];
             bool curIn = cur.view.z <= -nearZ;
             bool nxtIn = nxt.view.z <= -nearZ;
             if (curIn) poly[n++] = cur;
@@ -344,23 +606,23 @@ void Renderer::drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
                 float t = (-nearZ - cur.view.z) / (nxt.view.z - cur.view.z);
                 ClipVert m;
                 m.view = lerp(cur.view, nxt.view, t);
-                m.normal = lerp(cur.normal, nxt.normal, t).normalized();
                 m.u = cur.u + (nxt.u - cur.u) * t;
                 m.v = cur.v + (nxt.v - cur.v) * t;
                 m.fog = cur.fog + (nxt.fog - cur.fog) * t;
-                m.shade = cur.shade + (nxt.shade - cur.shade) * t;
+                m.lit = lerp(cur.lit, nxt.lit, t);
+                m.spec = lerp(cur.spec, nxt.spec, t);
+                m.ru = cur.ru + (nxt.ru - cur.ru) * t;
+                m.rv = cur.rv + (nxt.rv - cur.rv) * t;
                 poly[n++] = m;
             }
         }
-        if (n < 3) continue;
-        for (int k = 1; k + 1 < n; ++k) {
-            rasterize(poly[0], poly[k], poly[k + 1], tex, tint, unlit, alpha, depthWrite, cull);
-        }
+        for (int k = 1; k + 1 < n; ++k) setupTri(poly[0], poly[k], poly[k + 1], cull);
     }
+    if (tris_.size() == trisBefore) states_.pop_back();
 }
 
 void Renderer::drawShadow(const Camera &cam, const Vec3 &pos, float radius) {
-    static Texture shadowTex = makeShadowTexture();
+    static Texture shadowTex = [] { Texture t = makeShadowTexture(); t.buildMips(); return t; }();
     Mesh m;
     Vec3 ground{pos.x, 1.0f, pos.z};
     Vec3 n{0, 1, 0};
@@ -374,6 +636,7 @@ void Renderer::drawShadow(const Camera &cam, const Vec3 &pos, float radius) {
 
 void Renderer::drawSprite(const Texture &tex, float x, float y, float w, float h,
                           float alpha) {
+    flush();
     if (tex.px.empty() || w <= 0.0f || h <= 0.0f || alpha <= 0.0f) return;
     int x0 = std::max(0, int(std::floor(x)));
     int y0 = std::max(0, int(std::floor(y)));
@@ -383,11 +646,9 @@ void Renderer::drawSprite(const Texture &tex, float x, float y, float w, float h
 
     for (int py = y0; py < y1; ++py) {
         float v = (float(py) + 0.5f - y) / h;
-        int sy = std::clamp(int(v * float(tex.h)), 0, tex.h - 1);
         for (int px = x0; px < x1; ++px) {
             float u = (float(px) + 0.5f - x) / w;
-            int sx = std::clamp(int(u * float(tex.w)), 0, tex.w - 1);
-            uint32_t src = tex.px[size_t(sy) * tex.w + sx];
+            uint32_t src = tex.sampleClamped(u, v);
             float a = float((src >> 24) & 255) / 255.0f * alpha;
             if (a <= 0.0f) continue;
             uint32_t &dst = color[size_t(py) * width + px];

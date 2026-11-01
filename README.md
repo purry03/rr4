@@ -53,7 +53,7 @@ the original Director camera-overlay bitmaps at their original stage
 coordinates; see "Original HUD" below.
 
 Set `RR4_NEAREST=1` to disable bilinear texture filtering if you prefer the
-faster nearest-neighbour path.
+nearest-neighbour look.
 
 ## Original assets
 
@@ -85,9 +85,145 @@ meshes are the +X half of each car and are mirrored with `scale(-1, 1, 1)`.
 The rear axle is the front wheel clone translated by the car's original
 `tempTireBL.translate` value (MeanieCropper: `(0, 0, -130)`), exactly as the
 script does. Acceleration is the per-car value from `doControls` (car #1 =
-`0.025` through car #6 = `0.0425`). The original game swaps a Director
-cast-member texture for the car paint; those cast members are not part of the
-3DOM stream, so each original shell texture is tinted with its livery colour.
+`0.025` through car #6 = `0.0425`). Paint is the original runtime texture
+swap: `shaderList[n].texture.member = member(150 + colourID, "Textures")`, with
+the 2 x 2 paint bitmaps (members 151..158, `assets/hud/PaintN.png`) and the
+default colour IDs `[1, 2, 3, 4, 5, 1]` (red, green, blue, green/yellow, black,
+red).
+
+Part pivots are the BONNET / BOOT / DOOR / TIRE node translations relative to
+their BODY parent, read from the node blocks (`0xffffff72`: name, parent name,
+4x4 matrix) of `XMED-6650.bin`. Each part hinges about its node origin, which
+is what the damage animation rotates around.
+
+### Damage
+
+Damage (`g_DamagePercent`) accumulates from the original collision pushes. The
+damage behaviour is ported from `doParts`, `doAnims`, `doupdate` and
+`doDamageMaxOutReset`:
+
+- Panels come loose on their hinges (`partStateList`): bonnet above 20 %, left
+  door above 40 %, right door above 60 %, boot above 80 %. Each one swings with
+  vertical jolts, yaw and throttle, damped 2 %/frame, and bounces off its
+  hinge stops at 60 % speed (bonnet -60..0, doors -80..0, boot 0..60). The
+  MeanieCropper boot lid drops down at 3x the angle. The boot also lifts while
+  the nitro fires. States 2..4 are empty in the original script, so panels
+  swing but never detach.
+- Burn smoke (`doSetupBurnSmoke`, Textures member 6 `texture_BurnSmoke_000`)
+  pours from 105 units ahead of the car at 60 % damage and above.
+- Above 80 % the wheels splay out (rotation.z 40 front, 20 rear).
+- At 100 % the car can no longer raise its throttle or accelerate, and the
+  "Car Wrecked!" panel (infoPanels 31) shows for 300 ticks. Then
+  `doDamageMaxOutReset` repairs it, moves it to `(33650.14, -5.56, 33374.08)`
+  in front of Rix's garage, resets the camera, plays Sfx member 24, fades in
+  from black (`FadeToBlack.ls`, -2 per frame) and shows panel 32.
+- HUD (`Overlays.ls`): damage is capped at 1. The red skull overlay at
+  (246, 1) lights to full blend whenever the damage changes and fades 5 per
+  frame; at 100 % it stays lit.
+- Message panels (`InfoPanels.ls`): drawn at (278, 9), growing from scale 0
+  to 1 over 14 frames while up and shrinking/fading when dismissed.
+
+### Ferris' Wheels
+
+`src/ferris.cpp` ports `doSetupFerrisWheel`, `doResetFerrisWheel`,
+`doFerrisSwing` and `doFerrisWheel`. The wheel (`FerrisWheel_WHEEL_001` at
+(32500, 440, 32500)) appears within 4500 units and turns about Z. Six axles
+sit 300 units out at 30 + 60 i degrees, counter-rotate to keep the cages level
+and swing on a damped spring. A cage passing the loading point turns its car
+to face out. Waiting cars ride 135 below their axle.
+
+- Drive into the bottom cage (|dx| < 100, -360 < dz < 200, damage < 1): the car
+  is centred and straightened, then parked once past the wheel's z. Panel 8
+  shows and Sfx 21 plays if channel 1 is free.
+- Left / Right turn the wheel 60 degrees (eased with a cosine over 180 / 1.4
+  frames) to the next occupied cage, with Sfx 22 on channel 2. The selected
+  car's damage and boost come back and its info panel (1..6) shows.
+- Down reverses out with the selected car; the old one stays in its cage.
+- Each time the wheel respawns it rebuilds the cages and re-shows the first
+  igNitro bottle.
+
+Ownership (`g_CarsOwnedList`) starts like the original save: only the driven
+car (`--car`, default MeanieCropper). Winning a race adds the opponent's car to
+the wheel. The scrolling pointer-arrow texture on the Ferris wheel tile is not
+animated.
+
+### Races
+
+`src/race.cpp` ports `doSetupRaceFlag` / `doRaceFlag`, `doSetupRacePods` /
+`doRacePods` and `doSetupOpponent` / `doOpponent` for all five races. The one
+race flag sits at whichever of the five flag positions is nearest; race i is
+against car i + 1 (Bitsasushi .. Furore) with the original per-race opponent
+acceleration (0.03 .. 0.04) and igNitro bottles. `tools/gen_race_data.py` turns
+the MapData fields (members 2..6) into `src/race_data.gen.cpp`: the opponent's
+red-dot path and the checkpoint dots that become race pods (race 1: 95 dots /
+14 pods, race 2: 252 / 41, race 3: 173 / 30, race 4: 72 / 24, race 5: 477 / 86).
+Long fields span several XMED text blocks, which the tool joins.
+
+- Within 5000 units the opponent waits beside the flag. Drive
+  into the start box facing the flag: the car stops on the line, Sfx 26
+  plays, and the lights count Ready / Set / Go! (panels 18-20, 60 ticks each)
+  while the car is held straight. Leaving the box cancels (panel 28).
+- On Go! the timer runs (`g_TimerState = -2`, 2 hundredths per tick as in
+  Score&Timer.ls), the opponent drives the red dots (target speed = dot
+  spacing x 0.04, acceleration 0.03), and the two race igNitro bottles appear.
+- Pods: pass within 800 units of the bright pod to move on (Sfx 29); the dim
+  one is the pod after it. Each pod's arrow points at the next one (`pointAt`
+  turns the model's -Z front to the target). Clearing every pod wins:
+  panel 34 and the opponent's car joins the Ferris wheel (panel 44 if
+  already owned). 300 ticks
+  later the race ends at the Ferris' Wheels spawn with a fade.
+- If the opponent reaches its last dot first you lose (Sfx 28): in the
+  MeanieCropper it "refuses your pink slip" (panel 39); in any other car it
+  takes that car (panels 37 / 38) and you continue in your highest owned car.
+- Wrecking the car mid-race fails it (panel 30). Driving back within 4500 of
+  the Ferris wheel mid-race abandons it (panel 33).
+- The flag pole is solid (radius 120) and the opponent pushes the player
+  (radius 160), both with the original damage steps.
+
+Not ported: the points stages, the radar's race pod markers, and opponent
+tile collisions (the original has none either; it follows the red dots
+through everything).
+
+### igNitro
+
+### igNitro
+
+Ported from `doSetupigNitro`, `doIgNitro` and the blast section of `doAnims`:
+
+- Pickup bottles (`igNitroBottle_001`, rotation (0, 180, 120), scale 2). Free
+  drive shows only the first of the ten clones, at (34017.54, 50, 32709.34);
+  the race and stage bottle lists belong to modes this build does not have.
+  Driving within 150 units collects it: boost refills to 1, Sfx 25 plays, and
+  the first pickup shows panel 16 ("IgNitro Pickup ... SHIFT KEY to boost").
+- The boot bottle (`mIgNitro`) rides in the boot on the per-car `gIgNitro`
+  pivot, 50 units below it. A pickup sets `igNitroRot = 250`, decaying 10 %
+  per frame, which flips the bottle up out of the boot and back. The boot lid
+  opens to 30 while boosting or while the bottle is flipping (the
+  MeanieCropper lid drops at 3x the angle).
+- Blast jets (`igNitroBlastJet_000`) sit at the per-car exhaust positions with
+  rotation (10, 0, random z). While boosting they fade in 5 blend per frame
+  and stretch to scale.z 1; afterwards they fade out and shrink. The script
+  never positions car #1's right jet, so the port mirrors the left one.
+
+### Rix Rapid Repairs
+
+`doRixRapidRepairs` runs after the collisions each step (`World::doRixRapidRepairs`).
+The `RixGarageDoor_000` shutter sits at the Ferris wheel position +
+(1152, -378, 1050) and rotates `90 * open` about X, where
+`open = 1 - |65 - (dz - 100)| / 380` (fully open 165 units in front).
+Driving in (|dx| < 200, -420 < dz < 60) shows panel 9, snaps the car to the
+door's x and eases its rotation to 0 (x 0.95 per frame). Past 210 units
+inside, the car is held there, damage and loose panels reset to 0, and Sfx 24
+plays once (only if channel 1 last played something else). Moving more than
+200 units sideways clears the state and hides the panel.
+
+The panel bitmaps are built by `tools/render_panels.py` from the original
+infoPanels text strings and the layout decoded from their style tables: 210 px
+text box, 12/16 px character sizes, fixed line spacing (36/18 for "Car
+Wrecked!", 16 for the Rix messages), white fill at offset (5, 20). The text
+members use the embedded PFR1 font "Speedway BV" (`XMED-6612`), which FreeType
+cannot load; `assets/Speedway BV.ttf` is its TrueType conversion and is what
+the tool renders with.
 
 ## Original HUD
 
@@ -176,10 +312,26 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
   the tile-7/tile-20 camera state. There is no extra obstruction raycast; the
   original camera does not use one.
 - Software rasterizer in `src/renderer.cpp`: perspective-correct textures,
-  bilinear filtering near the camera, z-buffer, near-plane clipping,
-  back-face culling (winding normalised against the authored normals),
-  directional shading and distance fog. Framebuffer is uploaded to an SFML
-  texture each frame.
+  bilinear filtering with per-pixel mipmap selection (alpha-weighted mip
+  chain built at load), z-buffer, near-plane and frustum culling, back-face
+  culling, Director-style lighting (below) and distance fog.
+- Lighting follows the original scene and shaders. `tools/gen_materials.py`
+  reads the 3D stream's material resources, shader texture layers and lights
+  into `src/material_data.gen.cpp`: three coloured directional lights (blue
+  fill, warm key, grey) plus a 0.05 ambient, and per shader the ambient,
+  diffuse, specular, emissive and shininess. Lighting is per vertex (Gouraud)
+  in RGB; a textured shader ignores its diffuse colour
+  (`useDiffuseWithTexture` FALSE) and specular is added after texturing. The
+  car shells and windows have a second texture layer,
+  `BitsasushiTextureReflectionMap_002` (`assets/ReflectionMap.jpg`), in
+  reflection mode (sphere-mapped) blended at 0.5, which gives the paint its
+  sheen. The packed vertex normals are unreliable, so smooth normals are
+  rebuilt from the geometry at load. It renders at the window resolution: `drawMesh`
+  transforms (with a per-call vertex cache) and sets up triangles, `flush`
+  bins them into 8-row strips and rasterizes the strips on all cores, so
+  per-pixel draw order is preserved. The opaque world is drawn nearest tile
+  first and the skybox after it, so covered pixels are not shaded twice.
+  Framebuffer is uploaded 1:1 to an SFML texture each frame.
 
 ## Original collisions
 
@@ -211,15 +363,50 @@ with the original damage/Sfx thresholds at `|push| > 5 / 10 / 15 / 20`
 (0.005 / 0.01 / 0.015 / 0.02 damage and Sfx 16..19). Damage feeds the original
 HUD damage bar and the crash sound uses the existing CrashTinkle channel.
 
-The pass runs at the same point in the frame as the original:
-`doControls → doGravity → doFriction → doTireGrip → doCollisions → doBodyRoll →
-doupdate`. `Car::update()` takes a collision hook and calls it between
-`doTireGrip` and `doBodyRoll`, so the pushes act on the current velocity while
-the car is still at its pre-move position; `doupdate` then carries the pushed
-velocity out of the obstacle. `World::updateGround()` (the `doRayCasting` ground
-follow and the map-edge fence) runs after the step. Running collisions after the
-move instead makes the pushed velocity re-trigger on the next frame, which shows
-up as the car bouncing off walls — that ordering is the difference.
+The pass runs at the same point in the frame as the original. `Car::update()`
+takes two hooks and calls them at the original frame positions:
+
+```
+doRayCasting (ground hook) -> doControls -> doGravity -> doFriction
+  -> doTireGrip -> doCollisions (collision hook) -> doBodyRoll -> doupdate
+```
+
+The collision hook runs between `doTireGrip` and `doBodyRoll`, so the pushes act
+on the current velocity while the car is still at its pre-move position;
+`doupdate` then carries the pushed velocity out of the obstacle. Running
+collisions after the move instead makes the pushed velocity re-trigger on the
+next frame, which shows up as the car bouncing off walls — that ordering is the
+difference.
+
+## Ground contact and the impact wiggle
+
+`rotVector` in the original is an angular **velocity**, not an angle: `doupdate`
+does `mPlayerCar.rotate(rotVector * g_FPSFactor, #parent)`, so the body rotation
+accumulates frame by frame (`Car::bodyPitchDeg` / `bodyRollDeg`, drawn as the
+car's pitch and roll). `Car::rotXDeg` / `rotZDeg` are that angular velocity.
+
+Two things feed it:
+
+- `doBodyRoll`: `diff = velVector - prevVelVector` (horizontal, capped at 1),
+  then `rot.x -= diff.z * 0.35`, `rot.z += diff.x * 0.35`. A sudden change in
+  velocity — a wall push — injects angular velocity.
+- `doRayCasting`: twelve downward rays from `gCageList`. The four wheel points
+  (y = 30) get `imbed = isectY - cageY + 30` (floored at 0, capped at 20), an
+  upward impulse `vel.y += cap * 0.045`, and a torque
+  `rot.x -= cage.z * cap * 0.0008`, `rot.z += cage.x * cap * 0.0008`. The eight
+  upper points use `0.0003` plus a velocity/rotation coupling. Anything deeper
+  than 20 units becomes `hoist`, added to the position by `doupdate`.
+
+That torque is the spring: when an impact tips the chassis, the wheels on the
+low side embed further, the impulse pushes them back up, and the car rocks until
+the torque and `0.16`/frame angular damping settle it. On flat ground the
+equilibrium is `y = ground - 5.55`, which is exactly the original spawn height
+`doSetupPlayerCar` uses (`-5.56`).
+
+The torque uses the cage points in the car's **own** frame (`kCage[i].x/.z`),
+not the world-rotated offsets: `rotVector` is applied about the body's pitch and
+roll axes, so mixing a world lever arm into a body-frame rotation makes the
+suspension unstable at any heading other than the axis-aligned ones.
 
 The tile grid uses the original indexing: `onTileCol = integer(x / 5000 + 0.5)`,
 tile centres at `col * 5000 - 2500` (the `mVisTileList[]` world position) and
@@ -234,7 +421,8 @@ Ferris wheel tile and every tall object sits on its original tile.
 ./build/rr4 --car 4 --auto 4800 --shots work/final_shots_highwire
 ./build/rr4 --auto 4800 --shots work/final_shots --shot-every 60
 
-# Report the settled ground height and surface pitch/roll at one spot.
+# Let the suspension settle at one spot and report height, body pitch/roll
+# and the geometric ground slope under the wheels.
 ./build/rr4 --probe 30000 47000 0
 
 # List the steepest original road surfaces (banked corners, ramps).
@@ -257,6 +445,9 @@ python3 tools/verify_camera.py work/cam_trace.csv
 
 # Load and exercise the original Sfx cast without a window.
 ./build/rr4 --audio-test
+
+# Per-frame suspension trace on stderr (position, rotVector, imbed caps).
+RR4_DEBUG_GROUND=1 ./build/rr4 --drive 240 --place 32500 29500 0
 ```
 
 Results from this checkout:
@@ -264,8 +455,9 @@ Results from this checkout:
 - Auto drive (car #1): the route covers the docks, Golden Gate bridge,
   Financial district, Cisco Hill, NurdBurger ring and Ferris wheel; screenshots
   are written to `work/final_shots/`.
-- Software renderer: 640 x 400 framebuffer (800 x 480 HUD stage) upscaled to a
-  960 x 600 window, ~25 ms/frame, ~40 fps (`--bench 120` on this machine).
+- Software renderer: native 960 x 600 framebuffer (800 x 480 HUD stage),
+  ~9 ms/frame, ~110 fps (`--bench 300`, Ryzen 5 4650U, 12 threads). The old
+  single-threaded 640 x 400 upscaled path measured ~22 ms/frame.
 - Physics check: every field of the ported step matches the independent model
   within float tolerance over 300 frames; worst position error 0.011 units
   (`RESULT: PASS`).
@@ -293,8 +485,9 @@ branch; the other five are in the same `kCars` table:
 | gravity 1/frame, Y damping 5 %, drag 0.5 %/frame | `Car::update` |
 | yaw damping 16 %/frame, `steerVel = clamp(steer * 0.001 * forwardSpeed, +/-0.5)` | `Car::update` |
 | tyre grip: strip lateral velocity, capped at 1/frame | `Car::update` |
-| body roll `rotVector.x/z` from `prevVel - vel` | `Car::rotXDeg/rotZDeg` |
-| cage-ray ground response (`toCenter`, `imbedCap`) | `World::resolveCarCollision` surface pitch/roll |
+| body roll `rotVector.x/z` from `vel - prevVel` | `Car::rotXDeg/rotZDeg` |
+| `rotVector` is angular velocity, accumulated by `doupdate` | `Car::bodyPitchDeg/bodyRollDeg` |
+| cage-ray suspension (`imbed`, `imbedCap`, `hoist`, torques) | `World::updateGround` |
 | camera FOV 55, range 320/480, height 120/200, aim +90, `lookingForwards` | `ChaseCam::update` (`doCam`) |
 | `tileIDList` / `tileRotList` (144 cells) | `src/world.cpp`, byte-for-byte values |
 | 37 tile resource names | `kTileNames` |
@@ -303,8 +496,8 @@ branch; the other five are in the same `kCars` table:
 The per-frame update order follows the original `enterFrame`:
 
 ```
-doEngineSounds -> doControls -> doGravity -> doFriction -> doTireGrip
-  -> doBodyRoll -> doupdate -> doAnims -> doCam
+doRayCasting -> doControls -> doGravity -> doFriction -> doTireGrip
+  -> doCollisions -> doBodyRoll -> doupdate -> doAnims -> doCam
 ```
 
 Fixed 60 Hz stepping with an accumulator; `g_FPSFactor` is 1.0 per step.
@@ -348,10 +541,6 @@ The decompiled Lingo and all cast chunks live under `work/dump/` (scripts,
 
 ## Known gaps
 
-- The Shockwave 3D stream does not expose the node transforms for the car
-  parts (only five node records parse), so bonnet, boot, door and wheel pivots
-  were reconstructed from the cage and the part geometry. They are very close
-  but not byte-identical to the Director hierarchy.
 - Traffic cars, the opponent car and the moving plane are not implemented, so
   their `doCollisions` entries (traffic push, plane collider) are inactive.
   Every static tile collider is ported exactly.
@@ -367,4 +556,5 @@ The decompiled Lingo and all cast chunks live under `work/dump/` (scripts,
   suspension/landing, nitro and impacts). Pickup, race-pod, Ferris-wheel,
   repair-garage and menu sounds are extracted but not triggered because those
   systems are outside this free-drive build.
-- No traffic, opponents, race flags, points or damage.
+- No traffic, opponents, race flags or points. The start-up welcome panel
+  (infoPanels 10) and the opening fade from black are not shown.

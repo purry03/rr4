@@ -1,6 +1,7 @@
 slot	member	short	width	height
 1	10	MuteOff	16	16
 2	11	MuteOn	16	16
+6	2851	BurnSmoke	8	8
 12	793	DamageBar	256	16
 13	794	DamageBarRed	256	16
 14	2854	Skull	64	32
@@ -30,9 +31,18 @@ slot	member	short	width	height
 45	2864	Timer8	32	32
 46	2865	Timer9	32	32
 47	2955	TimerBackground	32	32
+52	883	FadeToBlack	16	8
 54	2934	RadarRing	64	64
 55	2931	RadarFix	16	16
 56	2932	RadarRace	16	16
 57	2933	RadarStage	16	16
 58	6042	RadarPointPod	8	8
 59	6043	RadarRacePod	8	8
+151	2887	Paint1	2	2
+152	2890	Paint2	2	2
+153	2891	Paint3	2	2
+154	2889	Paint4	2	2
+155	2886	Paint5	2	2
+156	2888	Paint6	2	2
+157	2885	Paint7	2	2
+158	2892	Paint8	2	2

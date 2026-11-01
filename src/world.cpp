@@ -70,6 +70,24 @@ bool isRoadTile(int id) {
 
 namespace {
 
+// gCageList from doSetupPlayerCar(): twelve ray origins on the car body. The
+// first four are the wheel contact points (x = +-50, z = +-60, y = 30).
+// Points 1/2 are rear, 3/4 front; odd = left (local +x), even = right.
+// doSetupigNitro / doResetFerrisWheel: the free-drive bottle.
+const Vec3 kFerrisNitroPos{34017.54f, 50.0f, 32709.34f};
+
+// doSetupRixRapidRepairs: RixGarageDoor_000 world position.
+const Vec3 kRixDoorPos{32500.0f + 1152.0f, 440.0f - 378.0f, 32500.0f + 1050.0f};
+
+const Vec3 kCage[12] = {
+    {-50.0f, 30.0f, -60.0f}, {50.0f, 30.0f, -60.0f},
+    {-50.0f, 30.0f, 60.0f},  {50.0f, 30.0f, 60.0f},
+    {-55.0f, 40.0f, -60.0f}, {55.0f, 40.0f, -60.0f},
+    {-55.0f, 45.0f, 60.0f},  {55.0f, 45.0f, 60.0f},
+    {-50.0f, 90.0f, -10.0f}, {50.0f, 90.0f, -10.0f},
+    {-50.0f, 100.0f, 45.0f}, {50.0f, 100.0f, 45.0f},
+};
+
 // Exact resource names from the 3D cast member, in mTileResourceList order.
 const char *kBaseName[38] = {
     nullptr,
@@ -306,6 +324,101 @@ void World::buildProps() {
     add("TALLOBJECT_OuterWalls_000", Mat4::identity());
     // Static airliner parked at the airport end of the runway.
     add("TrafficBoeing747_001", Mat4::translation({7500, 0, 7500}));
+
+    // doSetupRixRapidRepairs: the shutter sits at mFerrisWheel.worldPosition
+    // (32500, 440, 32500) + (1152, -378, 1050), rotation (0, 0, 0).
+    size_t before = props.size();
+    add("RixGarageDoor_000", Mat4::translation(kRixDoorPos));
+    if (props.size() > before) rixDoorProp = int(before);
+
+    // doSetupigNitro: ten bottle clones; in free drive only the first is
+    // shown, at (34017.54, 50, 32709.34). The race/stage lists place the
+    // others when those modes start, which this build does not have.
+    nitroMesh = gAssets.meshIndex("igNitroBottle_001");
+    // Ten clones; races reuse the first ones for their own bottles.
+    nitroPickups.assign(10, {{}, false});
+    nitroPickups[0] = {kFerrisNitroPos, true};
+}
+
+void World::doWorldObjects(Car &car, const CarInput &in) {
+    if (!ready) return;   // tile-lookup-only worlds (physics/camera traces)
+    if (!objectsReady) {
+        carsOwned[size_t(car.carId - 1)] = 2;
+        ferris.setup(carsOwned);
+        race.setup();
+        objectsReady = true;
+    }
+    race.updateOpponent(car, *this);
+    // doResetFerrisWheel also puts the first igNitro bottle back.
+    if (ferris.update(car, in, 1.0f)) {
+        nitroPickups[0].pos = kFerrisNitroPos;
+        nitroPickups[0].visible = true;
+    }
+    // doFerrisWheel: coming back to the wheel mid-race abandons it.
+    if (ferris.inRange() && ferris.state() == 0 && race.state() == 2) race.abandon(car, *this);
+    doRixRapidRepairs(car);
+    doIgNitro(car);
+    race.updateFlag(car, *this);
+}
+
+// doIgNitro: drive within 150 of a visible bottle to collect it. The first
+// pickup shows panel 16; every pickup plays Sfx 25, refills g_BoostPercent
+// and flips the boot bottle (igNitroRot = 250, decaying 10 % per frame).
+void World::doIgNitro(Car &car) {
+    for (NitroPickup &p : nitroPickups) {
+        if (!p.visible || (car.pos - p.pos).length() >= 150.0f) continue;
+        p.visible = false;
+        if (firstIgNitro) {
+            firstIgNitro = false;
+            car.doPanel(16, 300);
+        }
+        car.nitroPickedUp = true;
+        car.igNitroRot = 250.0f;
+        car.boostMeter = 1.0f;
+    }
+    car.igNitroRot *= 0.9f;
+    if (car.igNitroRot < 0.1f) car.igNitroRot = 0.0f;
+}
+
+void World::doRixRapidRepairs(Car &car) {
+    Vec3 diff = kRixDoorPos - car.pos;
+    diff.y = 0.0f;
+    // The shutter opens as the car approaches: fully open 165 units in front.
+    float diffZ = 65.0f - (diff.z - 100.0f);
+    float open = clampf(1.0f - std::fabs(diffZ) / 380.0f, 0.0f, 1.0f);
+    if (rixDoorProp >= 0)
+        props[size_t(rixDoorProp)].model =
+            Mat4::translation(kRixDoorPos) * Mat4::rotationX(deg2rad(90.0f * open));
+
+    const bool inside = diff.z > -420.0f && diff.z < 60.0f;
+    auto straighten = [&] {
+        car.pos.x = kRixDoorPos.x;
+        // mPlayerCar.transform.rotation * 0.95
+        car.yaw *= 0.95f;
+        car.bodyPitchDeg *= 0.95f;
+        car.bodyRollDeg *= 0.95f;
+    };
+    if (car.repairState == 0) {
+        if (std::fabs(diff.x) < 200.0f && inside) {
+            car.repairState = 1;
+            car.doPanel(9, 0);
+            straighten();
+        }
+    } else if (std::fabs(diff.x) < 200.0f) {
+        if (inside) {
+            straighten();
+            if (diff.z < -210.0f) {
+                car.repairSfx = true;
+                car.pos.z = kRixDoorPos.z + 210.0f;
+                car.vel.z = 0.0f;
+                car.damage = 0.0f;
+                car.resetParts();
+            }
+        }
+    } else {
+        car.repairState = 0;
+        car.doPanel(0, 0);
+    }
 }
 
 void World::build() {
@@ -325,13 +438,7 @@ void World::build() {
 
 void World::draw(Renderer &r, const Camera &cam) {
     if (!ready) return;
-
-    // The original Landscape_TempSkyBox_000 follows the player.
-    if (const AssetMesh *sky = gAssets.mesh("Landscape_TempSkyBox_000")) {
-        r.setFog(packRGBA(176, 203, 226), 1.0e8f, 2.0e8f);
-        Mat4 m = Mat4::translation({cam.pos.x, 0.0f, cam.pos.z});
-        drawAssetMesh(r, cam, m, *sky, true, 1.0f, false);
-    }
+    r.setLights(kSceneLights, kSceneLightCount);
 
     r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
 
@@ -353,24 +460,37 @@ void World::draw(Renderer &r, const Camera &cam) {
         return d.x * fwd.x + d.z * fwd.z < -behindLimit;
     };
 
-    // Pass 1: opaque tile batches.
-    for (int row = std::max(1, pr - dist); row <= std::min(GRID, pr + dist); ++row) {
+    // Pass 1: opaque tile batches, nearest tile first so the depth test
+    // rejects hidden pixels before they are shaded.
+    struct NearTile { int col, row; float d2; };
+    NearTile near[(2 * dist + 1) * (2 * dist + 1)];
+    int nearCount = 0;
+    for (int row = std::max(1, pr - dist); row <= std::min(GRID, pr + dist); ++row)
         for (int col = std::max(1, pc - dist); col <= std::min(GRID, pc + dist); ++col) {
-            int idx = (col - 1) + (row - 1) * GRID;
-            int id = kTileID[idx];
-            if (id <= 0 || id > 37) continue;
-            Vec3 center = tileCenter(col, row);
-            if (fullyBehind(center)) continue;
-            Mat4 xf = Mat4::translation(center) *
-                      Mat4::rotationY(deg2rad(-90.0f * float(kTileRot[idx])));
-            for (const TileBatch &b : protos[size_t(id)].batches) {
-                if (b.blend || b.mesh.idx.empty()) continue;
-                const AssetMaterial &mat = gAssets.materials[size_t(b.material)];
-                r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.color,
-                           false, true, mat.opacity, true);
-            }
+            Vec3 d = tileCenter(col, row) - cam.pos;
+            near[nearCount++] = {col, row, d.x * d.x + d.z * d.z};
+        }
+    std::sort(near, near + nearCount,
+              [](const NearTile &a, const NearTile &b) { return a.d2 < b.d2; });
+    for (int i = 0; i < nearCount; ++i) {
+        const int col = near[i].col, row = near[i].row;
+        int idx = (col - 1) + (row - 1) * GRID;
+        int id = kTileID[idx];
+        if (id <= 0 || id > 37) continue;
+        Vec3 center = tileCenter(col, row);
+        if (fullyBehind(center)) continue;
+        Mat4 xf = Mat4::translation(center) *
+                  Mat4::rotationY(deg2rad(-90.0f * float(kTileRot[idx])));
+        for (const TileBatch &b : protos[size_t(id)].batches) {
+            if (b.blend || b.mesh.idx.empty()) continue;
+            const AssetMaterial &mat = gAssets.materials[size_t(b.material)];
+            r.setSurface(mat.lighting);
+            r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.tint(),
+                       false, true, mat.opacity, true);
         }
     }
+
+    r.resetSurface();
 
     // Opaque props.
     for (const WorldProp &p : props) {
@@ -381,6 +501,16 @@ void World::draw(Renderer &r, const Camera &cam) {
             if (g.material >= 0 && gAssets.materials[size_t(g.material)].blend) transparent = true;
         if (transparent) continue;
         drawAssetMesh(r, cam, p.model, m, p.unlit, 1.0f, true);
+    }
+
+    // The original Landscape_TempSkyBox_000 follows the player. It is drawn
+    // after the opaque world (same image, the depth test hides it behind
+    // geometry) so the pixels the world covers are never shaded twice.
+    if (const AssetMesh *sky = gAssets.mesh("Landscape_TempSkyBox_000")) {
+        r.setFog(packRGBA(176, 203, 226), 1.0e8f, 2.0e8f);
+        Mat4 m = Mat4::translation({cam.pos.x, 0.0f, cam.pos.z});
+        drawAssetMesh(r, cam, m, *sky, true, 1.0f, false);
+        r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
     }
 
     // Pass 2: baked shadow planes and other alpha material batches.
@@ -396,9 +526,23 @@ void World::draw(Renderer &r, const Camera &cam) {
             for (const TileBatch &b : protos[size_t(id)].batches) {
                 if (!b.blend || b.mesh.idx.empty()) continue;
                 const AssetMaterial &mat = gAssets.materials[size_t(b.material)];
-                r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.color,
+                r.setSurface(mat.lighting);
+                r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.tint(),
                            false, false, mat.opacity, false);
             }
+        }
+    }
+
+    ferris.draw(r, cam);
+    race.draw(r, cam);
+
+    // igNitro pickups: rotation (0, 180, 120), scale 2.
+    if (nitroMesh >= 0) {
+        for (const NitroPickup &p : nitroPickups) {
+            if (!p.visible) continue;
+            Mat4 m = Mat4::translation(p.pos) * Mat4::rotationZ(deg2rad(120.0f)) *
+                     Mat4::rotationY(deg2rad(180.0f)) * Mat4::scale({2.0f, 2.0f, 2.0f});
+            drawAssetMesh(r, cam, m, gAssets.meshes[size_t(nitroMesh)], false, 1.0f, true);
         }
     }
 
@@ -413,14 +557,15 @@ void World::resolveCarCollision(Car &car) const {
     resolveTileCollisions(*this, car);
 }
 
-// Surface contact, the original doRayCasting() part of enterFrame. Kept apart
-// from resolveCarCollision so the collision pass can run mid-step (before
-// doupdate) while ground snapping still runs after the car has moved.
+// doRayCasting(): twelve downward rays from gCageList (doSetupPlayerCar). The
+// four lowest points are the wheels; every embedded point adds an upward
+// impulse and a pitch/roll torque, which is what makes the chassis ride on a
+// spring and wobble after an impact.
 void World::updateGround(Car &car) const {
     // Safety net for leaving the 12 x 12 map; the original is fenced in by the
     // DistantHill and AirportFence tiles.
     // The original 12 x 12 map covers [0, 60000] on both axes (tile centres
-    // run from 2500 to 57500). Applied after the step so the clamp is final.
+    // run from 2500 to 57500).
     const float minX = 0.0f, maxX = 60000.0f;
     const float minZ = 0.0f, maxZ = 60000.0f;
     if (car.pos.x < minX) { car.pos.x = minX; if (car.vel.x < 0) car.vel.x = 0; }
@@ -428,76 +573,119 @@ void World::updateGround(Car &car) const {
     if (car.pos.z < minZ) { car.pos.z = minZ; if (car.vel.z < 0) car.vel.z = 0; }
     if (car.pos.z > maxZ) { car.pos.z = maxZ; if (car.vel.z > 0) car.vel.z = 0; }
 
-    // Follow the original tile surfaces (banked NurdBurger corners, bridge
-    // decks, airport ramps). The original physics does the same with twelve
-    // downward rays from the car cage.
-    if (ready) {
-        // doRayCasting fires twelve rays from gCageList. The four lowest cage
-        // points (x = +-50, z = +-60, y = 30) carry the surface response:
-        //   imbed = isectY - carY  (clamped to 0)
-        //   rotVector.x -= toCenter.z * imbed * 0.0008
-        //   rotVector.z += toCenter.x * imbed * 0.0008
-        // A ray starts 60 above the cage point, so only surfaces within about
-        // 90 units of the car can be hit. The height-field equivalent keeps
-        // that reach limit and clamps to the same contact range, which keeps
-        // overhead bridge decks and canal beds from twisting the shell.
-        const CarConfig &cfg = carConfig(car.carId);
-        Vec3 fwd = car.forward();
-        Vec3 axisX = car.rightAxis(); // local +x; this is the car's left.
-        float front = cfg.tirePivot.z;
-        float rear = cfg.tirePivot.z + cfg.rearAxleOffset.z;
-        float halfTrack = cfg.tirePivot.x + 7.5f;
-        const float reach = 90.0f;
-        const float nearY = car.pos.y - 50.0f;
-        auto wheelHeight = [&](float lateral, float longitudinal) {
-            Vec3 p = car.pos + fwd * longitudinal + axisX * lateral;
-            float h = groundHeightAt(p.x, p.z, nearY);
-            return clampf(h, car.pos.y, car.pos.y + reach);
-        };
-        float hFrontPosX = wheelHeight(halfTrack, front);   // front left
-        float hFrontNegX = wheelHeight(-halfTrack, front);  // front right
-        float hRearPosX = wheelHeight(halfTrack, rear);     // rear left
-        float hRearNegX = wheelHeight(-halfTrack, rear);    // rear right
-        float frontH = (hFrontPosX + hFrontNegX) * 0.5f;
-        float rearH = (hRearPosX + hRearNegX) * 0.5f;
-        float leftH = (hFrontPosX + hRearPosX) * 0.5f;
-        float rightH = (hFrontNegX + hRearNegX) * 0.5f;
-
-        // rotationX positive dips the nose (local +z maps to -y), so climbing
-        // ground needs rearH - frontH. rotationZ positive lifts local +x,
-        // which is the left side, so higher left ground needs leftH - rightH.
-        float pitchTarget = std::atan2(rearH - frontH, std::max(1.0f, front - rear)) *
-                            180.0f / PI;
-        float rollTarget = std::atan2(leftH - rightH, std::max(1.0f, halfTrack * 2.0f)) *
-                           180.0f / PI;
-        pitchTarget = clampf(pitchTarget, -30.0f, 30.0f);
-        rollTarget = clampf(rollTarget, -30.0f, 30.0f);
-        if (car.midAir) {
-            pitchTarget = 0.0f;
-            rollTarget = 0.0f;
-        }
-        car.surfacePitchDeg += (pitchTarget - car.surfacePitchDeg) * 0.25f;
-        car.surfaceRollDeg += (rollTarget - car.surfaceRollDeg) * 0.25f;
-
-        // Support height still comes from under the car centre, so a wheel
-        // over a kerb or canal edge cannot pop the whole body upwards.
-        float g = groundHeightAt(car.pos.x, car.pos.z, nearY);
-        if (car.pos.y < g) {
-            car.pos.y = g;
-            if (car.vel.y < -10.0f) car.landImpact = std::max(car.landImpact, -car.vel.y);
-            if (car.vel.y < 0) car.vel.y = 0;
-            car.midAir = false;
-        } else if (car.pos.y - g < 160.0f && car.vel.y <= 0.0f) {
-            car.pos.y = g;
-            if (car.vel.y < -10.0f) car.landImpact = std::max(car.landImpact, -car.vel.y);
-            car.vel.y = 0;
+    if (!ready) {
+        car.hoist = 0.0f;
+        if (car.pos.y <= 0.0f) {
+            car.pos.y = 0.0f;
+            if (car.vel.y < 0.0f) car.vel.y = 0.0f;
             car.midAir = false;
         } else {
             car.midAir = true;
         }
-        car.groundY = g;
-        car.useGroundMap = true;
+        return;
     }
+
+    // The cage is a child of mPlayerCar, so it inherits the accumulated body
+    // rotation (not rotVector, which is the angular velocity).
+    Mat4 body = Mat4::rotationY(car.yaw) *
+                Mat4::rotationZ(deg2rad(car.bodyRollDeg)) *
+                Mat4::rotationX(deg2rad(car.bodyPitchDeg));
+
+    float imbed[12] = {};
+    float cap[12] = {};
+    float surface[12] = {};
+    Vec3 toCenter[12];
+    Vec3 normal[12];
+    float hoist = 0.0f;
+    bool grounded = false;
+
+    for (int i = 0; i < 12; ++i) {
+        Vec3 local = body.transformVector(kCage[i]);
+        Vec3 p = car.pos + local;
+        // The ray starts 60 above the cage point and goes straight down.
+        float reach = p.y + 60.0f - 140.0f;
+        float y = groundHeightAt(p.x, p.z, reach);
+        float pen = y - p.y + 30.0f;
+        surface[i] = y;
+        toCenter[i] = local;
+        if (pen > 0.0f) {
+            grounded = true;
+            imbed[i] = pen;
+            cap[i] = pen > 20.0f ? 20.0f : pen;
+            if (pen > 20.0f && hoist < pen - 20.0f) hoist = pen - 20.0f;
+            normal[i] = groundNormalAt(p.x, p.z, reach);
+        }
+    }
+
+    car.midAir = !grounded;
+    car.hoist = hoist;
+    for (int i = 0; i < 4; ++i) car.wheelImbed[i] = imbed[i];
+
+    // Wheels: support impulse, torque about the body, and a nudge along the
+    // surface normal (downhill on slopes). The torque uses the cage points in
+    // the car's own frame: rotVector is applied about the body's pitch/roll
+    // axes, so the lever arms must be the unrotated cage offsets.
+    for (int i = 0; i < 4; ++i) {
+        car.vel.y += cap[i] * 0.045f;
+        car.rotXDeg -= kCage[i].z * cap[i] * 0.0008f;
+        car.rotZDeg += kCage[i].x * cap[i] * 0.0008f;
+        if (imbed[i] > 0.0f) {
+            car.vel.x += normal[i].x * 0.1f;
+            car.vel.z += normal[i].z * 0.1f;
+        }
+    }
+    // Upper cage points: weaker torque plus the velocity/rotation coupling
+    // that lets the shell rock on kerbs and landings.
+    for (int i = 4; i < 12; ++i) {
+        car.rotXDeg -= kCage[i].z * cap[i] * 0.0003f;
+        car.rotZDeg += kCage[i].x * cap[i] * 0.0003f;
+        if (cap[i] > 0.0f) {
+            car.vel.x -= car.rotZDeg * 0.06f;
+            car.vel.z += car.rotXDeg * 0.06f;
+            car.rotXDeg -= car.vel.z * 0.01f;
+            car.rotZDeg -= car.vel.x * 0.01f;
+        }
+    }
+
+    // Geometric slope under the four wheels, for --probe / --slope-scan.
+    float frontH = (surface[2] + surface[3]) * 0.5f;
+    float rearH = (surface[0] + surface[1]) * 0.5f;
+    float leftH = (surface[0] + surface[2]) * 0.5f;
+    float rightH = (surface[1] + surface[3]) * 0.5f;
+    if (grounded) {
+        car.groundPitchDeg = std::atan2(rearH - frontH, 120.0f) * 180.0f / PI;
+        car.groundRollDeg = std::atan2(leftH - rightH, 100.0f) * 180.0f / PI;
+    } else {
+        car.groundPitchDeg = 0.0f;
+        car.groundRollDeg = 0.0f;
+    }
+
+    car.groundY = surface[0];
+    car.useGroundMap = true;
+
+    if (std::getenv("RR4_DEBUG_GROUND")) {
+        std::fprintf(stderr,
+                     "ground pos=(%.1f,%.2f,%.1f) vel=(%.2f,%.2f,%.2f) "
+                     "pitch=%.2f roll=%.2f rotX=%.2f rotZ=%.2f hoist=%.2f air=%d "
+                     "cap=(%.2f,%.2f,%.2f,%.2f) tz=(%.1f,%.1f,%.1f,%.1f)\n",
+                     car.pos.x, car.pos.y, car.pos.z, car.vel.x, car.vel.y,
+                     car.vel.z, car.bodyPitchDeg, car.bodyRollDeg, car.rotXDeg,
+                     car.rotZDeg, hoist, car.midAir ? 1 : 0,
+                     cap[0], cap[1], cap[2], cap[3],
+                     toCenter[0].z, toCenter[1].z, toCenter[2].z, toCenter[3].z);
+    }
+}
+
+// Surface normal of the tile height field, for the doRayCasting slide term.
+Vec3 World::groundNormalAt(float x, float z, float nearY) const {
+    const float e = 40.0f;
+    float hl = groundHeightAt(x - e, z, nearY);
+    float hr = groundHeightAt(x + e, z, nearY);
+    float hd = groundHeightAt(x, z - e, nearY);
+    float hu = groundHeightAt(x, z + e, nearY);
+    Vec3 n{hl - hr, 2.0f * e, hd - hu};
+    float m = n.length();
+    return m > 1e-6f ? n / m : Vec3(0, 1, 0);
 }
 
 } // namespace rr4

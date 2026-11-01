@@ -212,6 +212,62 @@ CMakeFiles/rr4.dir/src/font.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/font.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/font.cpp -o CMakeFiles/rr4.dir/src/font.cpp.s
 
+CMakeFiles/rr4.dir/src/ferris.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/ferris.cpp.o: /home/perry/Dev/rr4/src/ferris.cpp
+CMakeFiles/rr4.dir/src/ferris.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/rr4.dir/src/ferris.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/ferris.cpp.o -MF CMakeFiles/rr4.dir/src/ferris.cpp.o.d -o CMakeFiles/rr4.dir/src/ferris.cpp.o -c /home/perry/Dev/rr4/src/ferris.cpp
+
+CMakeFiles/rr4.dir/src/ferris.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/ferris.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/ferris.cpp > CMakeFiles/rr4.dir/src/ferris.cpp.i
+
+CMakeFiles/rr4.dir/src/ferris.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/ferris.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/ferris.cpp -o CMakeFiles/rr4.dir/src/ferris.cpp.s
+
+CMakeFiles/rr4.dir/src/race.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/race.cpp.o: /home/perry/Dev/rr4/src/race.cpp
+CMakeFiles/rr4.dir/src/race.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/rr4.dir/src/race.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/race.cpp.o -MF CMakeFiles/rr4.dir/src/race.cpp.o.d -o CMakeFiles/rr4.dir/src/race.cpp.o -c /home/perry/Dev/rr4/src/race.cpp
+
+CMakeFiles/rr4.dir/src/race.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/race.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/race.cpp > CMakeFiles/rr4.dir/src/race.cpp.i
+
+CMakeFiles/rr4.dir/src/race.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/race.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/race.cpp -o CMakeFiles/rr4.dir/src/race.cpp.s
+
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.o: /home/perry/Dev/rr4/src/race_data.gen.cpp
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/rr4.dir/src/race_data.gen.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/race_data.gen.cpp.o -MF CMakeFiles/rr4.dir/src/race_data.gen.cpp.o.d -o CMakeFiles/rr4.dir/src/race_data.gen.cpp.o -c /home/perry/Dev/rr4/src/race_data.gen.cpp
+
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/race_data.gen.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/race_data.gen.cpp > CMakeFiles/rr4.dir/src/race_data.gen.cpp.i
+
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/race_data.gen.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/race_data.gen.cpp -o CMakeFiles/rr4.dir/src/race_data.gen.cpp.s
+
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: /home/perry/Dev/rr4/src/material_data.gen.cpp
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/rr4.dir/src/material_data.gen.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/material_data.gen.cpp.o -MF CMakeFiles/rr4.dir/src/material_data.gen.cpp.o.d -o CMakeFiles/rr4.dir/src/material_data.gen.cpp.o -c /home/perry/Dev/rr4/src/material_data.gen.cpp
+
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/material_data.gen.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/material_data.gen.cpp > CMakeFiles/rr4.dir/src/material_data.gen.cpp.i
+
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/material_data.gen.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/material_data.gen.cpp -o CMakeFiles/rr4.dir/src/material_data.gen.cpp.s
+
 # Object files for target rr4
 rr4_OBJECTS = \
 "CMakeFiles/rr4.dir/src/main.cpp.o" \
@@ -223,7 +279,11 @@ rr4_OBJECTS = \
 "CMakeFiles/rr4.dir/src/hud.cpp.o" \
 "CMakeFiles/rr4.dir/src/collision.cpp.o" \
 "CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o" \
-"CMakeFiles/rr4.dir/src/font.cpp.o"
+"CMakeFiles/rr4.dir/src/font.cpp.o" \
+"CMakeFiles/rr4.dir/src/ferris.cpp.o" \
+"CMakeFiles/rr4.dir/src/race.cpp.o" \
+"CMakeFiles/rr4.dir/src/race_data.gen.cpp.o" \
+"CMakeFiles/rr4.dir/src/material_data.gen.cpp.o"
 
 # External object files for target rr4
 rr4_EXTERNAL_OBJECTS =
@@ -238,6 +298,10 @@ rr4: CMakeFiles/rr4.dir/src/hud.cpp.o
 rr4: CMakeFiles/rr4.dir/src/collision.cpp.o
 rr4: CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o
 rr4: CMakeFiles/rr4.dir/src/font.cpp.o
+rr4: CMakeFiles/rr4.dir/src/ferris.cpp.o
+rr4: CMakeFiles/rr4.dir/src/race.cpp.o
+rr4: CMakeFiles/rr4.dir/src/race_data.gen.cpp.o
+rr4: CMakeFiles/rr4.dir/src/material_data.gen.cpp.o
 rr4: CMakeFiles/rr4.dir/build.make
 rr4: CMakeFiles/rr4.dir/compiler_depend.ts
 rr4: /usr/lib/x86_64-linux-gnu/libsfml-graphics.so.3.0.2
@@ -245,7 +309,7 @@ rr4: /usr/lib/x86_64-linux-gnu/libsfml-window.so.3.0.2
 rr4: /usr/lib/x86_64-linux-gnu/libsfml-audio.so.3.0.2
 rr4: /usr/lib/x86_64-linux-gnu/libsfml-system.so.3.0.2
 rr4: CMakeFiles/rr4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable rr4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX executable rr4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/rr4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

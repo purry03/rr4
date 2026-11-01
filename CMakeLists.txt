@@ -18,6 +18,10 @@ add_executable(rr4
     src/collision.cpp
     src/collision_cases.gen.cpp
     src/font.cpp
+    src/ferris.cpp
+    src/race.cpp
+    src/race_data.gen.cpp
+    src/material_data.gen.cpp
 )
 
 target_include_directories(rr4 PRIVATE src)

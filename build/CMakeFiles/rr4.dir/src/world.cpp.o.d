@@ -1,8 +1,7 @@
 CMakeFiles/rr4.dir/src/world.cpp.o: /home/perry/Dev/rr4/src/world.cpp \
  /usr/include/stdc-predef.h /home/perry/Dev/rr4/src/world.hpp \
- /home/perry/Dev/rr4/src/assets.hpp /home/perry/Dev/rr4/src/renderer.hpp \
- /home/perry/Dev/rr4/src/math.hpp /usr/include/c++/15/cmath \
- /usr/include/c++/15/bits/requires_hosted.h \
+ /home/perry/Dev/rr4/src/ferris.hpp /home/perry/Dev/rr4/src/math.hpp \
+ /usr/include/c++/15/cmath /usr/include/c++/15/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/15/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/15/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -113,7 +112,9 @@ CMakeFiles/rr4.dir/src/world.cpp.o: /home/perry/Dev/rr4/src/world.cpp \
  /usr/include/c++/15/bits/max_size_type.h /usr/include/c++/15/numbers \
  /usr/include/c++/15/bits/invoke.h /usr/include/c++/15/bits/ranges_util.h \
  /usr/include/c++/15/pstl/glue_algorithm_defs.h \
- /usr/include/c++/15/pstl/execution_defs.h /usr/include/c++/15/vector \
+ /usr/include/c++/15/pstl/execution_defs.h \
+ /home/perry/Dev/rr4/src/race.hpp /home/perry/Dev/rr4/src/car.hpp \
+ /home/perry/Dev/rr4/src/renderer.hpp /usr/include/c++/15/vector \
  /usr/include/c++/15/bits/allocator.h \
  /usr/include/x86_64-linux-gnu/c++/15/bits/c++allocator.h \
  /usr/include/c++/15/bits/new_allocator.h \
@@ -166,7 +167,8 @@ CMakeFiles/rr4.dir/src/world.cpp.o: /home/perry/Dev/rr4/src/world.cpp \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
  /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
  /usr/include/c++/15/bits/charconv.h \
- /usr/include/c++/15/bits/basic_string.tcc \
+ /usr/include/c++/15/bits/basic_string.tcc /usr/include/c++/15/functional \
+ /usr/include/c++/15/bits/std_function.h /usr/include/c++/15/typeinfo \
  /usr/include/c++/15/unordered_map \
  /usr/include/c++/15/bits/unordered_map.h \
  /usr/include/c++/15/bits/hashtable.h \
@@ -175,10 +177,9 @@ CMakeFiles/rr4.dir/src/world.cpp.o: /home/perry/Dev/rr4/src/world.cpp \
  /usr/include/c++/15/bits/enable_special_members.h \
  /usr/include/c++/15/bits/node_handle.h \
  /usr/include/c++/15/bits/erase_if.h /usr/include/c++/15/array \
- /home/perry/Dev/rr4/src/car.hpp /usr/include/c++/15/functional \
- /usr/include/c++/15/bits/std_function.h /usr/include/c++/15/typeinfo \
- /home/perry/Dev/rr4/src/collision.hpp /usr/include/c++/15/filesystem \
- /usr/include/c++/15/bits/fs_fwd.h /usr/include/c++/15/system_error \
+ /home/perry/Dev/rr4/src/assets.hpp /home/perry/Dev/rr4/src/collision.hpp \
+ /usr/include/c++/15/filesystem /usr/include/c++/15/bits/fs_fwd.h \
+ /usr/include/c++/15/system_error \
  /usr/include/x86_64-linux-gnu/c++/15/bits/error_constants.h \
  /usr/include/c++/15/stdexcept /usr/include/c++/15/exception \
  /usr/include/c++/15/bits/exception_ptr.h \

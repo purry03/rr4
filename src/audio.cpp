@@ -43,6 +43,12 @@ bool Audio::load(const std::string &dir) {
     ok &= loadBuf(suspension_, "SuspensionCreak_000");
     ok &= loadBuf(landing_, "CrashLanding_001");
     ok &= loadBuf(nitro_, "igNitroIgnition_003");
+    ok &= loadBuf(repairs_, "RixRapidRepairs_000");   // member 24
+    ok &= loadBuf(pickup_, "SfxGoldPickup_001");      // member 25
+    ok &= loadBuf(ferris_, "FerrisRotation_001");     // member 22
+    ok &= loadBuf(raceStart_, "RaceStartFanFair_000"); // member 26
+    ok &= loadBuf(raceStop_, "RaceStopFanFair_001");   // member 28
+    ok &= loadBuf(podBonus_, "TimeBonusCountUp_001");  // member 29
     ok &= loadBuf(crash_[0], "CrashTinkle_Small_000");
     ok &= loadBuf(crash_[1], "CrashTinkle_Standard_000");
     ok &= loadBuf(crash_[2], "CrashTinkle_Medium_000");
@@ -72,6 +78,7 @@ void Audio::setCar(int id) {
     int i = std::clamp(id, 1, carCount()) - 1;
     engineUpPtr_ = &engineUp_[size_t(i)];
     engineDownPtr_ = &engineDown_[size_t(i)];
+    carId_ = i + 1;
     engine_.stop();
     engineState_ = 0;
     complete_ = 1.0f;
@@ -127,6 +134,7 @@ void Audio::playOneShot(const sf::SoundBuffer &buffer) {
     oneShot_.stop();
     oneShot_.setBuffer(buffer);
     oneShot_.play();
+    lastOneShot_ = &buffer;
 }
 
 void Audio::tickEngine(bool accelerate) {
@@ -178,6 +186,17 @@ void Audio::tickEngine(bool accelerate) {
 
 void Audio::tickCar(const Car &car, const CarInput &in) {
     if (!loaded_ || muted_) return;
+    // The Ferris wheel can swap the car: follow it to its engine Sfx pair.
+    if (car.carId != carId_) setCar(car.carId);
+    // doFerrisWheel: Sfx 21 when parking if channel 1 is free, Sfx 22 on
+    // channel 2 (the engine channel) each time the wheel turns.
+    if (car.ferrisCreakSfx && oneShot_.getStatus() != sf::Sound::Status::Playing)
+        playOneShot(suspension_);
+    if (car.ferrisTurnSfx) {
+        engine_.stop();
+        trans_.setBuffer(ferris_);
+        trans_.play();
+    }
 
     // doControls / doControls landing checks (channel 1).
     if (car.landImpact > 20.0f) {
@@ -227,6 +246,19 @@ void Audio::tickCar(const Car &car, const CarInput &in) {
     boostWas_ = boosting;
 
     if (car.impactSpeed > 0.0f) impact(car.impactSpeed);
+    // doDamageMaxOutReset plays member 24 on channel 1.
+    if (car.respawned) playOneShot(repairs_);
+    // Race handlers: puppetSound(1, member(n, "Sfx")).
+    for (int member : car.sfx) {
+        if (member == 26) playOneShot(raceStart_);
+        else if (member == 28) playOneShot(raceStop_);
+        else if (member == 29) playOneShot(podBonus_);
+    }
+    // doIgNitro: member 25 on channel 1 for every bottle.
+    if (car.nitroPickedUp) playOneShot(pickup_);
+    // doRixRapidRepairs replays member 24 only when channel 1 last played
+    // something else.
+    if (car.repairSfx && lastOneShot_ != &repairs_) playOneShot(repairs_);
 }
 
 void Audio::impact(float magnitude) {

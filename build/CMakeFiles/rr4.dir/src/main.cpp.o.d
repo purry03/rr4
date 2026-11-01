@@ -316,6 +316,7 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/c++/15/pstl/glue_algorithm_defs.h \
  /home/perry/Dev/rr4/src/renderer.hpp /home/perry/Dev/rr4/src/font.hpp \
  /home/perry/Dev/rr4/src/hud.hpp /home/perry/Dev/rr4/src/world.hpp \
+ /home/perry/Dev/rr4/src/ferris.hpp /home/perry/Dev/rr4/src/race.hpp \
  /home/perry/Dev/rr4/src/assets.hpp /usr/include/SFML/Graphics.hpp \
  /usr/include/SFML/Graphics/BlendMode.hpp \
  /usr/include/SFML/Graphics/Export.hpp \

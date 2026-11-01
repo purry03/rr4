@@ -112,7 +112,7 @@ def simulate():
             vel = [vel[i] - grip[i] for i in range(3)]
 
         # ---- doBodyRoll ---------------------------------------------------
-        diff = [prev_vel[i] - vel[i] for i in range(3)]
+        diff = [vel[i] - prev_vel[i] for i in range(3)]
         diff[1] = 0.0
         mag = math.sqrt(sum(d * d for d in diff))
         if mag > 1.0:

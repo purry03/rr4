@@ -103,6 +103,7 @@ void drawText(Renderer &r, int x, int y, const std::string &text,
 }
 
 void fillRect(Renderer &r, int x, int y, int w, int h, uint32_t color) {
+    r.flush();
     int x0 = std::max(0, x), y0 = std::max(0, y);
     int x1 = std::min(r.width, x + w), y1 = std::min(r.height, y + h);
     if (x1 <= x0 || y1 <= y0) return;
@@ -112,6 +113,7 @@ void fillRect(Renderer &r, int x, int y, int w, int h, uint32_t color) {
 }
 
 void blendRect(Renderer &r, int x, int y, int w, int h, uint32_t color, float alpha) {
+    r.flush();
     int x0 = std::max(0, x), y0 = std::max(0, y);
     int x1 = std::min(r.width, x + w), y1 = std::min(r.height, y + h);
     if (x1 <= x0 || y1 <= y0) return;

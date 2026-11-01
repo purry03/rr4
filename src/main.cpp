@@ -25,10 +25,9 @@ using namespace rr4;
 
 namespace {
 
-constexpr int kWidth = 640;
-constexpr int kHeight = 400;
-constexpr int kWindowWidth = 960;
-constexpr int kWindowHeight = 600;
+// The software renderer draws at the window resolution (no upscaling).
+constexpr int kWidth = 960;
+constexpr int kHeight = 600;
 
 struct ChaseCam {
     Camera cam;
@@ -47,6 +46,21 @@ struct ChaseCam {
             cam.pos = car.pos + Vec3(-80, 50, -200);
             init = true;
             return;
+        }
+
+        if (car.respawned) {
+            // doDamageMaxOutReset: camState 1, camRange 200, camHeight 50.
+            state = 1;
+            range = 200.0f;
+            height = 50.0f;
+            aim = car.pos + Vec3(0, 50, -100);
+            cam.pos = car.pos + Vec3(0, 200, -300);
+        }
+
+        if (car.raceReturn) {
+            // doRaceFlag: camAim and cam.worldPosition as doSetupPlayerCar.
+            aim = car.pos + Vec3(-80, 50, 200);
+            cam.pos = car.pos + Vec3(-80, 50, -200);
         }
 
         if (car.throttle > 6.0f) lookingForwards = 1;
@@ -114,7 +128,7 @@ void drawDebugHud(Renderer &r, const World &world, const Car &car, float fps) {
     std::snprintf(buf, sizeof(buf), "TILE %02d %s", id, tileName(id));
     drawText(r, 14, 106, buf, packRGBA(200, 214, 226), 1);
     std::snprintf(buf, sizeof(buf), "TILT %+5.1f / %+5.1f  BOOST %.0f%%",
-                  car.surfacePitchDeg, car.surfaceRollDeg, car.boostMeter * 100.0f);
+                  car.bodyPitchDeg, car.bodyRollDeg, car.boostMeter * 100.0f);
     drawText(r, 14, 118, buf, packRGBA(200, 214, 226), 1);
     drawText(r, 14, 134, "ARROWS DRIVE  SHIFT BOOST  M MUTE  F1 DEBUG",
              packRGBA(150, 170, 190), 1);
@@ -126,6 +140,7 @@ void renderFrame(Renderer &r, World &world, Car &car, ChaseCam &chase, float fps
     world.draw(r, chase.cam);
     car.draw(r, chase.cam);
     drawHud(r, car, muted);
+    r.flush();
 }
 
 bool saveFrame(Renderer &r, const fs::path &path) {
@@ -227,15 +242,16 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
 
     for (int frame = 0; frame <= totalFrames; ++frame) {
         CarInput in = autoInput(car, wpIndex, frame, stuckFrames);
-        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
-        world.updateGround(car);
+        car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+        tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
 
         if (frame % 60 == 0) {
             std::printf("frame %4d  pos=(%8.1f,%8.1f) yaw=%6.1f  speed=%5.1f km/h  "
-                        "tilt=%+5.1f/%+5.1f  tile=%02d %s\n",
+                        "tilt=%+5.1f/%+5.1f  damage=%.2f  tile=%02d %s\n",
                         frame, car.pos.x, car.pos.z, car.yaw * 180.0f / PI,
-                        car.speedKmh, car.surfacePitchDeg, car.surfaceRollDeg,
+                        car.speedKmh, car.bodyPitchDeg, car.bodyRollDeg, car.damage,
                         world.tileIDAt(car.pos.x, car.pos.z),
                         tileName(world.tileIDAt(car.pos.x, car.pos.z)));
             std::fflush(stdout);
@@ -301,8 +317,9 @@ int runCamTrace(int frames, int carId) {
                 "range,height,aimX,aimY,aimZ,camX,camY,camZ\n");
     for (int f = 0; f <= frames; ++f) {
         CarInput in = autoInput(car, wpIndex, f, stuckFrames);
-        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
-        world.updateGround(car);
+        car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+        tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         std::printf("%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
                     "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
@@ -330,8 +347,9 @@ int runBench(int frames, int carId) {
     auto t0 = std::chrono::steady_clock::now();
     for (int i = 0; i < frames; ++i) {
         CarInput in = autoInput(car, wpIndex, i, stuckFrames);
-        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
-        world.updateGround(car);
+        car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+        tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         renderFrame(r, world, car, chase, 60.0f);
     }
@@ -391,24 +409,26 @@ int runDrive(int frames, float x, float z, float yawDeg, int carId) {
     world.updateGround(car);
     ChaseCam chase;
     chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
-    std::printf("frame,posX,posY,posZ,yawDeg,speed,damage,impact,tile\n");
+    std::printf("frame,posX,posY,posZ,yawDeg,speed,damage,impact,rotX,rotZ,tile\n");
     for (int f = 1; f <= frames; ++f) {
         CarInput in;
         in.up = true;
-        car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
-        world.updateGround(car);
+        car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+        tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
-        if (f % 10 == 0 || f == frames)
-            std::printf("%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.2f,%d\n", f,
+        if (f % 5 == 0 || f == frames)
+            std::printf("%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.2f,%.2f,%.2f,%d\n", f,
                         car.pos.x, car.pos.y, car.pos.z,
                         car.yaw * 180.0f / PI, car.speedKmh, car.damage,
-                        car.impactSpeed, world.tileIDAt(car.pos.x, car.pos.z));
+                        car.impactSpeed, car.rotXDeg, car.rotZDeg,
+                        world.tileIDAt(car.pos.x, car.pos.z));
     }
     return 0;
 }
 
-// Development aid: report the settled ground height and surface tilt at one
-// spot, so pitch/roll signs can be checked against a known bank.
+// Development aid: report the settled attitude at one spot, so the suspension
+// and the pitch/roll signs can be checked against a known bank.
 int runProbe(float x, float z, float yawDeg, int carId) {
     World world;
     world.build();
@@ -417,11 +437,18 @@ int runProbe(float x, float z, float yawDeg, int carId) {
     car.pos = {x, 0.0f, z};
     car.yaw = deg2rad(yawDeg);
     world.resolveCarCollision(car);
-    for (int i = 0; i < 60; ++i) world.updateGround(car);
+    // Let doRayCasting settle the chassis the same way a real step does.
+    for (int i = 0; i < 240; ++i) {
+        CarInput in;
+        car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+    }
     int id = world.tileIDAt(car.pos.x, car.pos.z);
-    std::printf("probe x=%.1f z=%.1f yaw=%.1f car=%d tile=%02d %s y=%.2f pitch=%+.2f roll=%+.2f\n",
+    std::printf("probe x=%.1f z=%.1f yaw=%.1f car=%d tile=%02d %s y=%.2f "
+                "pitch=%+.2f roll=%+.2f ground=%+.2f/%+.2f\n",
                 car.pos.x, car.pos.z, yawDeg, carId, id, tileName(id),
-                car.pos.y, car.surfacePitchDeg, car.surfaceRollDeg);
+                car.pos.y, car.bodyPitchDeg, car.bodyRollDeg,
+                car.groundPitchDeg, car.groundRollDeg);
     const CarConfig &cfg = carConfig(carId);
     Vec3 fwd = car.forward(), axisX = car.rightAxis();
     float front = cfg.tirePivot.z;
@@ -454,12 +481,15 @@ int runSlopeScan() {
             if (!isRoadTile(id)) continue;
             car.pos = {float(x), 0.0f, float(z)};
             car.yaw = 0.0f;
-            car.surfacePitchDeg = car.surfaceRollDeg = 0.0f;
+            car.vel = {};
+            car.rotXDeg = car.rotZDeg = 0.0f;
+            car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
+            car.groundPitchDeg = car.groundRollDeg = 0.0f;
             world.updateGround(car);
-            float score = std::max(std::fabs(car.surfacePitchDeg),
-                                   std::fabs(car.surfaceRollDeg));
+            float score = std::max(std::fabs(car.groundPitchDeg),
+                                   std::fabs(car.groundRollDeg));
             if (score > 1.0f && score < 4.0f) hits.push_back({float(x), float(z), car.pos.y,
-                                              car.surfacePitchDeg, car.surfaceRollDeg, id});
+                                              car.groundPitchDeg, car.groundRollDeg, id});
         }
     }
     std::sort(hits.begin(), hits.end(), [](const Hit &a, const Hit &b) {
@@ -545,7 +575,7 @@ int main(int argc, char **argv) {
     if (autoMode) return runAuto(shotDir, autoFrames, carId, shotEvery, place,
                                  placeX, placeZ, placeYaw);
 
-    sf::RenderWindow window(sf::VideoMode({unsigned(kWindowWidth), unsigned(kWindowHeight)}),
+    sf::RenderWindow window(sf::VideoMode({unsigned(kWidth), unsigned(kHeight)}),
                             "Redline Rumble 4 - Native");
     window.setVerticalSyncEnabled(true);
 
@@ -557,8 +587,6 @@ int main(int argc, char **argv) {
     sf::Texture screenTex(sf::Vector2u(kWidth, kHeight));
     screenTex.setSmooth(true);
     sf::Sprite screenSprite(screenTex);
-    screenSprite.setScale({float(kWindowWidth) / float(kWidth),
-                           float(kWindowHeight) / float(kHeight)});
 
     Car car;
     car.setCar(carId);
@@ -616,9 +644,10 @@ int main(int argc, char **argv) {
         while (accumulator >= step && steps < 5) {
             // enterFrame order: doEngineSounds -> doControls/... -> doCam.
             audio.tickEngine(in.up);
-            car.update(in, 1.0f, [&](Car &c) { world.resolveCarCollision(c); });
-            world.updateGround(car);
+            car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                       [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
             audio.tickCar(car, in);
+            tickHud(car);
             chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
             accumulator -= step;
             ++steps;

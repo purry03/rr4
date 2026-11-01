@@ -31,6 +31,8 @@ CHUNKS = os.path.join(os.path.dirname(os.path.dirname(DUMP)), "dump2",
 SLOTS = {
     1: "MuteOff",
     2: "MuteOn",
+    6: "BurnSmoke",       # doSetupBurnSmoke particle texture
+    52: "FadeToBlack",    # FadeToBlack.ls overlay
     12: "DamageBar",
     13: "DamageBarRed",
     14: "Skull",
@@ -47,6 +49,10 @@ SLOTS = {
     58: "RadarPointPod",
     59: "RadarRacePod",
 }
+# Car paint jobs: doSetupShells swaps each shell texture for
+# member(150 + g_CarsColorIDList[car], "Textures").
+for i in range(1, 9):
+    SLOTS[150 + i] = "Paint%d" % i
 for i in range(10):
     SLOTS[25 + i] = "Score%d" % i
     SLOTS[37 + i] = "Timer%d" % i
@@ -126,8 +132,14 @@ def alpha_channel(raw, width, height):
 def decode_bitd(raw, width, height, bpp):
     if bpp != 32:
         raise SystemExit("unsupported HUD BITD depth %d" % bpp)
-    pixels = rle(raw)
     need = width * height * 4
+    if len(raw) == need:
+        # Uncompressed bitmaps (the 2 x 2 paint jobs) are interleaved XRGB.
+        rgb = bytearray()
+        for k in range(width * height):
+            rgb += raw[k * 4 + 1:k * 4 + 4]
+        return Image.frombytes("RGB", (width, height), bytes(rgb))
+    pixels = rle(raw)
     if len(pixels) < need:
         pixels += b"\x00" * (need - len(pixels))
     rgb = bytearray(width * height * 3)

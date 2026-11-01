@@ -106,6 +106,7 @@ bool W3DAssets::load(const std::string &path) {
             t = makeFallbackTexture();
         }
         (void)w; (void)h;
+        t.buildMips();
         textures.push_back(std::move(t));
     }
 
@@ -130,6 +131,26 @@ bool W3DAssets::load(const std::string &path) {
             }
         }
         materials.push_back(std::move(m));
+    }
+
+    // Original lighting per shader, and the shared reflection map.
+    if (loadTexture("assets/ReflectionMap.jpg", reflectionMap)) reflectionMap.buildMips();
+    for (AssetMaterial &m : materials) {
+        Vec3 diffuse{float(m.color & 255) / 255.0f, float((m.color >> 8) & 255) / 255.0f,
+                     float((m.color >> 16) & 255) / 255.0f};
+        m.lighting.diffuse = diffuse;
+        for (int k = 0; k < kShaderLightingCount; ++k) {
+            const ShaderLighting &l = kShaderLighting[k];
+            if (m.name != l.name) continue;
+            m.lighting.ambient = l.ambient;
+            m.lighting.diffuse = l.diffuse;
+            m.lighting.specular = l.specular;
+            m.lighting.emissive = l.emissive;
+            m.lighting.shininess = l.shininess;
+            m.lighting.reflect = l.reflect;
+            m.lighting.reflectTex = l.reflect > 0.0f ? &reflectionMap : nullptr;
+            break;
+        }
     }
 
     meshes.reserve(meshCount);
@@ -200,6 +221,24 @@ bool W3DAssets::load(const std::string &path) {
                     std::swap(m.idx[t + 1], m.idx[t + 2]);
         }
 
+        // The packed vertex normals are unreliable (flat road faces carry
+        // (1, 0.05, 0) instead of (0, 1, 0)), which only showed once real
+        // lighting was in. Rebuild smooth normals from the geometry: each
+        // vertex averages the area-weighted normals of the faces using it.
+        // Vertices are already split at the authored UV / smoothing seams.
+        if (!m.idx.empty()) {
+            for (Vertex &v : m.verts) v.n = {};
+            for (size_t t = 0; t + 2 < m.idx.size(); t += 3) {
+                Vertex &a = m.verts[m.idx[t]], &b = m.verts[m.idx[t + 1]], &c = m.verts[m.idx[t + 2]];
+                Vec3 fn = (b.p - a.p).cross(c.p - a.p);
+                a.n += fn; b.n += fn; c.n += fn;
+            }
+            for (Vertex &v : m.verts) {
+                float len = v.n.length();
+                v.n = len > 1e-9f ? v.n / len : Vec3(0, 1, 0);
+            }
+        }
+
         byName[m.name] = meshes.size();
         meshes.push_back(std::move(m));
     }
@@ -224,6 +263,22 @@ int W3DAssets::meshIndex(const std::string &name) const {
     return it == byName.end() ? -1 : int(it->second);
 }
 
+bool loadTexture(const std::string &path, Texture &out) {
+    sf::Image img;
+    if (!img.loadFromFile(path)) {
+        std::fprintf(stderr, "assets: missing %s\n", path.c_str());
+        return false;
+    }
+    auto size = img.getSize();
+    out.w = int(size.x);
+    out.h = int(size.y);
+    out.px.resize(size_t(out.w) * out.h);
+    const uint8_t *src = img.getPixelsPtr();
+    for (size_t i = 0; i < out.px.size(); ++i)
+        out.px[i] = packRGBA(src[i * 4], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3]);
+    return true;
+}
+
 const Texture *W3DAssets::texture(int material) const {
     if (material < 0 || material >= int(materials.size())) return nullptr;
     int t = materials[size_t(material)].texture;
@@ -245,12 +300,15 @@ void drawAssetMesh(Renderer &r, const Camera &cam, const Mat4 &model,
             bool blend = m ? m->blend : false;
             if ((pass == 0 && blend) || (pass == 1 && !blend)) continue;
             const Texture *tex = m ? gAssets.texture(g.material) : nullptr;
-            uint32_t tint = m ? m->color : 0xffffffffu;
+            uint32_t tint = m ? m->tint() : 0xffffffffu;
+            if (m) r.setSurface(m->lighting);
+            else r.resetSurface();
             float alpha = (m ? m->opacity : 1.0f) * alphaScale;
             r.drawMesh(cam, model, mesh, tex, tint, unlit, blend ? 0 : cull, alpha,
                        !blend, g.start, g.count);
         }
     }
+    r.resetSurface();
 }
 
 } // namespace rr4

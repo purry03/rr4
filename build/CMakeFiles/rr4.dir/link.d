@@ -12,6 +12,10 @@ rr4: \
   CMakeFiles/rr4.dir/src/collision.cpp.o \
   CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o \
   CMakeFiles/rr4.dir/src/font.cpp.o \
+  CMakeFiles/rr4.dir/src/ferris.cpp.o \
+  CMakeFiles/rr4.dir/src/race.cpp.o \
+  CMakeFiles/rr4.dir/src/race_data.gen.cpp.o \
+  CMakeFiles/rr4.dir/src/material_data.gen.cpp.o \
   /usr/lib/x86_64-linux-gnu/libsfml-graphics.so.3.0.2 \
   /usr/lib/x86_64-linux-gnu/libsfml-window.so.3.0.2 \
   /usr/lib/x86_64-linux-gnu/libsfml-audio.so.3.0.2 \
@@ -96,6 +100,14 @@ CMakeFiles/rr4.dir/src/collision.cpp.o:
 CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.o:
 
 CMakeFiles/rr4.dir/src/font.cpp.o:
+
+CMakeFiles/rr4.dir/src/ferris.cpp.o:
+
+CMakeFiles/rr4.dir/src/race.cpp.o:
+
+CMakeFiles/rr4.dir/src/race_data.gen.cpp.o:
+
+CMakeFiles/rr4.dir/src/material_data.gen.cpp.o:
 
 /usr/lib/x86_64-linux-gnu/libsfml-graphics.so.3.0.2:
 
