@@ -48,6 +48,30 @@ SLOTS = {
     57: "RadarStage",
     58: "RadarPointPod",
     59: "RadarRacePod",
+    # Front end: logo, menu buttons, pause backdrop
+    10: "MenuLogo",
+    71: "ButtonHowToPlay",
+    72: "ButtonStart",
+    73: "ButtonCredits",
+    74: "ButtonBack",
+    77: "PauseBackground",
+    # doColorTank: splash (161..168) and paint can (171..178) textures
+    161: "ColorSplash1",
+    162: "ColorSplash2",
+    163: "ColorSplash3",
+    164: "ColorSplash4",
+    165: "ColorSplash5",
+    166: "ColorSplash6",
+    167: "ColorSplash7",
+    168: "ColorSplash8",
+    171: "ColorCan1",
+    172: "ColorCan2",
+    173: "ColorCan3",
+    174: "ColorCan4",
+    175: "ColorCan5",
+    176: "ColorCan6",
+    177: "ColorCan7",
+    178: "ColorCan8",
 }
 # Car paint jobs: doSetupShells swaps each shell texture for
 # member(150 + g_CarsColorIDList[car], "Textures").

@@ -103,31 +103,11 @@ void drawText(Renderer &r, int x, int y, const std::string &text,
 }
 
 void fillRect(Renderer &r, int x, int y, int w, int h, uint32_t color) {
-    r.flush();
-    int x0 = std::max(0, x), y0 = std::max(0, y);
-    int x1 = std::min(r.width, x + w), y1 = std::min(r.height, y + h);
-    if (x1 <= x0 || y1 <= y0) return;
-    for (int yy = y0; yy < y1; ++yy)
-        std::fill(r.color.begin() + size_t(yy) * r.width + x0,
-                  r.color.begin() + size_t(yy) * r.width + x1, color);
+    r.drawRect(x, y, w, h, color, 1.0f);
 }
 
 void blendRect(Renderer &r, int x, int y, int w, int h, uint32_t color, float alpha) {
-    r.flush();
-    int x0 = std::max(0, x), y0 = std::max(0, y);
-    int x1 = std::min(r.width, x + w), y1 = std::min(r.height, y + h);
-    if (x1 <= x0 || y1 <= y0) return;
-    int sr = color & 255, sg = (color >> 8) & 255, sb = (color >> 16) & 255;
-    for (int yy = y0; yy < y1; ++yy) {
-        uint32_t *row = r.color.data() + size_t(yy) * r.width;
-        for (int xx = x0; xx < x1; ++xx) {
-            uint32_t d = row[xx];
-            int dr = d & 255, dg = (d >> 8) & 255, db = (d >> 16) & 255;
-            row[xx] = packRGBA(int(sr * alpha + dr * (1 - alpha)),
-                               int(sg * alpha + dg * (1 - alpha)),
-                               int(sb * alpha + db * (1 - alpha)));
-        }
-    }
+    r.drawRect(x, y, w, h, color, alpha);
 }
 
 } // namespace rr4

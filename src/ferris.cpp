@@ -1,4 +1,5 @@
 #include "ferris.hpp"
+#include "garage.hpp"
 #include "assets.hpp"
 #include "car.hpp"
 
@@ -23,6 +24,20 @@ bool inEntryZone(const Vec3 &diff) {
 }
 } // namespace
 
+bool FerrisWheel::cullTo(const Vec3 &focus) {
+    Vec3 diff = kWheelPos - focus;
+    diff.y = 0.0f;
+    if (diff.length() >= kSpawnDist) {
+        spawned_ = visible_ = false;
+        return false;
+    }
+    visible_ = true;
+    if (spawned_) return false;
+    reset();
+    spawned_ = true;
+    return true;
+}
+
 void FerrisWheel::setup(int *owned) {
     gWheelMesh = gAssets.meshIndex("FerrisWheel_WHEEL_001");
     gAxleMesh = gAssets.meshIndex("FerrisWheel_AXLE_000");
@@ -44,7 +59,7 @@ void FerrisWheel::reset() {
     swing_ = swingVel_ = 0.0f;
     int next = 2;
     for (int i = 0; i < 6; ++i)
-        if (owned_[i] == 1 && next <= 6) cageCar_[(next++) - 1] = i + 1;
+        if (owned_[i] == kOwnedParked && next <= kCarCount) cageCar_[(next++) - 1] = i + 1;
     swing(1.0f);
 }
 
@@ -106,17 +121,7 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
     switch (state_) {
     case 0:
         if (inEntryZone(diff) && car.damage < 1.0f) state_ = 1;
-        if (diff.length() < 4500.0f) {
-            visible_ = true;
-            if (!spawned_) {
-                reset();
-                spawned_ = true;
-                respawned = true;
-            }
-        } else {
-            spawned_ = false;
-            visible_ = false;
-        }
+        if (cullTo(car.pos)) respawned = true;
         break;
     case 1:
         if (inEntryZone(diff)) {
@@ -137,6 +142,7 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
                 cageCar_[cage_ - 1] = car.carId;
                 car.parked = true;
                 car.doPanel(8, 0);       // FERRIS' WHEELS instructions
+                car.saveGame = true;
                 car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
                 car.resetParts();
             }
@@ -148,10 +154,11 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
         if (in.down && !in.up) {
             // Reverse out with the car in front of you.
             state_ = 0;
-            owned_[enterCar_ - 1] = 1;
+            owned_[enterCar_ - 1] = kOwnedParked;
             int id = cageCar_[cage_ - 1];
-            owned_[id - 1] = 2;
+            owned_[id - 1] = kOwnedDriving;
             car.setCar(id);
+            car.saveGame = true;
             car.parked = false;
             car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
             car.doPanel(0, 0);

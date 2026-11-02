@@ -127,6 +127,12 @@ struct Mat4 {
     }
 };
 
+// Director pointAt (default orientation): the yaw that turns a model's -Z
+// towards `to`.
+inline float pointAtYaw(const Vec3 &from, const Vec3 &to) {
+    return std::atan2(to.x - from.x, to.z - from.z) + PI;
+}
+
 inline Mat4 operator*(const Mat4 &a, float s) {
     Mat4 r = a;
     for (float &v : r.m) v *= s;

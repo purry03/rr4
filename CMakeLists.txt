@@ -5,11 +5,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(SFML 3 COMPONENTS Graphics Window System Audio REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
+pkg_check_modules(SDL2_IMAGE REQUIRED IMPORTED_TARGET SDL2_image)
+find_package(OpenGL REQUIRED)
 
 add_executable(rr4
     src/main.cpp
     src/renderer.cpp
+    src/gl_renderer.cpp
     src/assets.cpp
     src/world.cpp
     src/car.cpp
@@ -21,10 +25,22 @@ add_executable(rr4
     src/ferris.cpp
     src/race.cpp
     src/race_data.gen.cpp
+    src/traffic.cpp
+    src/traffic_data.gen.cpp
+    src/plane.cpp
+    src/stage.cpp
+    src/colortank.cpp
+    src/savegame.cpp
+    src/menu.cpp
+    src/spritefont.cpp
+    src/settings.cpp
+    src/keyvalue.cpp
+    src/cinematic.cpp
+    src/stage_data.gen.cpp
     src/material_data.gen.cpp
 )
 
 target_include_directories(rr4 PRIVATE src)
-target_link_libraries(rr4 PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio)
+target_link_libraries(rr4 PRIVATE PkgConfig::SDL2 PkgConfig::SDL2_IMAGE OpenGL::GL)
 
 target_compile_options(rr4 PRIVATE -O2 -Wall -Wextra -Wno-unused-parameter)

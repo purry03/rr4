@@ -31,6 +31,7 @@ struct AssetMaterial {
     float opacity = 1.0f;
     bool blend = false;
     SurfaceLighting lighting;   // from the original material resource / shader
+    float du = 0.0f, dv = 0.0f; // runtime texture scroll (tile batches)
     // Texture multiplier for drawMesh: only the alpha of `color`; the RGB
     // part reaches the lighting as the diffuse colour instead.
     uint32_t tint() const { return (color & 0xff000000u) | 0x00ffffffu; }
@@ -70,5 +71,30 @@ bool loadTexture(const std::string &path, Texture &out);
 void drawAssetMesh(Renderer &r, const Camera &cam, const Mat4 &model,
                    const AssetMesh &mesh, bool unlit = false,
                    float alphaScale = 1.0f, bool fog = true, int cull = 1);
+
+// Draw a mesh group by group like drawAssetMesh (opaque first, alpha
+// second), letting the caller scroll, tint or hide individual shaders.
+template <class Fn>
+void drawAssetGroups(Renderer &r, const Camera &cam, const Mat4 &model, const AssetMesh &mesh,
+                Fn &&shader) {
+    r.setWorldFog();
+    for (int pass = 0; pass < 2; ++pass) {
+        for (size_t g = 0; g < mesh.groups.size(); ++g) {
+            const AssetGroup &grp = mesh.groups[g];
+            if (grp.count == 0 || grp.material < 0) continue;
+            const AssetMaterial &m = gAssets.materials[size_t(grp.material)];
+            if ((pass == 0) == m.blend) continue;
+            uint32_t tint = m.tint();
+            float du = 0.0f, dv = 0.0f;
+            if (!shader(int(g), tint, du, dv)) continue;
+            r.setSurface(m.lighting);
+            r.setUVOffset(du, dv);
+            r.drawMesh(cam, model, mesh, gAssets.texture(grp.material), tint, false,
+                       m.blend ? 0 : 1, m.opacity, !m.blend, grp.start, grp.count);
+        }
+    }
+    r.setUVOffset(0.0f, 0.0f);
+    r.resetSurface();
+}
 
 } // namespace rr4

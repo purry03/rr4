@@ -1,0 +1,8 @@
+# Redline Rumble 4 save
+# cars 1..6: MeanieCropper Bitsasushi Amazed HighWire Posher Furore
+# cars_owned: 2 = driving, 1 = parked at Ferris' Wheels, 0 = not owned
+version = 1
+cars_owned = 1 1 0 1 0 2
+car_colors = 1 2 3 4 5 1
+car_damage = 0.00 0.11 0.00 0.41 0.00 0.13
+car_ignitro = 1.00 0.00 1.00 0.00 1.00 0.00

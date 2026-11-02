@@ -207,7 +207,9 @@ def tr_expr(e, vec):
     e = e.replace("tempTileRot", "tileRot")
     e = e.replace("g_DamagePercent", "damage")
     e = re.sub(r"\bPI\b", PI, e)
-    e = re.sub(r"\bradians\b", "(" + PI + " / 180.0)", e)
+    # `radians` is a property set in doSetupPlayerCar: radians = 180.0 / PI,
+    # so `deg / radians` converts degrees to radians.
+    e = re.sub(r"\bradians\b", "(180.0 / " + PI + ")", e)
     # Lingo operators.
     e = re.sub(r"\bmod\b", "%", e)
     e = re.sub(r"\band\b", "&&", e)
@@ -243,7 +245,7 @@ def tr_stmt(s, vec, ind):
     if isinstance(s, Assign):
         lhs = s.lhs
         if lhs == "gPlaneCollider.worldPosition":
-            return [pad + "planeLocal = (" + tr_expr(s.rhs, vec) + ") - ctx.planePos;"]
+            return [pad + "planeLocal = ctx.planeToLocal(" + tr_expr(s.rhs, vec) + ");"]
         m = re.match(r"gPlaneCollider\.transform\.position\.([xyz])$", lhs)
         if m:
             return [pad + "planeLocal." + m.group(1) + " = " + tr_expr(s.rhs, vec) + ";"]

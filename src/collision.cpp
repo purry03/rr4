@@ -7,25 +7,6 @@
 
 namespace rr4 {
 
-namespace {
-// mRadar is the airport radar dish; doUpdate rotates it 5 degrees per frame.
-float gRadarAngle = 0.0f;
-
-// mPlane starts parked at airPortOrigin (doSetupPlane). The plane collider is
-// a child of the plane, so its local position is relative to this point.
-const Vec3 kPlaneOrigin{7500.0f, 0.0f, 7500.0f};
-} // namespace
-
-void collideAdvanceFrame(float fps) {
-    gRadarAngle += 5.0f * fps;
-    if (gRadarAngle > 360.0f) gRadarAngle -= 360.0f;
-}
-
-Vec3 collideRadarXAxis() {
-    float a = deg2rad(gRadarAngle);
-    return {std::cos(a), 0.0f, -std::sin(a)};
-}
-
 void CollisionCtx::push(float r, const Vec3 &o, int zeroY, int playSfx) {
     // diffVector = tilePos + pushOrigin - (carPos + velVector * g_FPSFactor)
     Vec3 diff = tilePos + o - (carPos + vel * fps);
@@ -49,8 +30,6 @@ void CollisionCtx::push(float r, const Vec3 &o, int zeroY, int playSfx) {
 }
 
 void resolveTileCollisions(const World &world, Car &car) {
-    // doUpdate() spins the airport radar 5 degrees per frame.
-    collideAdvanceFrame(1.0f);
     // onTileCol = integer(x / 5000 + 0.5), onTileRow likewise.
     int col = world.tileColAt(car.pos.x);
     int row = world.tileRowAt(car.pos.z);
@@ -83,8 +62,8 @@ void resolveTileCollisions(const World &world, Car &car) {
     ctx.damage = car.damage;
     ctx.radius = 140.0f;
     ctx.fps = 1.0f;
-    ctx.planePos = kPlaneOrigin;
-    ctx.radarXAxis = collideRadarXAxis();
+    ctx.plane = world.plane.transform();
+    ctx.radarXAxis = world.radarXAxis();
 
     for (int i = 0; i < 4; ++i) {
         int c = listCol[i], rw = listRow[i];

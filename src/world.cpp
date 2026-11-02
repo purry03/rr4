@@ -34,10 +34,10 @@ const int kTileRot[GRID * GRID] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3,
-    0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 2, 0,
-    2, 0, 0, 2, 1, 0, 0, 2, 0, 0, 0, 2,
-    1, 1, 2, 3, 1, 1, 0, 2, 3, 2, 3, 3,
+    0, 0, 0, 3, 0, 3, 0, 0, 3, 0, 0, 0,
+    0, 0, 2, 0, 2, 0, 0, 2, 1, 0, 0, 2,
+    0, 0, 0, 2, 1, 1, 2, 3, 1, 1, 0, 2,
+    3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2,
 };
 
 static const char *kTileNames[38] = {
@@ -168,10 +168,7 @@ void appendSource(std::vector<TileBatch> &batches,
         int bi = matToBatch[size_t(g.material)];
         if (bi < 0) continue;
         TileBatch &b = batches[size_t(bi)];
-        uint32_t base = uint32_t(b.mesh.verts.size());
-        b.mesh.verts.insert(b.mesh.verts.end(), src.verts.begin(), src.verts.end());
-        for (uint32_t i = 0; i < g.count; ++i)
-            b.mesh.idx.push_back(base + src.idx[g.start + i]);
+        b.ranges.push_back({&src, g.start, g.count});
     }
 }
 
@@ -235,8 +232,6 @@ void World::buildHeights() {
     for (int id = 1; id <= 37; ++id) {
         auto &grid = heights[size_t(id)];
         grid.assign(size_t(HMAP) * HMAP, HeightCell{});
-        const AssetMesh *base = kBaseName[id] ? gAssets.mesh(kBaseName[id]) : nullptr;
-        if (!base) continue;
         auto insert = [](HeightCell &c, float y) {
             for (int i = 0; i < 4; ++i)
                 if (std::fabs(c.y[i] - y) < 1.0f) return;
@@ -245,38 +240,53 @@ void World::buildHeights() {
             while (p > 0 && c.y[p - 1] < y) { c.y[p] = c.y[p - 1]; --p; }
             c.y[p] = y;
         };
-        for (size_t t = 0; t + 2 < base->idx.size(); t += 3) {
-            const Vec3 &a = base->verts[base->idx[t]].p;
-            const Vec3 &b = base->verts[base->idx[t + 1]].p;
-            const Vec3 &c = base->verts[base->idx[t + 2]].p;
-            float den = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
-            if (std::fabs(den) < 1e-6f) continue;
-            float minX = std::min({a.x, b.x, c.x}), maxX = std::max({a.x, b.x, c.x});
-            float minZ = std::min({a.z, b.z, c.z}), maxZ = std::max({a.z, b.z, c.z});
-            int gx0 = std::max(0, int((minX + 2500.0f) / TILE_SIZE * HMAP));
-            int gx1 = std::min(HMAP - 1, int((maxX + 2500.0f) / TILE_SIZE * HMAP));
-            int gz0 = std::max(0, int((minZ + 2500.0f) / TILE_SIZE * HMAP));
-            int gz1 = std::min(HMAP - 1, int((maxZ + 2500.0f) / TILE_SIZE * HMAP));
-            for (int gz = gz0; gz <= gz1; ++gz) {
-                float pz = -2500.0f + (float(gz) + 0.5f) / HMAP * TILE_SIZE;
-                for (int gx = gx0; gx <= gx1; ++gx) {
-                    float px = -2500.0f + (float(gx) + 0.5f) / HMAP * TILE_SIZE;
-                    float u = ((px - a.x) * (c.z - a.z) - (c.x - a.x) * (pz - a.z)) / den;
-                    float v = ((b.x - a.x) * (pz - a.z) - (px - a.x) * (b.z - a.z)) / den;
-                    if (u < -0.001f || v < -0.001f || u + v > 1.001f) continue;
-                    float y = a.y + u * (b.y - a.y) + v * (c.y - a.y);
-                    insert(grid[size_t(gz) * HMAP + gx], y);
+        auto raster = [&](const AssetMesh *mesh) {
+            if (!mesh) return;
+            for (size_t t = 0; t + 2 < mesh->idx.size(); t += 3) {
+                const Vec3 &a = mesh->verts[mesh->idx[t]].p;
+                const Vec3 &b = mesh->verts[mesh->idx[t + 1]].p;
+                const Vec3 &c = mesh->verts[mesh->idx[t + 2]].p;
+                float den = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+                if (std::fabs(den) < 1e-6f) continue;
+                float minX = std::min({a.x, b.x, c.x}), maxX = std::max({a.x, b.x, c.x});
+                float minZ = std::min({a.z, b.z, c.z}), maxZ = std::max({a.z, b.z, c.z});
+                int gx0 = std::max(0, int((minX + 2500.0f) / TILE_SIZE * HMAP));
+                int gx1 = std::min(HMAP - 1, int((maxX + 2500.0f) / TILE_SIZE * HMAP));
+                int gz0 = std::max(0, int((minZ + 2500.0f) / TILE_SIZE * HMAP));
+                int gz1 = std::min(HMAP - 1, int((maxZ + 2500.0f) / TILE_SIZE * HMAP));
+                for (int gz = gz0; gz <= gz1; ++gz) {
+                    float pz = -2500.0f + (float(gz) + 0.5f) / HMAP * TILE_SIZE;
+                    for (int gx = gx0; gx <= gx1; ++gx) {
+                        float px = -2500.0f + (float(gx) + 0.5f) / HMAP * TILE_SIZE;
+                        float u = ((px - a.x) * (c.z - a.z) - (c.x - a.x) * (pz - a.z)) / den;
+                        float v = ((b.x - a.x) * (pz - a.z) - (px - a.x) * (b.z - a.z)) / den;
+                        if (u < -0.001f || v < -0.001f || u + v > 1.001f) continue;
+                        float y = a.y + u * (b.y - a.y) + v * (c.y - a.y);
+                        insert(grid[size_t(gz) * HMAP + gx], y);
+                    }
                 }
             }
-        }
+        };
+        // The base resource is the ground; the objects resource adds the
+        // driveable road where it is not part of the base (the airport tunnel
+        // interior, the canal bridges). Roofs and other high surfaces are
+        // ignored by groundHeightAt's pick (it takes the highest surface at or
+        // below the car), so they only ever add a deck the car could land on.
+        // The base resource is the ground; for the airport tunnel tiles the
+        // driveable road is part of the objects resource instead (the base is
+        // just a flat floor slab), so those also rasterize their objects mesh.
+        // The original doRayCasting casts against the tile's base resource
+        // only, which is why these tiles were empty inside the tunnel.
+        if (kBaseName[id]) raster(gAssets.mesh(kBaseName[id]));
+        if (id >= 29 && id <= 33 && kObjectsName[id]) raster(gAssets.mesh(kObjectsName[id]));
     }
 }
 
-float World::groundHeightAt(float x, float z, float nearY) const {
+const HeightCell *World::heightCellAt(float x, float z) const {
     int idx = tileIndexAt(x, z);
-    if (idx < 0) return 0.0f;
+    if (idx < 0) return nullptr;
     int id = kTileID[idx];
-    if (id <= 0 || id > 37 || heights[size_t(id)].empty()) return 0.0f;
+    if (id <= 0 || id > 37 || heights[size_t(id)].empty()) return nullptr;
 
     Vec3 center = tileCenter(idx % GRID + 1, idx / GRID + 1);
     Vec3 d{x - center.x, 0.0f, z - center.z};
@@ -287,19 +297,77 @@ float World::groundHeightAt(float x, float z, float nearY) const {
     int gz = int((local.z + 2500.0f) / TILE_SIZE * HMAP);
     gx = std::max(0, std::min(HMAP - 1, gx));
     gz = std::max(0, std::min(HMAP - 1, gz));
-
-    const HeightCell &c = heights[size_t(id)][size_t(gz) * HMAP + gx];
-    float best = -1e30f, lowest = 1e30f;
-    for (int i = 0; i < 4; ++i) {
-        float y = c.y[i];
-        if (y <= -1e29f) continue;
-        lowest = std::min(lowest, y);
-        if (y <= nearY + 140.0f && y > best) best = y;
-    }
-    if (best <= -1e29f) best = (lowest < 1e29f) ? lowest : 0.0f;
-    return best;
+    return &heights[size_t(id)][size_t(gz) * HMAP + gx];
 }
 
+bool World::groundRayAt(float x, float z, float nearY, float &y) const {
+    const HeightCell *c = heightCellAt(x, z);
+    // Off the map or a tile without a height field: flat ground at 0.
+    if (!c) { y = 0.0f; return true; }
+    float best = kNoSurface;
+    bool any = false;
+    for (float s : c->y) {
+        if (s <= kNoSurface) continue;
+        any = true;
+        if (s <= nearY + kGroundRayAbove && s > best) best = s;
+    }
+    // A cell no triangle covers is a gap in the rasterized height field, not
+    // a hole in the original mesh: keep it flat at 0 as before.
+    if (!any) { y = 0.0f; return true; }
+    if (best <= kNoSurface) return false;
+    y = best;
+    return true;
+}
+
+float World::groundHeightAt(float x, float z, float nearY) const {
+    float y;
+    if (groundRayAt(x, z, nearY, y)) return y;
+    // Nothing at or below nearY: snap up to the lowest surface instead.
+    const HeightCell *c = heightCellAt(x, z);
+    float lowest = -kNoSurface;
+    for (float s : c->y)
+        if (s > kNoSurface) lowest = std::min(lowest, s);
+    return lowest < -kNoSurface ? lowest : 0.0f;
+}
+
+bool World::groundRaySmooth(float x, float z, float nearY, float &y) const {
+    // Same lattice as groundHeightSmooth, but cells the ray misses (beside the
+    // airport tunnel floor, nothing lies below a car inside it) drop out of
+    // the blend instead of pulling the surface up to the roof slab.
+    const float cell = TILE_SIZE / float(HMAP);
+    float fx = x / cell - 0.5f, fz = z / cell - 0.5f;
+    float x0 = std::floor(fx), z0 = std::floor(fz);
+    float tx = fx - x0, tz = fz - z0;
+    float sum = 0.0f, weight = 0.0f;
+    for (int k = 0; k < 2; ++k)
+        for (int i = 0; i < 2; ++i) {
+            float w = (i ? tx : 1.0f - tx) * (k ? tz : 1.0f - tz);
+            float h;
+            if (w <= 0.0f ||
+                !groundRayAt((x0 + float(i) + 0.5f) * cell, (z0 + float(k) + 0.5f) * cell, nearY, h))
+                continue;
+            sum += h * w;
+            weight += w;
+        }
+    if (weight <= 0.0f) return false;
+    y = sum / weight;
+    return true;
+}
+
+float World::groundHeightSmooth(float x, float z, float nearY) const {
+    // Height cells sit on a world-aligned lattice (tile corners are multiples
+    // of 5000 and tiles turn in 90 degree steps), centres at (i + 0.5) * cell.
+    const float cell = TILE_SIZE / float(HMAP);
+    float fx = x / cell - 0.5f, fz = z / cell - 0.5f;
+    float x0 = std::floor(fx), z0 = std::floor(fz);
+    float tx = fx - x0, tz = fz - z0;
+    auto h = [&](float i, float k) {
+        return groundHeightAt((i + 0.5f) * cell, (k + 0.5f) * cell, nearY);
+    };
+    float a = h(x0, z0) + (h(x0 + 1, z0) - h(x0, z0)) * tx;
+    float b = h(x0, z0 + 1) + (h(x0 + 1, z0 + 1) - h(x0, z0 + 1)) * tx;
+    return a + (b - a) * tz;
+}
 
 void World::buildProps() {
     auto add = [&](const char *name, const Mat4 &xf, bool unlit = false,
@@ -320,10 +388,7 @@ void World::buildProps() {
         Mat4::translation({22500, 0, 12500}) * Mat4::rotationY(deg2rad(90)));
     add("TALLOBJECT_Lunkopf&StubbsCigarette_000",
         Mat4::translation({22500, 115, 800}));
-    add("AirPortRadar_000", Mat4::translation({3500, 0, 13500}));
     add("TALLOBJECT_OuterWalls_000", Mat4::identity());
-    // Static airliner parked at the airport end of the runway.
-    add("TrafficBoeing747_001", Mat4::translation({7500, 0, 7500}));
 
     // doSetupRixRapidRepairs: the shutter sits at mFerrisWheel.worldPosition
     // (32500, 440, 32500) + (1152, -378, 1050), rotation (0, 0, 0).
@@ -334,18 +399,58 @@ void World::buildProps() {
     // doSetupigNitro: ten bottle clones; in free drive only the first is
     // shown, at (34017.54, 50, 32709.34). The race/stage lists place the
     // others when those modes start, which this build does not have.
+    radarMesh = gAssets.meshIndex("AirPortRadar_000");
     nitroMesh = gAssets.meshIndex("igNitroBottle_001");
     // Ten clones; races reuse the first ones for their own bottles.
     nitroPickups.assign(10, {{}, false});
     nitroPickups[0] = {kFerrisNitroPos, true};
 }
 
+void World::setupAmbient() {
+    if (ambientReady) return;
+    traffic.setup();
+    plane.setup();
+    ferris.setup(carsOwned);
+    ambientReady = true;
+}
+
+void World::updateAmbient(const Vec3 &focus) {
+    if (!ready) return;
+    setupAmbient();
+    ++ticks;
+    traffic.update(*this, focus, ticks);
+    traffic.updateLights(ticks);
+    plane.update(ticks);
+    ferris.cullTo(focus);
+    radarAngle = std::fmod(radarAngle + kRadarDegPerFrame, 360.0f);
+}
+
+void World::newSession(const int owned[kCarCount], const int colors[kCarCount]) {
+    ferris = FerrisWheel{};
+    race = Race{};
+    stage = Stage{};
+    colorTank = ColorTank{};
+    objectsReady = false;
+    ambientReady = false;
+    firstIgNitro = true;
+    nitroPickups.assign(nitroPickups.size(), {{}, false});
+    if (!nitroPickups.empty()) nitroPickups[0] = {kFerrisNitroPos, true};
+    for (int i = 0; i < kCarCount; ++i) {
+        carsOwned[i] = owned[i];
+        carColors[i] = colors[i];
+        setCarPaint(i + 1, colors[i]);
+    }
+}
+
 void World::doWorldObjects(Car &car, const CarInput &in) {
     if (!ready) return;   // tile-lookup-only worlds (physics/camera traces)
     if (!objectsReady) {
-        carsOwned[size_t(car.carId - 1)] = 2;
+        setupAmbient();
+        carsOwned[size_t(car.carId - 1)] = kOwnedDriving;
         ferris.setup(carsOwned);
         race.setup();
+        stage.setup();
+        colorTank.setup();
         objectsReady = true;
     }
     race.updateOpponent(car, *this);
@@ -356,9 +461,14 @@ void World::doWorldObjects(Car &car, const CarInput &in) {
     }
     // doFerrisWheel: coming back to the wheel mid-race abandons it.
     if (ferris.inRange() && ferris.state() == 0 && race.state() == 2) race.abandon(car, *this);
+    plane.update(ticks);   // doPlane, after doCollisions
     doRixRapidRepairs(car);
+    colorTank.update(car, in, carColors);   // doColorTank
     doIgNitro(car);
     race.updateFlag(car, *this);
+    stage.update(car, *this);   // doPointsFlag, doPointPods
+    // doAnims: mRadar.rotate(0, 5 * g_FPSFactor, 0)
+    radarAngle = std::fmod(radarAngle + kRadarDegPerFrame, 360.0f);
 }
 
 // doIgNitro: drive within 150 of a visible bottle to collect it. The first
@@ -418,6 +528,7 @@ void World::doRixRapidRepairs(Car &car) {
     } else {
         car.repairState = 0;
         car.doPanel(0, 0);
+        car.saveGame = true;
     }
 }
 
@@ -440,11 +551,15 @@ void World::draw(Renderer &r, const Camera &cam) {
     if (!ready) return;
     r.setLights(kSceneLights, kSceneLightCount);
 
-    r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
-
     int pc = tileColAt(cam.pos.x);
     int pr = tileRowAt(cam.pos.z);
-    const int dist = 2;
+    // Tiles drawn around the camera (the original visTileDist is 2). The fog
+    // is solid kFogMargin before the nearest undrawn tile and starts at
+    // kFogStartShare of that.
+    const int dist = std::clamp(drawDistance, kMinDrawDistance, kMaxDrawDistance);
+    const float fogEnd = float(dist) * TILE_SIZE - kFogMargin;
+    r.setWorldFogRange(fogEnd * kFogStartShare, fogEnd);
+    r.setWorldFog();
 
     // Only reject a tile when its whole square (half-diagonal radius) is
     // behind the camera plane. Anything that can reach the image is still
@@ -463,7 +578,7 @@ void World::draw(Renderer &r, const Camera &cam) {
     // Pass 1: opaque tile batches, nearest tile first so the depth test
     // rejects hidden pixels before they are shaded.
     struct NearTile { int col, row; float d2; };
-    NearTile near[(2 * dist + 1) * (2 * dist + 1)];
+    NearTile near[(2 * kMaxDrawDistance + 1) * (2 * kMaxDrawDistance + 1)];
     int nearCount = 0;
     for (int row = std::max(1, pr - dist); row <= std::min(GRID, pr + dist); ++row)
         for (int col = std::max(1, pc - dist); col <= std::min(GRID, pc + dist); ++col) {
@@ -482,15 +597,22 @@ void World::draw(Renderer &r, const Camera &cam) {
         Mat4 xf = Mat4::translation(center) *
                   Mat4::rotationY(deg2rad(-90.0f * float(kTileRot[idx])));
         for (const TileBatch &b : protos[size_t(id)].batches) {
-            if (b.blend || b.mesh.idx.empty()) continue;
+            if (b.blend || b.ranges.empty()) continue;
             const AssetMaterial &mat = gAssets.materials[size_t(b.material)];
+            const Texture *tex = gAssets.texture(b.material);
             r.setSurface(mat.lighting);
-            r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.tint(),
-                       false, true, mat.opacity, true);
+            r.setUVOffset(mat.du, mat.dv);
+            for (const TileRange &range : b.ranges) {
+                if (!range.mesh || range.indexCount == 0) continue;
+                r.drawMesh(cam, xf, *range.mesh, tex, mat.tint(),
+                           false, true, mat.opacity, true,
+                           range.indexBegin, range.indexCount);
+            }
         }
     }
 
     r.resetSurface();
+    r.setUVOffset(0.0f, 0.0f);
 
     // Opaque props.
     for (const WorldProp &p : props) {
@@ -510,7 +632,7 @@ void World::draw(Renderer &r, const Camera &cam) {
         r.setFog(packRGBA(176, 203, 226), 1.0e8f, 2.0e8f);
         Mat4 m = Mat4::translation({cam.pos.x, 0.0f, cam.pos.z});
         drawAssetMesh(r, cam, m, *sky, true, 1.0f, false);
-        r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
+        r.setWorldFog();
     }
 
     // Pass 2: baked shadow planes and other alpha material batches.
@@ -524,17 +646,33 @@ void World::draw(Renderer &r, const Camera &cam) {
             Mat4 xf = Mat4::translation(center) *
                       Mat4::rotationY(deg2rad(-90.0f * float(kTileRot[idx])));
             for (const TileBatch &b : protos[size_t(id)].batches) {
-                if (!b.blend || b.mesh.idx.empty()) continue;
+                if (!b.blend || b.ranges.empty()) continue;
                 const AssetMaterial &mat = gAssets.materials[size_t(b.material)];
+                const Texture *tex = gAssets.texture(b.material);
                 r.setSurface(mat.lighting);
-                r.drawMesh(cam, xf, b.mesh, gAssets.texture(b.material), mat.tint(),
-                           false, false, mat.opacity, false);
+                r.setUVOffset(mat.du, mat.dv);
+                for (const TileRange &range : b.ranges) {
+                    if (!range.mesh || range.indexCount == 0) continue;
+                    r.drawMesh(cam, xf, *range.mesh, tex, mat.tint(),
+                               false, false, mat.opacity, false,
+                               range.indexBegin, range.indexCount);
+                }
             }
         }
     }
 
+    r.setUVOffset(0.0f, 0.0f);
     ferris.draw(r, cam);
     race.draw(r, cam);
+    colorTank.draw(r, cam);
+    stage.draw(r, cam);
+    traffic.draw(r, cam);
+    plane.draw(r, cam);
+    // doSetupTallObjects: mRadar at (3500, 0, 13500), spun by doAnims.
+    if (radarMesh >= 0)
+        drawAssetMesh(r, cam,
+                      Mat4::translation({3500, 0, 13500}) * Mat4::rotationY(deg2rad(radarAngle)),
+                      gAssets.meshes[size_t(radarMesh)]);
 
     // igNitro pickups: rotation (0, 180, 120), scale 2.
     if (nitroMesh >= 0) {
@@ -552,8 +690,23 @@ void World::draw(Renderer &r, const Camera &cam) {
     }
 }
 
+Vec3 World::rixDoorPos() { return kRixDoorPos; }
+
 void World::resolveCarCollision(Car &car) const {
     // doCollisions(): the original radial pushes for the four nearest tiles.
+    resolveTileCollisions(*this, car);
+}
+
+void World::doCollisions(Car &car) {
+    ++ticks;
+    // doTraffic and doTrafficLights run first in enterFrame; nothing between
+    // them and doCollisions moves the player, so running them here is the
+    // same order.
+    if (ready && objectsReady) {
+        traffic.update(*this, car.pos, ticks);
+        traffic.updateLights(ticks);
+        traffic.collide(car);
+    }
     resolveTileCollisions(*this, car);
 }
 
@@ -604,10 +757,17 @@ void World::updateGround(Car &car) const {
         Vec3 p = car.pos + local;
         // The ray starts 60 above the cage point and goes straight down.
         float reach = p.y + 60.0f - 140.0f;
-        float y = groundHeightAt(p.x, p.z, reach);
+        // modelsUnderRay hits the real tile mesh, so read the height field
+        // blended between cells; nearest-cell steps kick the springs.
+        toCenter[i] = local;
+        float y;
+        if (!groundRaySmooth(p.x, p.z, reach, y)) {
+            // tempResult.count = 0: the point adds nothing this step.
+            surface[i] = p.y;
+            continue;
+        }
         float pen = y - p.y + 30.0f;
         surface[i] = y;
-        toCenter[i] = local;
         if (pen > 0.0f) {
             grounded = true;
             imbed[i] = pen;
@@ -679,10 +839,18 @@ void World::updateGround(Car &car) const {
 // Surface normal of the tile height field, for the doRayCasting slide term.
 Vec3 World::groundNormalAt(float x, float z, float nearY) const {
     const float e = 40.0f;
-    float hl = groundHeightAt(x - e, z, nearY);
-    float hr = groundHeightAt(x + e, z, nearY);
-    float hd = groundHeightAt(x, z - e, nearY);
-    float hu = groundHeightAt(x, z + e, nearY);
+    // Samples the ray misses (past the edge of a sunken floor) count as level
+    // with the centre, so a floor edge does not read as a cliff.
+    float hc;
+    if (!groundRaySmooth(x, z, nearY, hc)) return Vec3(0, 1, 0);
+    auto h = [&](float sx, float sz) {
+        float y;
+        return groundRaySmooth(sx, sz, nearY, y) ? y : hc;
+    };
+    float hl = h(x - e, z);
+    float hr = h(x + e, z);
+    float hd = h(x, z - e);
+    float hu = h(x, z + e);
     Vec3 n{hl - hr, 2.0f * e, hd - hu};
     float m = n.length();
     return m > 1e-6f ? n / m : Vec3(0, 1, 0);

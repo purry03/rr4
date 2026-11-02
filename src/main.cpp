@@ -6,9 +6,8 @@
 #include "renderer.hpp"
 #include "world.hpp"
 
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
+#include <SDL.h>
+#include <SDL_image.h>
 
 #include <algorithm>
 #include <chrono>
@@ -16,7 +15,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-#include <optional>
+#include "cinematic.hpp"
+#include "gl_renderer.hpp"
+#include "menu.hpp"
+#include "savegame.hpp"
+#include "settings.hpp"
+
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -139,15 +144,221 @@ void renderFrame(Renderer &r, World &world, Car &car, ChaseCam &chase, float fps
     r.clearSky(chase.cam.pos);
     world.draw(r, chase.cam);
     car.draw(r, chase.cam);
-    drawHud(r, car, muted);
+    drawHud(r, car, muted, world, chase.cam);
     r.flush();
 }
 
 bool saveFrame(Renderer &r, const fs::path &path) {
     fs::create_directories(path.parent_path());
-    sf::Image img(sf::Vector2u(unsigned(r.width), unsigned(r.height)),
-                  reinterpret_cast<const std::uint8_t *>(r.color.data()));
-    return img.saveToFile(path);
+    static const bool imageReady = [] {
+        IMG_Init(IMG_INIT_PNG);
+        return true;
+    }();
+    (void)imageReady;
+    std::vector<uint32_t> px;
+    r.readPixels(px);
+    // readPixels() is top row first, packed as R, G, B, A bytes, which is
+    // SDL_PIXELFORMAT_ABGR8888 on little-endian targets.
+    SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormatFrom(
+        px.data(), r.width, r.height, 32, r.width * 4, SDL_PIXELFORMAT_ABGR8888);
+    if (!surf) return false;
+    const bool ok = IMG_SavePNG(surf, path.string().c_str()) == 0;
+    SDL_FreeSurface(surf);
+    return ok;
+}
+
+bool ensureVideo() {
+    if (SDL_WasInit(SDL_INIT_VIDEO)) return true;
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+        std::fprintf(stderr, "video: SDL init failed (%s)\n", SDL_GetError());
+        return false;
+    }
+    return true;
+}
+
+bool displayModeSupported(int w, int h) {
+    const int count = SDL_GetNumDisplayModes(0);
+    for (int i = 0; i < count; ++i) {
+        SDL_DisplayMode mode{};
+        if (SDL_GetDisplayMode(0, i, &mode) == 0 && mode.w == w && mode.h == h) return true;
+    }
+    return false;
+}
+
+// Window sizes to offer: the display's fullscreen modes (one per size, at
+// least the original 800 x 480 stage), smallest first.
+std::vector<Resolution> availableResolutions() {
+    std::vector<Resolution> out;
+    ensureVideo();
+    auto add = [&](int w, int h) {
+        if (w < Settings::kMinWidth || h < Settings::kMinHeight) return;
+        if (std::none_of(out.begin(), out.end(),
+                         [&](const Resolution &r) { return r.w == w && r.h == h; }))
+            out.push_back({w, h});
+    };
+    const int count = SDL_GetNumDisplayModes(0);
+    for (int i = 0; i < count; ++i) {
+        SDL_DisplayMode mode{};
+        if (SDL_GetDisplayMode(0, i, &mode) == 0) add(mode.w, mode.h);
+    }
+    SDL_DisplayMode desktop{};
+    if (SDL_GetDesktopDisplayMode(0, &desktop) == 0) add(desktop.w, desktop.h);
+    std::sort(out.begin(), out.end(), [](const Resolution &a, const Resolution &b) {
+        return a.w != b.w ? a.w < b.w : a.h < b.h;
+    });
+    if (out.empty()) out.push_back({kWidth, kHeight});
+    return out;
+}
+
+// Settings that need a new window or renderer.
+bool videoChanged(const Settings &a, const Settings &b) {
+    return a.width != b.width || a.height != b.height || a.fullscreen != b.fullscreen ||
+           a.vsync != b.vsync || a.msaa != b.msaa || a.shadows != b.shadows ||
+           a.smoothTextures != b.smoothTextures;
+}
+
+// Renderer choice. The window uses OpenGL unless --soft is given; headless
+// modes use the software rasterizer unless --gl is given, in which case an
+// offscreen GL context is created.
+struct RenderOptions {
+    bool gl = false;
+    GLSettings glSettings;
+};
+RenderOptions gRender;
+
+void setGLAttributes() {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+}
+
+struct Display {
+    SDL_Window *window = nullptr;
+    SDL_GLContext gl = nullptr;
+    SDL_Renderer *sdlRenderer = nullptr;   // software renderer presentation
+    SDL_Texture *screenTexture = nullptr;
+
+    explicit operator bool() const { return window != nullptr; }
+
+    void destroy() {
+        if (screenTexture) SDL_DestroyTexture(screenTexture);
+        if (sdlRenderer) SDL_DestroyRenderer(sdlRenderer);
+        if (gl) SDL_GL_DeleteContext(gl);
+        if (window) SDL_DestroyWindow(window);
+        screenTexture = nullptr;
+        sdlRenderer = nullptr;
+        gl = nullptr;
+        window = nullptr;
+    }
+};
+
+struct Backend {
+    SDL_Window *window = nullptr;      // headless GL only
+    SDL_GLContext context = nullptr;
+    std::unique_ptr<Renderer> renderer;
+
+    Backend() = default;
+    Backend(const Backend &) = delete;
+    Backend &operator=(const Backend &) = delete;
+    Backend(Backend &&other) noexcept
+        : window(other.window), context(other.context), renderer(std::move(other.renderer)) {
+        other.window = nullptr;
+        other.context = nullptr;
+    }
+    Backend &operator=(Backend &&) = delete;
+
+    ~Backend() {
+        // GL objects go first, while their context is still current.
+        renderer.reset();
+        if (context) SDL_GL_DeleteContext(context);
+        if (window) SDL_DestroyWindow(window);
+    }
+};
+
+void createGameWindow(Display &display, const Settings &s, bool useGL) {
+    display.destroy();
+    ensureVideo();
+
+    int w = s.width, h = s.height;
+    // A fullscreen size the display cannot do falls back to the desktop.
+    if (s.fullscreen && !displayModeSupported(w, h)) {
+        SDL_DisplayMode desktop{};
+        if (SDL_GetDesktopDisplayMode(0, &desktop) == 0) {
+            w = desktop.w;
+            h = desktop.h;
+        }
+    }
+
+    Uint32 flags = SDL_WINDOW_SHOWN;
+    if (s.fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
+    if (useGL) {
+        setGLAttributes();
+        flags |= SDL_WINDOW_OPENGL;
+    }
+    display.window = SDL_CreateWindow("Redline Rumble 4", SDL_WINDOWPOS_CENTERED,
+                                      SDL_WINDOWPOS_CENTERED, w, h, flags);
+    if (!display.window) {
+        std::fprintf(stderr, "video: cannot create window (%s)\n", SDL_GetError());
+        return;
+    }
+
+    if (useGL) {
+        display.gl = SDL_GL_CreateContext(display.window);
+        if (!display.gl) {
+            std::fprintf(stderr, "gl: cannot create context (%s)\n", SDL_GetError());
+            display.destroy();
+            return;
+        }
+        SDL_GL_MakeCurrent(display.window, display.gl);
+        SDL_GL_SetSwapInterval(s.vsync ? 1 : 0);
+        return;
+    }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, s.smoothTextures ? "linear" : "nearest");
+    Uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
+    if (s.vsync) rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
+    display.sdlRenderer = SDL_CreateRenderer(display.window, -1, rendererFlags);
+    if (!display.sdlRenderer)
+        display.sdlRenderer = SDL_CreateRenderer(display.window, -1, SDL_RENDERER_SOFTWARE);
+    if (!display.sdlRenderer) {
+        std::fprintf(stderr, "video: cannot create renderer (%s)\n", SDL_GetError());
+        display.destroy();
+        return;
+    }
+    display.screenTexture = SDL_CreateTexture(display.sdlRenderer, SDL_PIXELFORMAT_ABGR8888,
+                                              SDL_TEXTUREACCESS_STREAMING, s.width, s.height);
+    if (!display.screenTexture) {
+        std::fprintf(stderr, "video: cannot create screen texture (%s)\n", SDL_GetError());
+        display.destroy();
+        return;
+    }
+    SDL_SetTextureBlendMode(display.screenTexture, SDL_BLENDMODE_NONE);
+}
+
+Backend makeHeadlessBackend() {
+    Backend b;
+    if (gRender.gl) {
+        if (!ensureVideo()) return b;
+        setGLAttributes();
+        b.window = SDL_CreateWindow("Redline Rumble 4 (headless)", SDL_WINDOWPOS_UNDEFINED,
+                                    SDL_WINDOWPOS_UNDEFINED, kWidth, kHeight,
+                                    SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+        if (!b.window) {
+            std::fprintf(stderr, "gl: cannot create headless window (%s)\n", SDL_GetError());
+            return b;
+        }
+        b.context = SDL_GL_CreateContext(b.window);
+        if (!b.context) {
+            std::fprintf(stderr, "gl: cannot create headless context (%s)\n", SDL_GetError());
+            return b;
+        }
+        SDL_GL_MakeCurrent(b.window, b.context);
+        b.renderer = std::make_unique<GLRenderer>(kWidth, kHeight, gRender.glSettings);
+    } else {
+        b.renderer = std::make_unique<SoftRenderer>(kWidth, kHeight);
+    }
+    return b;
 }
 
 // Waypoint autopilot used only for headless verification: it follows the
@@ -210,7 +421,8 @@ CarInput autoInput(const Car &car, int &wpIndex, int frame, int &stuckFrames) {
 
 int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEvery,
             bool place, float px, float pz, float pyaw) {
-    Renderer r(kWidth, kHeight);
+    Backend backend = makeHeadlessBackend();
+    Renderer &r = *backend.renderer;
     World world;
     world.build();
     buildCarAssets();
@@ -243,7 +455,7 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
     for (int frame = 0; frame <= totalFrames; ++frame) {
         CarInput in = autoInput(car, wpIndex, frame, stuckFrames);
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+                   [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
         tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
 
@@ -318,7 +530,7 @@ int runCamTrace(int frames, int carId) {
     for (int f = 0; f <= frames; ++f) {
         CarInput in = autoInput(car, wpIndex, f, stuckFrames);
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+                   [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
         tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         std::printf("%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
@@ -332,8 +544,44 @@ int runCamTrace(int frames, int carId) {
     return 0;
 }
 
+// Development aid: run the main menu over the cinematic city headless and
+// save a frame every `every` ticks, to check the shots.
+int runMenuPreview(const std::string &shotDir, int frames, int every) {
+    Backend backend = makeHeadlessBackend();
+    Renderer &r = *backend.renderer;
+    World world;
+    world.build();
+    buildCarAssets();
+    SaveGame save;
+    world.newSession(save.carsOwned, save.carColors);
+    MainMenu menu;
+    menu.load();
+    menu.open(false);
+    CinematicCamera cinematic;
+    menu.setSettings(Settings{}, availableResolutions());
+    // Halfway through, step down to SETTINGS and open it.
+    const int settingsAt = frames / 2;
+    for (int f = 0; f < frames; ++f) {
+        cinematic.update(world);
+        MenuInput in;
+        in.down = f == settingsAt || f == settingsAt + 1;
+        in.confirm = f == settingsAt + 2;
+        menu.update(in);
+        if (f % every != 0) continue;
+        r.clearSky(cinematic.camera().pos);
+        world.draw(r, cinematic.camera());
+        menu.draw(r, cinematic.fade());
+        r.flush();
+        char name[64];
+        std::snprintf(name, sizeof(name), "menu_%05d.png", f);
+        saveFrame(r, fs::path(shotDir) / name);
+    }
+    return 0;
+}
+
 int runBench(int frames, int carId) {
-    Renderer r(kWidth, kHeight);
+    Backend backend = makeHeadlessBackend();
+    Renderer &r = *backend.renderer;
     World world;
     world.build();
     buildCarAssets();
@@ -343,20 +591,23 @@ int runBench(int frames, int carId) {
     ChaseCam chase;
     chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
     int wpIndex = 0, stuckFrames = 0;
+    std::vector<uint32_t> frame;
 
     auto t0 = std::chrono::steady_clock::now();
     for (int i = 0; i < frames; ++i) {
         CarInput in = autoInput(car, wpIndex, i, stuckFrames);
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+                   [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
         tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         renderFrame(r, world, car, chase, 60.0f);
+        // GL only queues work; reading the frame back waits for the GPU.
+        if (gRender.gl) r.readPixels(frame);
     }
     auto t1 = std::chrono::steady_clock::now();
     double ms = std::chrono::duration<double, std::milli>(t1 - t0).count() / frames;
-    std::printf("bench: %d frames, %.2f ms/frame, %.1f fps (software rasterizer, %dx%d)\n",
-                frames, ms, 1000.0 / ms, kWidth, kHeight);
+    std::printf("bench: %d frames, %.2f ms/frame, %.1f fps (%s, %dx%d)\n", frames, ms, 1000.0 / ms,
+                gRender.gl ? "OpenGL, with readback" : "software rasterizer", kWidth, kHeight);
     saveFrame(r, "work/bench_last.png");
     return 0;
 }
@@ -375,20 +626,20 @@ int runAudioTest(int carId) {
         audio.tickEngine(in.up);
         car.update(in, 1.0f);
         audio.tickCar(car, in);
-        sf::sleep(sf::milliseconds(10));
+        SDL_Delay(10);
     }
     in = {};
     in.down = true;
     audio.tickEngine(false);
     car.update(in, 1.0f);
     audio.tickCar(car, in);
-    sf::sleep(sf::milliseconds(150));
+    SDL_Delay(150);
     in = {};
     in.boost = true;
     audio.tickEngine(false);
     car.update(in, 1.0f);
     audio.tickCar(car, in);
-    sf::sleep(sf::milliseconds(150));
+    SDL_Delay(150);
     audio.toggleMute();
     audio.toggleMute();
     std::printf("audio-test: engine/music/brake/nitro/mute path complete\n");
@@ -414,7 +665,7 @@ int runDrive(int frames, float x, float z, float yawDeg, int carId) {
         CarInput in;
         in.up = true;
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+                   [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
         tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
         if (f % 5 == 0 || f == frames)
@@ -441,7 +692,7 @@ int runProbe(float x, float z, float yawDeg, int carId) {
     for (int i = 0; i < 240; ++i) {
         CarInput in;
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                   [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
+                   [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
     }
     int id = world.tileIDAt(car.pos.x, car.pos.z);
     std::printf("probe x=%.1f z=%.1f yaw=%.1f car=%d tile=%02d %s y=%.2f "
@@ -523,7 +774,12 @@ int main(int argc, char **argv) {
     float placeX = 0.0f, placeZ = 0.0f, placeYaw = 0.0f;
     int shotEvery = 300;
     int carId = 1; // original default save owns MeanieCropper (car #1)
+    bool carGiven = false;
     int driveFrames = 0;
+    bool soft = false;
+    int menuPreview = 0;
+    bool cliNoShadows = false;
+    int cliMsaa = -1;
 
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
@@ -545,6 +801,7 @@ int main(int argc, char **argv) {
         } else if (a == "--audio-test") {
             audioTest = true;
         } else if (a == "--car" && i + 1 < argc) {
+            carGiven = true;
             carId = std::atoi(argv[++i]);
         } else if (a == "--shot-every" && i + 1 < argc) {
             shotEvery = std::atoi(argv[++i]);
@@ -557,6 +814,18 @@ int main(int argc, char **argv) {
             placeX = float(std::atof(argv[++i]));
             placeZ = float(std::atof(argv[++i]));
             placeYaw = float(std::atof(argv[++i]));
+        } else if (a == "--menu-preview" && i + 1 < argc) {
+            menuPreview = std::atoi(argv[++i]);
+        } else if (a == "--soft") {
+            soft = true;
+        } else if (a == "--gl") {
+            gRender.gl = true;
+        } else if (a == "--no-shadows") {
+            gRender.glSettings.shadows = false;
+            cliNoShadows = true;
+        } else if (a == "--msaa" && i + 1 < argc) {
+            gRender.glSettings.msaa = std::max(0, std::atoi(argv[++i]));
+            cliMsaa = gRender.glSettings.msaa;
         } else if (a == "--probe" && i + 3 < argc) {
             probe = true;
             probeX = float(std::atof(argv[++i]));
@@ -572,39 +841,112 @@ int main(int argc, char **argv) {
     if (camTraceFrames >= 0) return runCamTrace(camTraceFrames, carId);
     if (traceFrames >= 0) return runTrace(traceFrames, carId);
     if (benchFrames > 0) return runBench(benchFrames, carId);
+    if (menuPreview > 0) return runMenuPreview(shotDir, menuPreview, shotEvery);
     if (autoMode) return runAuto(shotDir, autoFrames, carId, shotEvery, place,
                                  placeX, placeZ, placeYaw);
 
-    sf::RenderWindow window(sf::VideoMode({unsigned(kWidth), unsigned(kHeight)}),
-                            "Redline Rumble 4 - Native");
-    window.setVerticalSyncEnabled(true);
+    // rr4settings.txt; command-line options override it for this run.
+    const std::filesystem::path settingsPath = defaultSettingsPath();
+    Settings settings;
+    if (settings.load(settingsPath)) std::printf("settings: loaded %s\n", settingsPath.string().c_str());
+    if (std::getenv("RR4_NEAREST")) settings.smoothTextures = false;
+    if (cliNoShadows) settings.shadows = false;
+    if (cliMsaa >= 0) settings.msaa = cliMsaa;
+    const std::vector<Resolution> resolutions = availableResolutions();
 
-    Renderer r(kWidth, kHeight);
+    const bool useGL = !soft;
+    Display display;
+    std::unique_ptr<Renderer> renderer;
+    Settings applied;                         // what the window/renderer were built with
+    // Window and renderer for the video settings. The renderer (and its GL
+    // objects) goes first, while its context is still current.
+    auto buildDisplay = [&] {
+        renderer.reset();
+        createGameWindow(display, settings, useGL);
+        gSmoothTextures = settings.smoothTextures;
+        if (!display) return;
+        if (useGL) {
+            GLSettings gs = gRender.glSettings;
+            gs.msaa = settings.msaa;
+            gs.shadows = settings.shadows;
+            renderer = std::make_unique<GLRenderer>(settings.width, settings.height, gs);
+        } else {
+            renderer = std::make_unique<SoftRenderer>(settings.width, settings.height);
+        }
+        applied = settings;
+    };
+    buildDisplay();
+
     World world;
     world.build();
     buildCarAssets();
+    world.drawDistance = settings.drawDistance;
 
-    sf::Texture screenTex(sf::Vector2u(kWidth, kHeight));
-    screenTex.setSmooth(true);
-    sf::Sprite screenSprite(screenTex);
-
-    Car car;
-    car.setCar(carId);
-    if (place) {
-        car.pos = {placeX, 0.0f, placeZ};
-        car.yaw = deg2rad(placeYaw);
-        world.resolveCarCollision(car);
-        world.updateGround(car);
+    // Initialization: getPref(g_SaveGameName), or the default save. --car
+    // overrides the driven car for this run.
+    const std::filesystem::path savePath = defaultSavePath();
+    SaveGame save;
+    if (save.load(savePath)) std::printf("save: loaded %s\n", savePath.string().c_str());
+    if (carGiven) {
+        for (int &o : save.carsOwned) if (o == kOwnedDriving) o = kOwnedParked;
+        save.carsOwned[carId - 1] = kOwnedDriving;
     }
-    ChaseCam chase;
-    chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+    world.newSession(save.carsOwned, save.carColors);
 
     Audio audio;
     audio.load();
-    audio.setCar(carId);
+    audio.setVolumes(float(settings.musicVolume), float(settings.sfxVolume));
     audio.startMusic();
 
-    sf::Clock clock;
+    Car car;
+    ChaseCam chase;
+    // doSetupPlayerCar for the saved driven car, at the original spawn.
+    auto startSession = [&] {
+        carId = save.playerCar();
+        car = Car{};
+        car.setCar(carId);
+        car.damage = save.carDamage[carId - 1];
+        car.boostMeter = save.carIgNitro[carId - 1];
+        if (place) {
+            car.pos = {placeX, 0.0f, placeZ};
+            car.yaw = deg2rad(placeYaw);
+            world.resolveCarCollision(car);
+            world.updateGround(car);
+        }
+        chase = ChaseCam{};
+        chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+        resetHud();
+        audio.setCar(carId);
+    };
+    // doSaveGameData: the lists plus the driven car's damage and igNitro.
+    auto autosave = [&] {
+        for (int i = 0; i < kCarCount; ++i) {
+            save.carsOwned[i] = world.carsOwned[i];
+            save.carColors[i] = world.carColors[i];
+        }
+        save.carDamage[car.carId - 1] = std::min(car.damage, SaveGame::kFull);
+        save.carIgNitro[car.carId - 1] = car.boostMeter;
+        save.save(savePath);
+    };
+
+    // The game opens on the main menu over the cinematic city (--place jumps
+    // straight into driving, for testing spots).
+    enum class Screen { Menu, Game };
+    Screen screen = Screen::Menu;
+    bool sessionActive = false;
+    MainMenu menu;
+    if (!menu.load()) std::fprintf(stderr, "menu: missing sprites, run tools/render_menu.py\n");
+    menu.open(false);
+    menu.setSettings(settings, resolutions);
+    CinematicCamera cinematic;
+    MenuInput menuIn;
+    if (place) {
+        startSession();
+        sessionActive = true;
+        screen = Screen::Game;
+    }
+
+    auto previous = std::chrono::steady_clock::now();
     double accumulator = 0.0;
     float fps = 60.0f;
     float fpsTimer = 0.0f;
@@ -612,49 +954,103 @@ int main(int argc, char **argv) {
     int shotNumber = 0;
     bool showDebug = false;
     const double step = 1.0 / 60.0;
+    bool running = display && renderer;
 
-    while (window.isOpen()) {
-        while (const std::optional ev = window.pollEvent()) {
-            if (ev->is<sf::Event::Closed>()) {
-                window.close();
-            } else if (ev->is<sf::Event::KeyPressed>()) {
-                const auto *key = ev->getIf<sf::Event::KeyPressed>();
-                if (key && key->code == sf::Keyboard::Key::Escape) window.close();
-                if (key && key->code == sf::Keyboard::Key::M) audio.toggleMute();
-                if (key && key->code == sf::Keyboard::Key::F1) showDebug = !showDebug;
-                if (key && key->code == sf::Keyboard::Key::F12) {
+    while (running) {
+        Renderer &r = *renderer;
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev)) {
+            if (ev.type == SDL_QUIT) {
+                if (sessionActive) autosave();
+                running = false;
+            } else if (ev.type == SDL_KEYDOWN && !ev.key.repeat) {
+                const SDL_Keycode key = ev.key.keysym.sym;
+                if (key == SDLK_m) audio.toggleMute();
+                if (key == SDLK_F1) showDebug = !showDebug;
+                if (key == SDLK_F12) {
                     char name[64];
                     std::snprintf(name, sizeof(name), "shot_%03d.png", ++shotNumber);
-                    fs::path p = fs::path(shotDir) / name;
-                    saveFrame(r, p);
+                    saveFrame(r, fs::path(shotDir) / name);
+                }
+                if (screen == Screen::Menu) {
+                    menuIn.up |= key == SDLK_UP || key == SDLK_w;
+                    menuIn.down |= key == SDLK_DOWN || key == SDLK_s;
+                    menuIn.left |= key == SDLK_LEFT || key == SDLK_a;
+                    menuIn.right |= key == SDLK_RIGHT || key == SDLK_d;
+                    menuIn.confirm |= key == SDLK_RETURN || key == SDLK_KP_ENTER || key == SDLK_SPACE;
+                    menuIn.back |= key == SDLK_ESCAPE;
+                } else if (key == SDLK_ESCAPE) {
+                    // Pause to the menu; the session resumes from RESUME.
+                    autosave();
+                    audio.stopAll();
+                    menu.open(true);
+                    screen = Screen::Menu;
                 }
             }
         }
+        if (!running) break;
 
+        const Uint8 *keys = SDL_GetKeyboardState(nullptr);
         CarInput in;
-        in.up = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
-        in.down = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down);
-        in.left = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
-        in.right = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
-        in.boost = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift);
+        in.up = keys[SDL_SCANCODE_UP] != 0;
+        in.down = keys[SDL_SCANCODE_DOWN] != 0;
+        in.left = keys[SDL_SCANCODE_LEFT] != 0;
+        in.right = keys[SDL_SCANCODE_RIGHT] != 0;
+        in.boost = keys[SDL_SCANCODE_LSHIFT] != 0;
 
-        sf::Time dt = clock.restart();
-        accumulator += dt.asSeconds();
+        const auto now = std::chrono::steady_clock::now();
+        const double dt = std::chrono::duration<double>(now - previous).count();
+        previous = now;
+        accumulator += dt;
         int steps = 0;
-        while (accumulator >= step && steps < 5) {
-            // enterFrame order: doEngineSounds -> doControls/... -> doCam.
-            audio.tickEngine(in.up);
-            car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
-                       [&](Car &c) { world.resolveCarCollision(c); world.doWorldObjects(c, in); });
-            audio.tickCar(car, in);
-            tickHud(car);
-            chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+        while (accumulator >= step && steps < 5 && running) {
+            if (screen == Screen::Menu) {
+                cinematic.update(world);
+                const MainMenu::Action action = menu.update(menuIn);
+                menuIn = {};
+                if (action == MainMenu::Action::NewGame) {
+                    save = SaveGame{};
+                    save.save(savePath);
+                    world.newSession(save.carsOwned, save.carColors);
+                    startSession();
+                    sessionActive = true;
+                    screen = Screen::Game;
+                } else if (action == MainMenu::Action::Play) {
+                    if (!sessionActive) startSession();
+                    sessionActive = true;
+                    screen = Screen::Game;
+                } else if (action == MainMenu::Action::SettingsChanged) {
+                    // Sound and draw distance apply at once; the window and
+                    // renderer are rebuilt when the settings screen closes.
+                    settings = menu.settings();
+                    audio.setVolumes(float(settings.musicVolume), float(settings.sfxVolume));
+                    world.drawDistance = settings.drawDistance;
+                } else if (action == MainMenu::Action::SettingsClosed) {
+                    settings = menu.settings();
+                    settings.save(settingsPath);
+                    if (videoChanged(applied, settings)) buildDisplay();
+                    if (!display || !renderer) running = false;
+                } else if (action == MainMenu::Action::Quit) {
+                    if (sessionActive) autosave();
+                    running = false;
+                }
+            } else {
+                // enterFrame order: doEngineSounds -> doControls/... -> doCam.
+                audio.tickEngine(in.up);
+                car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
+                           [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
+                audio.tickCar(car, in);
+                tickHud(car);
+                chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+                if (car.saveGame) autosave();
+            }
             accumulator -= step;
             ++steps;
         }
         if (accumulator > step * 5) accumulator = 0.0;
+        if (!running) break;
 
-        fpsTimer += dt.asSeconds();
+        fpsTimer += float(dt);
         ++frameCount;
         if (fpsTimer >= 0.5f) {
             fps = frameCount / fpsTimer;
@@ -662,13 +1058,33 @@ int main(int argc, char **argv) {
             frameCount = 0;
         }
 
-        renderFrame(r, world, car, chase, fps, audio.muted());
-        if (showDebug) drawDebugHud(r, world, car, fps);
+        // A settings change may have rebuilt the renderer this frame.
+        Renderer &draw = *renderer;
+        if (screen == Screen::Menu) {
+            draw.clearSky(cinematic.camera().pos);
+            world.draw(draw, cinematic.camera());
+            menu.draw(draw, cinematic.fade());
+            draw.flush();
+        } else {
+            renderFrame(draw, world, car, chase, fps, audio.muted());
+            if (showDebug) drawDebugHud(draw, world, car, fps);
+        }
 
-        screenTex.update(reinterpret_cast<const std::uint8_t *>(r.color.data()));
-        window.clear();
-        window.draw(screenSprite);
-        window.display();
+        if (useGL) {
+            draw.flush();
+            int drawableW = 0, drawableH = 0;
+            SDL_GL_GetDrawableSize(display.window, &drawableW, &drawableH);
+            static_cast<GLRenderer &>(draw).present(drawableW, drawableH);
+            SDL_GL_SwapWindow(display.window);
+        } else {
+            auto &soft = static_cast<SoftRenderer &>(draw);
+            soft.flush();
+            SDL_UpdateTexture(display.screenTexture, nullptr, soft.color.data(),
+                              soft.width * int(sizeof(uint32_t)));
+            SDL_RenderClear(display.sdlRenderer);
+            SDL_RenderCopy(display.sdlRenderer, display.screenTexture, nullptr, nullptr);
+            SDL_RenderPresent(display.sdlRenderer);
+        }
     }
     return 0;
 }

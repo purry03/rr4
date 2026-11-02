@@ -20,9 +20,11 @@
 namespace rr4 {
 
 struct Car;
+struct World;
 
 struct HudAssets {
     bool loaded = false;
+    std::string dir = "assets/hud";
 
     Texture muteOff, muteOn;
     Texture damageBar, damageRed, skull, redSkull;
@@ -30,17 +32,31 @@ struct HudAssets {
     Texture score[10];
     Texture timer[10];
     Texture timerColon;
-    Texture radarRing;
-    Texture panel[45];          // indexed by infoPanels member   // InfoPanels messages, tools/render_panels.py
+    Texture radarRing, radarFix, radarRace, radarStage, radarPointPod, radarRacePod;
     Texture fadeToBlack;
 };
 
 extern HudAssets gHud;
 
 bool loadHudAssets(const std::string &dir = "assets/hud");
+// InfoPanels message bitmap (tools/render_panels.py), loaded on first use and
+// kept in a small cache: at 3x the 256 x 128 panel a full set would be ~35 MB.
+const Texture *hudPanel(int id);
 // Per-frame overlay logic (Overlays.ls / InfoPanels.ls / FadeToBlack.ls
 // exitFrame). Call once per 60 Hz simulation step, after Car::update.
 void tickHud(const Car &car);
-void drawHud(Renderer &r, const Car &car, bool muted);
+// g_TimerState, for gameplay code that waits on the timer (-1 = time up).
+int hudTimerState();
+// New session: timer, score, panels and fades back to their start values.
+void resetHud();
+// Drawing in original 800 x 480 stage coordinates (scaled to the renderer).
+void drawStageSprite(Renderer &r, const Texture &tex, float x, float y, float scale = 1.0f,
+                     float alpha = 1.0f);
+void drawStageRect(Renderer &r, float x, float y, float w, float h, uint32_t color, float alpha);
+// A texture stretched over a stage rectangle.
+void drawStageSpriteRect(Renderer &r, const Texture &tex, float x, float y, float w, float h,
+                         float alpha = 1.0f, const SpriteStyle &style = {});
+// `cam` and `world` feed doRadar.
+void drawHud(Renderer &r, const Car &car, bool muted, const World &world, const Camera &cam);
 
 } // namespace rr4

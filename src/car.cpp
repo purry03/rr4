@@ -1,4 +1,5 @@
 #include "car.hpp"
+#include "garage.hpp"
 #include "assets.hpp"
 
 #include <algorithm>
@@ -13,21 +14,22 @@ struct CarMeshes {
     int body = -1, bonnet = -1, boot = -1, door = -1, tire = -1;
 };
 
-CarMeshes gCarMeshes[6];
+CarMeshes gCarMeshes[kCarCount];
 
 // Data from doSetupShells and doControls. Part pivots are the BONNET / BOOT /
 // DOOR / TIRE node translations relative to their BODY parent, read from the
 // node (0xffffff72) blocks of the original 3DEM stream (XMED-6650). Tire y is
 // 16, which doAnims writes every frame (16 + imbedList). Rear axle offsets
 // are the literal tempTireBL.translate values from doSetupShells.
-const CarConfig kCars[6] = {
+const CarConfig kCars[kCarCount] = {
     {"MeanieCropper", "MeanieCropper_BODY_000", "MeanieCropper_BONNET_000",
      "MeanieCropper_BOOT_000", "MeanieCropper_DOOR_000", "MeanieCropper_TIRE_000",
      {0.0f, 58.13f, 53.21f}, {0.0f, 28.38f, -90.35f}, {46.07f, 3.91f, 47.96f},
      {33.01f, 16.0f, 73.69f}, {0.0f, 0.0f, -130.0f}, 0.0250f,
      4, 1,
      "Meanie_RevvingUp_001", "Meanie_RevvingDown_000", 1, 2,
-     {0, 85, -80}, {30, 20, -95}, {-30, 20, -95}},
+     // Car 1 positions mIgNitroBlastL twice and never the right jet.
+     {0, 85, -80}, {30, 20, -95}, {30, 20, -95}},
     {"Bitsasushi", "Bitsasushi_BODY_000", "Bitsasushi_BONNET_000",
      "Bitsasushi_BOOT_000", "Bitsasushi_DOOR_000", "Bitsasushi_TIRE_000",
      {0.0f, 56.01f, 57.99f}, {0.0f, 60.00f, -78.00f}, {48.00f, 40.03f, 47.97f},
@@ -78,13 +80,52 @@ const Vec3 kRepairSpawn{33650.14f, -5.56f, 33374.08f};
 
 } // namespace
 
-int carCount() { return 6; }
+int carCount() { return kCarCount; }
 
 const CarConfig &carConfig(int id) {
     return kCars[size_t(std::clamp(id, 1, carCount()) - 1)];
 }
 
-void Car::setCar(int id) { carId = std::clamp(id, 1, carCount()); }
+void Car::setCar(int id) {
+    carId = std::clamp(id, 1, carCount());
+    // doSetupPlayerCar and the car swaps set mIgNitroBlastL's position twice
+    // for car 1 and never mIgNitroBlastR's, so on car 1 the right jet keeps
+    // the spot the previous car gave it. At the start it is still the
+    // clone's world-origin spot, nowhere near the car.
+    if (carId != 1) {
+        blastRAt = kCars[carId - 1].blastR;
+        blastRPlaced = true;
+    }
+}
+
+// The original repaints a shell by swapping its paint shader's texture for a
+// 2 x 2 paint bitmap (Textures members 151..158, extracted to
+// assets/hud/PaintN.png). The paint is opaque on the car.
+int gPaintTex[kPaintJobs + 1] = {};   // texture index + 1 per paint job, 0 = not loaded
+
+void setCarPaint(int carId, int colorId) {
+    if (carId < 1 || carId > carCount() || colorId < 1 || colorId > kPaintJobs) return;
+    if (gPaintTex[colorId] == 0) {
+        Texture paint;
+        char path[64];
+        std::snprintf(path, sizeof(path), "assets/hud/Paint%d.png", colorId);
+        if (!loadTexture(path, paint)) return;
+        for (uint32_t &px : paint.px) px |= 0xff000000u;
+        paint.buildMips();
+        gAssets.textures.push_back(std::move(paint));
+        gPaintTex[colorId] = int(gAssets.textures.size());
+    }
+    const CarConfig &cfg = kCars[carId - 1];
+    int bodyMesh = gCarMeshes[carId - 1].body;
+    if (bodyMesh < 0) return;
+    const AssetMesh &body = gAssets.meshes[size_t(bodyMesh)];
+    if (cfg.paintShader < 1 || cfg.paintShader > int(body.groups.size())) return;
+    int matIndex = body.groups[size_t(cfg.paintShader - 1)].material;
+    if (matIndex < 0) return;
+    AssetMaterial &mat = gAssets.materials[size_t(matIndex)];
+    mat.texture = gPaintTex[colorId] - 1;
+    mat.blend = mat.opacity < 0.999f;
+}
 
 void buildCarAssets() {
     for (int i = 0; i < carCount(); ++i) {
@@ -102,24 +143,7 @@ void buildCarAssets() {
                     m.boot, m.door, m.tire);
         if (!ok) continue;
 
-        // The original repaints the shell by swapping the shader's texture
-        // for a 2 x 2 paint bitmap (Textures members 151..158, extracted to
-        // assets/hud/PaintN.png). The paint is opaque on the car.
-        const AssetMesh &body = gAssets.meshes[size_t(m.body)];
-        if (cfg.paintShader >= 1 && cfg.paintShader <= int(body.groups.size())) {
-            int matIndex = body.groups[size_t(cfg.paintShader - 1)].material;
-            Texture paint;
-            char path[64];
-            std::snprintf(path, sizeof(path), "assets/hud/Paint%d.png", cfg.paintColor);
-            if (matIndex >= 0 && loadTexture(path, paint)) {
-                for (uint32_t &px : paint.px) px |= 0xff000000u;
-                paint.buildMips();
-                gAssets.textures.push_back(std::move(paint));
-                AssetMaterial &mat = gAssets.materials[size_t(matIndex)];
-                mat.texture = int(gAssets.textures.size()) - 1;
-                mat.blend = mat.opacity < 0.999f;
-            }
-        }
+        setCarPaint(i + 1, cfg.paintColor);
     }
 
     if (loadTexture("assets/hud/BurnSmoke.png", gBurnSmokeTex)) gBurnSmokeTex.buildMips();
@@ -148,6 +172,10 @@ void Car::update(const CarInput &in, float factor,
     fadeToBlack = false;
     timerState = kTimerUnchanged;
     timerReset = false;
+    timerMinutes = -1;
+    scoreAdd = 0;
+    saveGame = false;
+    scoreReset = false;
     hoist = 0.0f;
 
     // ---- doRayCasting -----------------------------------------------------
@@ -250,7 +278,13 @@ void Car::update(const CarInput &in, float factor,
     // the "Car Wrecked!" panel 31 shows.
     if (damage >= 1.0f && prevDamage_ < 1.0f) {
         wreckTicks_ = 0.0f;
-        if (inRace) {
+        if (inStage) {
+            doPanel(29, 200);
+            stageWrecked = true;
+            timerReset = true;
+            timerState = 0;
+            scoreReset = true;
+        } else if (inRace) {
             doPanel(30, 200);
             raceWrecked = true;
             timerReset = true;
@@ -402,8 +436,11 @@ void Car::drawShell(Renderer &r, const Camera &cam, const Mat4 &base) const {
     const CarMeshes &meshes = gCarMeshes[size_t(carId) - 1];
     if (meshes.body < 0) {
         // Assets unavailable: draw a small marker so the car stays visible.
-        Mesh box;
-        box.addBox({0, 50, 0}, {100, 40, 200}, {1, 1, 1});
+        static const Mesh box = [] {
+            Mesh m;
+            m.addBox({0, 50, 0}, {100, 40, 200}, {1, 1, 1});
+            return m;
+        }();
         r.drawMesh(cam, base, box, &gFallbackTex, 0xffffffffu, false, false, 1.0f);
         return;
     }
@@ -492,7 +529,7 @@ void Car::draw(Renderer &r, const Camera &cam) const {
                           float(blastBlend) / 100.0f, true, 0);
         };
         jet(cfg.blastL, blastSpinL, blastScaleL);
-        jet(cfg.blastR, blastSpinR, blastScaleR);
+        if (blastRPlaced) jet(blastRAt, blastSpinR, blastScaleR);
     }
 
     drawSmoke(r, cam);
@@ -505,15 +542,23 @@ void Car::drawSmoke(Renderer &r, const Camera &cam) const {
     Vec3 look = (cam.target - cam.pos).normalized();
     Vec3 right = look.cross(cam.up).normalized();
     Vec3 up = right.cross(look);
+    static const Mesh quad = [] {
+        Mesh m;
+        m.addQuad({-1, -1, 0}, {1, -1, 0}, {1, 1, 0}, {-1, 1, 0}, {0, 0, 1}, 0.0f, 1.0f, 1.0f, 0.0f);
+        return m;
+    }();
     for (const SmokeParticle &p : smoke) {
         float t = std::clamp(p.age, 0.0f, 1.0f);
         float h = (40.0f + 10.0f * t) * 0.5f;
         int c = int(255.0f - 155.0f * t);
-        Vec3 rx = right * h, uy = up * h;
-        Mesh q;
-        q.addQuad(p.pos - rx - uy, p.pos + rx - uy, p.pos + rx + uy, p.pos - rx + uy, -look,
-                  0.0f, 1.0f, 1.0f, 0.0f);
-        r.drawMesh(cam, Mat4::identity(), q, &gBurnSmokeTex, packRGBA(c, c, int(255.0f * (1.0f - t))),
+        // Camera-facing quad: the unit quad scaled by h along right / up.
+        Vec3 rx = right * h, uy = up * h, n = -look;
+        Mat4 m = Mat4::identity();
+        m.m[0] = rx.x; m.m[1] = rx.y; m.m[2] = rx.z;
+        m.m[4] = uy.x; m.m[5] = uy.y; m.m[6] = uy.z;
+        m.m[8] = n.x;  m.m[9] = n.y;  m.m[10] = n.z;
+        m.m[12] = p.pos.x; m.m[13] = p.pos.y; m.m[14] = p.pos.z;
+        r.drawMesh(cam, m, quad, &gBurnSmokeTex, packRGBA(c, c, int(255.0f * (1.0f - t))),
                    true, 0, 1.0f - t, false);
     }
 }

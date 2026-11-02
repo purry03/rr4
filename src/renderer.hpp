@@ -1,5 +1,6 @@
 #pragma once
 #include "math.hpp"
+#include <atomic>
 #include <vector>
 #include <cstdint>
 #include <string>
@@ -18,8 +19,18 @@ inline void unpackRGBA(uint32_t c, int &r, int &g, int &b, int &a) {
 
 inline bool gSmoothTextures = true;
 
+inline uint32_t nextTextureVersion() {
+    static std::atomic<uint32_t> counter{0};
+    return counter.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
 struct Texture {
     int w = 0, h = 0;
+    // Unique per content instance; reassigned whenever px or mips change. The
+    // GL renderer caches uploads per pixel-buffer address, and a reloaded
+    // buffer can reuse the same address (the lazy InfoPanels cache does), so
+    // the version decides when to re-upload.
+    uint32_t version = nextTextureVersion();
     std::vector<uint32_t> px;
     // Downsampled copies (half size each), mips[0] is w/2 x h/2. Empty until
     // buildMips(); sampling then always uses the base level.
@@ -144,31 +155,48 @@ struct Camera {
     Mat4 projection(float aspect) const;
 };
 
-// Software renderer. drawMesh() transforms, clips and sets up triangles and
-// queues them; flush() rasterizes the queue on all cores, split into
-// horizontal strips so every pixel still sees its triangles in submission
-// order. Anything that reads or writes color/depth directly must flush first
-// (drawSprite and the font helpers do).
+// Texture sub-rectangle and colour for a screen sprite (font atlas glyphs,
+// tinted text). The defaults draw the whole texture untinted.
+struct SpriteStyle {
+    float u0 = 0.0f, v0 = 0.0f, u1 = 1.0f, v1 = 1.0f;
+    uint32_t tint = 0xffffffffu;   // multiplies the texture colour
+};
+
+// Rendering interface shared by the software rasterizer and the OpenGL
+// backend. Draw calls are queued in submission order and resolved by
+// flush(); per-pixel draw order follows submission order in both backends.
 class Renderer {
 public:
     int width, height;
-    std::vector<uint32_t> color;
-    std::vector<float> depth;
 
-    Renderer(int w, int h);
+    Renderer(int w, int h) : width(w), height(h) {}
+    virtual ~Renderer() = default;
 
-    void clearSky(const Vec3 &camPos, float pitch = 0.0f);
-    void drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
-                  const Texture *tex, uint32_t tint = 0xffffffff,
-                  bool unlit = false, int cull = 1, float alpha = 1.0f,
-                  bool depthWrite = true, size_t idxBegin = 0, size_t idxCount = size_t(-1));
-    void drawShadow(const Camera &cam, const Vec3 &pos, float radius);
-
+    // Start a frame: clear to the sky gradient.
+    virtual void clearSky(const Vec3 &camPos, float pitch = 0.0f) = 0;
+    virtual void drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
+                          const Texture *tex, uint32_t tint = 0xffffffff,
+                          bool unlit = false, int cull = 1, float alpha = 1.0f,
+                          bool depthWrite = true, size_t idxBegin = 0,
+                          size_t idxCount = size_t(-1)) = 0;
+    // Soft blob under a car; backends with real shadows may skip it.
+    virtual void drawShadow(const Camera &cam, const Vec3 &pos, float radius) = 0;
     // Screen-space sprite for the original Director camera overlays (HUD).
     // x/y/w/h are in framebuffer pixels; alpha multiplies the texture alpha.
-    void drawSprite(const Texture &tex, float x, float y, float w, float h,
-                    float alpha = 1.0f);
+    virtual void drawSprite(const Texture &tex, float x, float y, float w, float h,
+                            float alpha = 1.0f, const SpriteStyle &style = {}) = 0;
+    // Solid screen rectangle (debug text), alpha-blended.
+    virtual void drawRect(int x, int y, int w, int h, uint32_t color, float alpha = 1.0f) = 0;
+    // Resolve everything queued so far.
+    virtual void flush() = 0;
+    // The finished frame as RGBA (packRGBA layout), top row first.
+    virtual void readPixels(std::vector<uint32_t> &out) = 0;
 
+    // World fog. World::draw sets the range from its draw distance so the fog
+    // is solid before the edge of the drawn tiles; setWorldFog() applies it.
+    static constexpr uint32_t kWorldFogColor = 0xffe2cbb0u;   // packRGBA(176, 203, 226)
+    void setWorldFogRange(float start, float end) { worldFogStart_ = start; worldFogEnd_ = end; }
+    void setWorldFog() { setFog(kWorldFogColor, worldFogStart_, worldFogEnd_); }
     void setFog(uint32_t color, float start, float end) { fogColor_ = color; fogStart_ = start; fogEnd_ = end; }
     // Scene lights used by every lit draw.
     void setLights(const SceneLight *lights, int count) { lights_.assign(lights, lights + count); }
@@ -180,16 +208,46 @@ public:
     // drawMesh calls (Director texture scrolling). Reset to 0 after use.
     void setUVOffset(float du, float dv) { uOffset_ = du; vOffset_ = dv; }
 
-    // Rasterize everything queued so far into color/depth.
-    void flush();
+    // Sky gradient (clearSky): top colour to horizon colour, t^0.75.
+    static constexpr uint32_t kSkyTop = 0xffbe7a40u;      // packRGBA(64, 122, 190)
+    static constexpr uint32_t kSkyHorizon = 0xffeedac4u;  // packRGBA(196, 218, 238)
+    static constexpr float kSkyCurve = 0.75f;
 
-private:
+protected:
+    float worldFogStart_ = 2500.0f, worldFogEnd_ = 9500.0f;
     uint32_t fogColor_ = packRGBA(158, 196, 226);
     float fogStart_ = 4000.0f, fogEnd_ = 16000.0f;
     float uOffset_ = 0.0f, vOffset_ = 0.0f;
     std::vector<SceneLight> lights_;
     SurfaceLighting surface_;
+};
 
+// Software renderer. drawMesh() transforms, clips and sets up triangles and
+// queues them; flush() rasterizes the queue on all cores, split into
+// horizontal strips so every pixel still sees its triangles in submission
+// order. Anything that reads or writes color/depth directly must flush first
+// (drawSprite and drawRect do).
+class SoftRenderer final : public Renderer {
+public:
+    std::vector<uint32_t> color;
+    std::vector<float> depth;
+
+    SoftRenderer(int w, int h);
+
+    void clearSky(const Vec3 &camPos, float pitch = 0.0f) override;
+    void drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
+                  const Texture *tex, uint32_t tint = 0xffffffff,
+                  bool unlit = false, int cull = 1, float alpha = 1.0f,
+                  bool depthWrite = true, size_t idxBegin = 0,
+                  size_t idxCount = size_t(-1)) override;
+    void drawShadow(const Camera &cam, const Vec3 &pos, float radius) override;
+    void drawSprite(const Texture &tex, float x, float y, float w, float h,
+                    float alpha = 1.0f, const SpriteStyle &style = {}) override;
+    void drawRect(int x, int y, int w, int h, uint32_t color, float alpha = 1.0f) override;
+    void flush() override;
+    void readPixels(std::vector<uint32_t> &out) override;
+
+private:
     struct ClipVert {
         Vec3 view;   // camera space
         float u, v;

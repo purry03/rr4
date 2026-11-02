@@ -28,6 +28,10 @@ public:
     void reset();
     // Within 4500 units this frame (the wheel is in the world).
     bool inRange() const { return visible_; }
+    // The wheel is in the world within kSpawnDist of `focus` (the player, or
+    // the menu camera); returns true when it was just (re)spawned.
+    static constexpr float kSpawnDist = 4500.0f;
+    bool cullTo(const Vec3 &focus);
     // doFerrisWheel: one enterFrame step. Returns true when the wheel was
     // respawned (doResetFerrisWheel), which also re-shows the first igNitro.
     bool update(Car &car, const CarInput &in, float factor);

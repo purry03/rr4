@@ -227,29 +227,29 @@ void Texture::buildMips() {
             }
         mips.push_back(std::move(m));
     }
+    version = nextTextureVersion();
 }
-
-Renderer::Renderer(int w, int h)
-    : width(w), height(h), color(size_t(w) * h), depth(size_t(w) * h, 1e30f) {}
 
 static constexpr int kStripRows = 8;
 
-void Renderer::clearSky(const Vec3 &, float) {
+SoftRenderer::SoftRenderer(int w, int h)
+    : Renderer(w, h), color(size_t(w) * h), depth(size_t(w) * h, 1e30f) {}
+
+void SoftRenderer::clearSky(const Vec3 &, float) {
     // Deferred: each strip clears its own rows at the start of flush().
     tris_.clear();
     states_.clear();
-    uint32_t top = packRGBA(64, 122, 190);
-    uint32_t horizon = packRGBA(196, 218, 238);
+    const uint32_t top = kSkyTop, horizon = kSkyHorizon;
     skyRow_.resize(size_t(height));
     for (int y = 0; y < height; ++y) {
         float t = float(y) / std::max(1, height - 1);
-        t = std::pow(t, 0.75f);
+        t = std::pow(t, kSkyCurve);
         skyRow_[size_t(y)] = mixColor(top, horizon, t);
     }
     clearPending_ = true;
 }
 
-void Renderer::setupTri(const ClipVert &a, const ClipVert &b, const ClipVert &c, int cull) {
+void SoftRenderer::setupTri(const ClipVert &a, const ClipVert &b, const ClipVert &c, int cull) {
     const ClipVert *v[3] = {&a, &b, &c};
     float sx[3], sy[3], iz[3];
     for (int k = 0; k < 3; ++k) {
@@ -324,7 +324,7 @@ void Renderer::setupTri(const ClipVert &a, const ClipVert &b, const ClipVert &c,
     tris_.push_back(t);
 }
 
-void Renderer::rasterStrip(const RasterTri &t, int yBegin, int yEnd) {
+void SoftRenderer::rasterStrip(const RasterTri &t, int yBegin, int yEnd) {
     const DrawState &st = states_[t.state];
     const Texture *tex = st.tex && !st.tex->px.empty() ? st.tex : nullptr;
     const float texW = tex ? float(tex->w) : 0.0f, texH = tex ? float(tex->h) : 0.0f;
@@ -448,7 +448,7 @@ void Renderer::rasterStrip(const RasterTri &t, int yBegin, int yEnd) {
     }
 }
 
-void Renderer::flush() {
+void SoftRenderer::flush() {
     if (tris_.empty() && !clearPending_) return;
     const int nStrips = (height + kStripRows - 1) / kStripRows;
     bins_.resize(size_t(nStrips));
@@ -482,7 +482,7 @@ void Renderer::flush() {
     clearPending_ = false;
 }
 
-void Renderer::drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
+void SoftRenderer::drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
                         const Texture *tex, uint32_t tint, bool unlit, int cull,
                         float alpha, bool depthWrite, size_t idxBegin, size_t idxCount) {
     const Mat4 view = cam.view();
@@ -621,7 +621,7 @@ void Renderer::drawMesh(const Camera &cam, const Mat4 &model, const Mesh &mesh,
     if (tris_.size() == trisBefore) states_.pop_back();
 }
 
-void Renderer::drawShadow(const Camera &cam, const Vec3 &pos, float radius) {
+void SoftRenderer::drawShadow(const Camera &cam, const Vec3 &pos, float radius) {
     static Texture shadowTex = [] { Texture t = makeShadowTexture(); t.buildMips(); return t; }();
     Mesh m;
     Vec3 ground{pos.x, 1.0f, pos.z};
@@ -634,8 +634,8 @@ void Renderer::drawShadow(const Camera &cam, const Vec3 &pos, float radius) {
              0.85f, false);
 }
 
-void Renderer::drawSprite(const Texture &tex, float x, float y, float w, float h,
-                          float alpha) {
+void SoftRenderer::drawSprite(const Texture &tex, float x, float y, float w, float h,
+                              float alpha, const SpriteStyle &style) {
     flush();
     if (tex.px.empty() || w <= 0.0f || h <= 0.0f || alpha <= 0.0f) return;
     int x0 = std::max(0, int(std::floor(x)));
@@ -645,10 +645,15 @@ void Renderer::drawSprite(const Texture &tex, float x, float y, float w, float h
     if (x1 <= x0 || y1 <= y0) return;
 
     for (int py = y0; py < y1; ++py) {
-        float v = (float(py) + 0.5f - y) / h;
+        float v = style.v0 + (style.v1 - style.v0) * ((float(py) + 0.5f - y) / h);
         for (int px = x0; px < x1; ++px) {
-            float u = (float(px) + 0.5f - x) / w;
+            float u = style.u0 + (style.u1 - style.u0) * ((float(px) + 0.5f - x) / w);
             uint32_t src = tex.sampleClamped(u, v);
+            if (style.tint != 0xffffffffu) {
+                int tr = style.tint & 255, tg = (style.tint >> 8) & 255, tb = (style.tint >> 16) & 255;
+                src = packRGBA((int(src & 255) * tr) / 255, (int((src >> 8) & 255) * tg) / 255,
+                               (int((src >> 16) & 255) * tb) / 255, int(src >> 24));
+            }
             float a = float((src >> 24) & 255) / 255.0f * alpha;
             if (a <= 0.0f) continue;
             uint32_t &dst = color[size_t(py) * width + px];
@@ -660,6 +665,28 @@ void Renderer::drawSprite(const Texture &tex, float x, float y, float w, float h
             dst = packRGBA(r, g, b, 255);
         }
     }
+}
+
+void SoftRenderer::drawRect(int x, int y, int w, int h, uint32_t c, float alpha) {
+    flush();
+    int x0 = std::max(0, x), y0 = std::max(0, y);
+    int x1 = std::min(width, x + w), y1 = std::min(height, y + h);
+    const int a = int(clampf(alpha, 0, 1) * 256.0f);
+    const int cr = c & 255, cg = (c >> 8) & 255, cb = (c >> 16) & 255;
+    for (int yy = y0; yy < y1; ++yy) {
+        uint32_t *row = color.data() + size_t(yy) * width;
+        for (int xx = x0; xx < x1; ++xx) {
+            uint32_t d = row[xx];
+            int dr = d & 255, dg = (d >> 8) & 255, db = (d >> 16) & 255;
+            row[xx] = packRGBA(dr + (((cr - dr) * a) >> 8), dg + (((cg - dg) * a) >> 8),
+                               db + (((cb - db) * a) >> 8));
+        }
+    }
+}
+
+void SoftRenderer::readPixels(std::vector<uint32_t> &out) {
+    flush();
+    out = color;
 }
 
 } // namespace rr4

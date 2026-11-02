@@ -731,7 +731,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
               pushOrigin.x = 320;
             }
             tempZPercent = (pushOrigin.z - 2500) / 7500.0;
-            maxY = (1 - std::cos(360 * tempZPercent / (3.14159265358979323846 / 180.0))) * 250;
+            maxY = (1 - std::cos(360 * tempZPercent / (180.0 / 3.14159265358979323846))) * 250;
             if ((pushOrigin.y > maxY) || (pushOrigin.z < 300)) {
               pushOrigin.y = maxY;
             }
@@ -831,7 +831,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
               pushOrigin.x = 320;
             }
             tempZPercent = (pushOrigin.z + 2500) / 7500.0;
-            maxY = (1 - std::cos(360 * tempZPercent / (3.14159265358979323846 / 180.0))) * 250;
+            maxY = (1 - std::cos(360 * tempZPercent / (180.0 / 3.14159265358979323846))) * 250;
             if ((pushOrigin.y > maxY) || (pushOrigin.z > -300)) {
               pushOrigin.y = maxY;
             }
@@ -890,7 +890,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
     case 13:
     case 14:
     case 15:
-        planeLocal = (carPos + (velVector * fps)) - ctx.planePos;
+        planeLocal = ctx.planeToLocal(carPos + (velVector * fps));
         planeLocal.y = 0;
         if (planeLocal.z > 800) {
           planeLocal.x = 0;
@@ -1873,7 +1873,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
         if (tempZFactor > 1) {
           tempZFactor = 1;
         }
-        tempXOrigin = -1000 * (-1 + std::cos(-180 * tempZFactor / (3.14159265358979323846 / 180.0)));
+        tempXOrigin = -1000 * (-1 + std::cos(-180 * tempZFactor / (180.0 / 3.14159265358979323846)));
         if (pushOrigin.x > tempXOrigin) {
           pushOrigin.x = tempXOrigin + 300;
         } else {
@@ -2009,7 +2009,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
         if (tempZFactor > 1) {
           tempZFactor = 1;
         }
-        tempXOrigin = 1000 * (-1 + std::cos(-180 * tempZFactor / (3.14159265358979323846 / 180.0)));
+        tempXOrigin = 1000 * (-1 + std::cos(-180 * tempZFactor / (180.0 / 3.14159265358979323846)));
         if (pushOrigin.x > tempXOrigin) {
           pushOrigin.x = tempXOrigin + 300;
         } else {
@@ -2051,7 +2051,7 @@ void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile) {
         if (tempZFactor > 1) {
           tempZFactor = 1;
         }
-        tempXOrigin = 1800 + (900 * (-1 + std::cos(-180 * tempZFactor / (3.14159265358979323846 / 180.0))));
+        tempXOrigin = 1800 + (900 * (-1 + std::cos(-180 * tempZFactor / (180.0 / 3.14159265358979323846))));
         if (pushOrigin.x > tempXOrigin) {
           pushOrigin.x = tempXOrigin + 700;
         } else {

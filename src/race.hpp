@@ -1,4 +1,5 @@
 #pragma once
+#include "garage.hpp"
 // Races, ported from doSetupRaceFlag / doRaceFlag, doSetupRacePods /
 // doRacePods and doSetupOpponent / doOpponent in
 // BehaviorScript 4 - PlayerCar.ls, for all five races. The flag nearest the
@@ -23,7 +24,13 @@ struct RacePath {
     const int *checkpoints;   // 1-based indices into dots
     int checkpointCount;
 };
-extern const RacePath kRacePaths[5];   // races 1..5
+extern const RacePath kRacePaths[5];
+
+// doRadialPush-style shove of the player away from `centre`; returns the
+// push magnitude.
+float pushPlayer(Car &player, const Vec3 &centre, float radius, float rotScale);
+// The race and points flag poles: radius 120 push, damage 0.01..0.04.
+void flagPolePush(Car &player, const Vec3 &pole);   // races 1..5
 
 class Race {
 public:
@@ -37,6 +44,12 @@ public:
     void draw(Renderer &r, const Camera &cam) const;
 
     int state() const { return state_; }
+    // doRadar: mRacePod is in the world (a race is under way) and where.
+    bool podInWorld() const { return podVisible_; }
+    Vec3 podPosition() const { return podAt_; }
+    // doRadar: the flag of the first race whose car is still not owned, or
+    // the current mRaceFlag once every car is won.
+    Vec3 radarFlag(const int carsOwned[kCarCount]) const;
 
 private:
     struct Opponent {
@@ -73,6 +86,9 @@ private:
     long ticks_ = 0;
     long flagStartTicks_ = 0;
     long lightStartTicks_ = 0;
+    int prevState_ = 0;
+    long flagReadyTicks_ = 0;
+    bool flagShown() const { return state_ == 0 && ticks_ >= flagReadyTicks_; }
     int lightPhase_ = 0;
     float lightsU_ = 0.0f;           // tRaceFlagLights.textureTransform.position.x
     float arrowsV_ = 0.0f;           // tRaceFlagArrows scroll (port V)

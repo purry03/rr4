@@ -1,23 +1,27 @@
 # Redline Rumble 4 - native C++ port
 
-A from-scratch C++20/SFML reimplementation of the playable car of
+A from-scratch C++20/SDL2 reimplementation of the playable car of
 **Redline Rumble 4** (Adobe Director 11.5.9, `redlinerumble4.dcr`), built by
 decompiling the original Lingo and using the original Shockwave 3D geometry and
 textures.
 
 Scope of this build: **all six original player cars, the whole 12 x 12 map,
-free driving.** The default is car #1 (MeanieCropper), the car owned by the
-original save (`g_CarsOwnedList = [2,0,0,0,0,0]`); `--car N` switches to any of
-the other five.
-The original music and car sounds are played through the same Director sound
-channels. Traffic, opponents, pickups and the race/stunt logic are intentionally
-not included.
+the five races, the eight point stages (time attacks), traffic, the airport
+plane, igNitro pickups, the Ferris wheel garage, Rix Rapid Repairs, the paint
+machine and the radar**, all ported from the decompiled Lingo. The game
+autosaves to `rr4save.txt` next to the executable. A new game starts with car #1
+(MeanieCropper), the car the original default save owns
+(`g_CarsOwnedList = [2,0,0,0,0,0]`); `--car N` drives any of the other five for
+that run. The original music and sounds play through the same Director sound
+channels.
 
 ## Build
 
-Dependencies: CMake >= 3.16, a C++20 compiler, SFML 3.
+Dependencies: CMake >= 3.16, a C++20 compiler, pkg-config, SDL2 and
+SDL2_image.
 
 ```bash
+sudo apt install libsdl2-dev libsdl2-image-dev
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j8
 ```
@@ -27,7 +31,32 @@ cmake --build build -j8
 ```bash
 ./build/rr4              # car #1, MeanieCropper
 ./build/rr4 --car 4      # any of the six original cars
+./build/rr4 --soft       # software rasterizer instead of OpenGL
+./build/rr4 --no-shadows --msaa 0   # OpenGL without shadows / anti-aliasing
 ```
+
+The game opens on a main menu (DRIVE / RESUME, NEW GAME, SETTINGS, QUIT; Up / Down and
+Enter, Esc in game returns to it) over a real-time cinematic tour of the
+city: six camera shots (Ferris wheel orbit, street-level traffic, the Golden
+Gate Bridge, the 747 landing, a flyover and the Nurd Burger ring) on the live
+world, with traffic, traffic lights and the plane running. NEW GAME asks for
+confirmation and resets `rr4save.txt`. `--place X Z YAW` skips the menu.
+Menu text uses the original typeface: `tools/render_menu.py` renders the title
+sprites and a font atlas that `src/spritefont.cpp` draws at run time.
+
+SETTINGS: resolution (the display's modes), windowed / fullscreen, vsync,
+anti-aliasing (off / 2x / 4x / 8x), shadows, draw distance (2 to 5 tiles
+around the camera; the original draws 2), smooth or pixelated textures, music
+and sound volume. They are kept in `rr4settings.txt` next to the executable
+(`key = value`, like the save). Sound and draw distance apply at once; the
+window and renderer are rebuilt when the settings screen closes.
+
+The window renders with OpenGL 2.1 (GLSL 1.20) by default: the same Director
+lighting as the software rasterizer, 4x MSAA, anisotropic filtering and
+real-time shadows from the key light (a remaster addition; the original only
+had baked tile shadow planes, which it disables on software rendering).
+Headless modes (`--auto`, `--bench`, ...) use the software rasterizer unless
+`--gl` is given, which renders through an offscreen GL context.
 
 The car starts where the original `doSetupPlayerCar` puts it:
 `worldPosition = (32053.57, -5.56, 30797.51)`, `rotation.y = 45`, which is the
@@ -39,7 +68,7 @@ Controls:
 | Key | Action |
 | --- | --- |
 | Up / Down | accelerate / brake + reverse |
-| Left / Right | steer |
+| Left / Right | steer (also: pick a cage in the Ferris wheel, pick a paint job in the paint machine) |
 | Shift | nitro boost |
 | M | mute / unmute (original MUTE+PAUSE button) |
 | F12 | save a PNG screenshot to `work/shots/` |
@@ -68,7 +97,7 @@ The game no longer uses procedural geometry. Everything visible comes from the
   bytes, UVs and normals.
 - `assets/textures/` keeps the decoded original texture files for inspection.
 - `src/assets.cpp` loads the pack at startup and decodes the textures with
-  SFML. `src/world.cpp` assembles the map, `src/car.cpp` draws the player car.
+  SDL_image. `src/world.cpp` assembles the map, `src/car.cpp` draws the player car.
 - The 3DOM UVs use a bottom-left origin (OpenGL convention) while the packed
   textures are stored top-down. `src/assets.cpp` flips V while loading, so
   building signs/windows and the wheel sidewall/rim textures are upright.
@@ -180,11 +209,101 @@ Long fields span several XMED text blocks, which the tool joins.
 - The flag pole is solid (radius 120) and the opponent pushes the player
   (radius 160), both with the original damage steps.
 
-Not ported: the points stages, the radar's race pod markers, and opponent
-tile collisions (the original has none either; it follows the red dots
-through everything).
+Not ported: opponent tile collisions (the original has none either; it
+follows the red dots through everything).
 
-### igNitro
+The race flag disappears when a race starts and returns 5 s after it ends
+(a port addition); it cannot be triggered and its pole is not solid while
+hidden.
+
+### Point stages (time attacks)
+
+`src/stage.cpp`, from `doSetupPointsFlag`, `doPointsFlag`, `doSetupPointPods`
+and `doPointPods`; the flag/pod lists are generated by
+`tools/gen_stage_data.py` into `src/stage_data.gen.cpp`.
+
+- The points flag stands at whichever of the eight `pointsFlagPosList` starts
+  is nearest. Lining up in its box (as for races) shows Ready / Set / Go
+  (panels 18-20, one per second) and loads the countdown: 2, 2, 3, 4, 5, 5, 5
+  and 4 minutes for stages 1-8. Leaving the box before Go cancels
+  (panel 22).
+- Green pods (`PointsPod_001`, next pod dimmed green, mist hidden) are worth
+  100 points each within 200 units. Stage 8's last pods follow the landing
+  plane, and starting it puts the plane on its approach. Stage 5 raises the
+  traffic limit to 20.
+- The three stage igNitro bottles are shown during a stage.
+- Last pod: panel 21 ("STAGE COMPLETE! TIME BONUS"), the remaining time drains
+  into the score (+23 per 1.23 s, `g_TimerState` 2). Time out: panel 25
+  ("TIME UP!"). Wrecking the car: panel 29, score reset.
+- Like the race flag, the points flag hides during a stage and returns 5 s
+  after it ends. Races and stages cannot start while the other is running.
+- Not ported: the online score submission (panel 23) and the zoom of the
+  score digits during the time bonus.
+
+### Traffic
+
+`src/traffic.cpp`, from `doSetupTraffic`, `doTraffic`, `doSetupTrafficLights`,
+`doTrafficLights` and the traffic loop of `doCollisions`. The road network is
+MapData member 1 (`doLoadData`), generated into `src/traffic_data.gen.cpp` by
+`tools/gen_race_data.py`: 1007 dots with next/previous links, the red and
+green traffic-light dots and the dots per tile.
+
+- 20 `TrafficCar_000` clones, at most 5 in the world (20 during stage 5).
+  Cars spawn on free dots 4000-4500 from the player in the 3 x 3 tiles around
+  them and are removed beyond 4500. They fade in over that band.
+- Each dot holds one car (`dotOccupiedList`). A car at its dot picks a random
+  next dot and waits while it is taken. Speed eases towards
+  `0.02 * distance to the next dot`; steering turns 4.5 degrees per frame
+  towards the target, and the body looks back at its previous position, so it
+  pitches on slopes. Heights come from the blended height field.
+- Traffic lights run the original 6-phase cycle (400/100/100 ticks) and drive
+  the `Texture_Tile_TrafficLightPhase1/2*` shader colours. Red light dots are
+  held at -1111, so cars stop at them.
+- Hitting a car: radius 140 push, damage +0.002 / +0.005 and CrashTinkle
+  small / medium.
+
+### Airport: plane and radar dish
+
+`src/plane.cpp`, from `doSetupPlane` / `doPlane`: the Boeing 747
+(`TrafficBoeing747_001`) runs the original 16-state loop: approach from
+70000 north at height 1000, descent and flare, braking along the runway, taxi
+to the stand, a 200-tick wait, push-back, turn, take-off roll, climb, banked
+turn east and away off the map, then round again. The plane collider of
+`doCollisions` (airport tiles 13-15) follows the plane's real transform.
+`AirPortRadar_000` spins 5 degrees per frame (`doAnims`); its collider uses
+the same angle.
+
+### Paint machine (Splash of Color)
+
+`src/colortank.cpp`, from `doSetupColorTank` / `doColorTank`. Drive under the
+paint cans next to Ferris' Wheels to park (panel 7). Left / Right swing the
+cans to the previous / next of the eight paint jobs and pour the splash; the
+car is repainted half way through the pour. Reverse to leave. Each car keeps
+its own paint job (`g_CarsColorIDList`), also when parked in the Ferris wheel.
+
+### Autosave
+
+`src/savegame.cpp`. The original keeps
+`[g_CarsOwnedList, g_CarsColorIDList, g_CarsDamageList, g_CarsIgNitroList]`
+with `setPref`; the port writes the same lists to `rr4save.txt` next to the
+executable, as `key = values` text:
+
+```
+# Redline Rumble 4 save
+version = 1
+cars_owned = 2 0 0 0 0 0
+car_colors = 1 2 3 4 5 1
+car_damage = 0.00 0.00 0.00 0.00 0.00 0.00
+car_ignitro = 1.00 1.00 1.00 1.00 1.00 1.00
+```
+
+It saves where the original calls `doSaveGameData`: winning a car, losing one,
+entering or leaving the Ferris wheel, leaving the paint machine and leaving
+Rix Rapid Repairs. Unknown keys are ignored and missing keys keep their
+defaults; writes go through a temporary file and a rename. On start the
+driven car (`2`), the paint jobs and the driven car's damage and igNitro are
+restored (the original's loader misspells the damage list, so it never
+restores damage; the port does).
 
 ### igNitro
 
@@ -192,7 +311,7 @@ Ported from `doSetupigNitro`, `doIgNitro` and the blast section of `doAnims`:
 
 - Pickup bottles (`igNitroBottle_001`, rotation (0, 180, 120), scale 2). Free
   drive shows only the first of the ten clones, at (34017.54, 50, 32709.34);
-  the race and stage bottle lists belong to modes this build does not have.
+  races and stages show their own bottles from the same ten clones.
   Driving within 150 units collects it: boost refills to 1, Sfx 25 plays, and
   the first pickup shows panel 16 ("IgNitro Pickup ... SHIFT KEY to boost").
 - The boot bottle (`mIgNitro`) rides in the boot on the per-car `gIgNitro`
@@ -202,8 +321,11 @@ Ported from `doSetupigNitro`, `doIgNitro` and the blast section of `doAnims`:
   MeanieCropper lid drops at 3x the angle).
 - Blast jets (`igNitroBlastJet_000`) sit at the per-car exhaust positions with
   rotation (10, 0, random z). While boosting they fade in 5 blend per frame
-  and stretch to scale.z 1; afterwards they fade out and shrink. The script
-  never positions car #1's right jet, so the port mirrors the left one.
+  and stretch to scale.z 1; afterwards they fade out and shrink. They start at
+  blend 100, so they fade out on the first frames. The script sets car #1's
+  left jet position twice and never the right one, so car #1 shows a single
+  jet (the right jet keeps the previous car's position after a car swap).
+  The ignition sound plays whenever the boost starts, in the air too.
 
 ### Rix Rapid Repairs
 
@@ -241,6 +363,8 @@ logical stage:
 | boost bar / yellow fill | 16 / 17 | (544, 8), fill at `800 - 250 * boost` | `Overlays.ls` |
 | boost `igNitro` logo | 18 | (505, 2) | `Overlays.ls` |
 | radar ring | 54 | (20, 400) | `doSetupRadar()` |
+| radar blips: Rix garage, next race flag, points flag | 55 / 56 / 57 | (44, 424) + direction * min(0.005 * distance, 32) | `doRadar()` |
+| radar blips: current stage / race pod | 58 / 59 | (48, 428) + direction * min(0.01 * distance, 32) | `doRadar()` |
 | mute speaker | 1 / 2 | (776, 460) | `MUTE+PAUSE_Button.ls` |
 
 `tools/extract_hud.py` parses the cast slot table, the `KEY` resource table and
@@ -261,7 +385,10 @@ the `KEY` sound-section table and the `snd` chunks, and writes the original
 uncompressed 16-bit mono 44.1 kHz PCM as `assets/sounds/<cast name>.wav`
 (32 members, 19 MB). `assets/sounds/index.txt` keeps the slot/cast/chunk map.
 
-`src/audio.*` reproduces the Director sound channels used by the car:
+`src/audio.*` reproduces the Director sound channels used by the car. It
+decodes the original WAV files with SDL2 and mixes five independent voices in
+an SDL audio callback (one each for music, engine, brake/reverse, skid and
+one-shots):
 
 | Channel | Original member | Use |
 | --- | --- | --- |
@@ -291,7 +418,7 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
 - Tall objects are placed with the exact positions from `doSetupTallObjects`:
   Sunny Pierce Toole, the Golden Gate Bridge (plus the rotated/translated
   clone), the Wellard screwdriver, TahTee Cosmetics, the Lunkopf & Stubbs
-  cigarette, the airport radar and the parked Boeing 747.
+  cigarette and the airport radar (spinning, see "Airport").
 - The original `Landscape_TempSkyBox_000` follows the camera.
 - Baked tile shadow planes are skipped because the original sets
   `shadowsOn = 0` on a software renderer. The car uses a soft blob shadow.
@@ -314,7 +441,10 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
 - Software rasterizer in `src/renderer.cpp`: perspective-correct textures,
   bilinear filtering with per-pixel mipmap selection (alpha-weighted mip
   chain built at load), z-buffer, near-plane and frustum culling, back-face
-  culling, Director-style lighting (below) and distance fog.
+  culling, Director-style lighting (below) and distance fog. The fog (a port
+  addition; the original has none) follows the draw distance setting: it is
+  solid 500 units before the nearest undrawn tile and starts at a quarter of
+  that, so tiles and props never pop in.
 - Lighting follows the original scene and shaders. `tools/gen_materials.py`
   reads the 3D stream's material resources, shader texture layers and lights
   into `src/material_data.gen.cpp`: three coloured directional lights (blue
@@ -325,13 +455,51 @@ stops channels 1..4, exactly like `MUTE+PAUSE_Button.ls`.
   car shells and windows have a second texture layer,
   `BitsasushiTextureReflectionMap_002` (`assets/ReflectionMap.jpg`), in
   reflection mode (sphere-mapped) blended at 0.5, which gives the paint its
-  sheen. The packed vertex normals are unreliable, so smooth normals are
-  rebuilt from the geometry at load. It renders at the window resolution: `drawMesh`
+  sheen. The packed vertex normals are unreliable, so normals are rebuilt from
+  the geometry at load: corners at the same position average the faces that
+  bend less than 60 degrees from their own, which smooths the car shells
+  (whose triangles do not share vertices) and keeps hard edges. It renders at the window resolution: `drawMesh`
   transforms (with a per-call vertex cache) and sets up triangles, `flush`
   bins them into 8-row strips and rasterizes the strips on all cores, so
   per-pixel draw order is preserved. The opaque world is drawn nearest tile
   first and the skybox after it, so covered pixels are not shaded twice.
-  Framebuffer is uploaded 1:1 to an SFML texture each frame.
+  Framebuffer is uploaded 1:1 to an SDL texture each frame.
+
+## Performance and memory
+
+Desktop timings at 960x600 (`--bench 60`): about 22-24 ms/frame on the software
+rasterizer and 8-9 ms/frame through OpenGL with a readback, on a 12-thread
+machine. The default window renders on the GPU; `--soft` is the CPU fallback.
+
+`tools/bench_memory.sh` runs every mode under GNU time and prints peak resident
+memory. Current numbers on this desktop:
+
+| mode | peak RSS |
+| --- | --- |
+| assets only (`--trace`) | 8.4 MB |
+| probe (`--probe`) | 24.4 MB |
+| audio (`--audio-test`) | 30.6 MB |
+| software bench | 38.0 MB |
+| OpenGL bench | 86.6 MB |
+| interactive software | 111.7 MB |
+| interactive OpenGL | 96.5 MB |
+
+Most of the interactive figure is the SDL/X11/GL driver, which does not exist
+on a console. The game's own retained memory is roughly: ~16 MB world (asset
+meshes, textures, height fields), ~22 MB decoded audio, plus framebuffers and
+HUD textures. Two changes keep it there:
+
+- Tile batches reference the loaded `AssetMesh` groups (`indexBegin`/
+  `indexCount`) instead of copying the whole vertex array per material; the
+  copies cost about 20 MB because a tile shares one mesh between several
+  materials.
+- Audio clips stay mono in RAM (the original Sfx are mono), so the 19 MB of WAV
+  data is not doubled into stereo; the mixer writes each sample to both output
+  channels.
+
+For the Vita (512 MB, 960x544) that is comfortable. A PSP (32 MB) is not:
+the world and audio alone exceed it, so PSP would need streamed/compressed
+audio, quantized or sparse height fields and smaller textures before it fits.
 
 ## Original collisions
 
@@ -431,6 +599,9 @@ Ferris wheel tile and every tall object sits on its original tile.
 # Hold the throttle from a placed position to observe collision pushes.
 ./build/rr4 --drive 240 --place 22500 4500 0
 
+# Preview the main menu's cinematic shots (a frame every 300 ticks).
+./build/rr4 --gl --menu-preview 3600 --shot-every 300 --shots work/menu
+
 # Measure the software rasterizer.
 ./build/rr4 --bench 360
 
@@ -507,10 +678,25 @@ Fixed 60 Hz stepping with an accumulator; `g_FPSFactor` is 1.0 per step.
 ```
 src/math.hpp        vectors, matrices
 src/assets.*        RR4W pack loader + original mesh/material drawing
-src/renderer.*      software rasterizer
+src/renderer.*      Renderer interface, software rasterizer (SoftRenderer)
+src/gl_renderer.*   OpenGL backend: recorded draws, shadow map, MSAA
 src/world.*         original tile map, props, height field
 src/collision.*     doRadialPush() and the four-tile collision pass
 src/collision_cases.gen.cpp  per-tile clamps generated from the Lingo
+src/garage.hpp      car count, paint jobs, ownership states and defaults
+src/ferris.*        Ferris' Wheels garage (store and swap cars)
+src/race.*          the five races (flag, lights, opponent, pods)
+src/stage.*         the eight point stages / time attacks
+src/traffic.*       traffic cars and traffic lights
+src/plane.*         the airport Boeing 747 loop
+src/colortank.*     the Splash of Color paint machine
+src/savegame.*      rr4save.txt autosave
+src/menu.*          main menu and settings screen over the live city
+src/spritefont.*    runtime text from the font atlas
+src/settings.*      rr4settings.txt
+src/keyvalue.*      shared key = value file reading / atomic writing
+src/cinematic.*     cinematic camera shots behind the menu
+src/*_data.gen.cpp  race paths, traffic network, stage lists, shader lighting
 src/car.*           ported car physics and all six original car assemblies
 src/audio.*         original Sfx cast and Director sound channels
 src/hud.*           original camera-overlay HUD from assets/hud/
@@ -523,6 +709,11 @@ assets/hud/                 original HUD bitmap cast members as RGBA PNG
 tools/extract_sounds.py     extract Sfx cast from the Director dump
 tools/extract_hud.py        extract and decode the HUD bitmaps (BITD/ediM/ALFA)
 tools/gen_collisions.py     translate doCollisions() into collision_cases.gen.cpp
+tools/gen_race_data.py      MapData race paths and traffic network
+tools/gen_stage_data.py     point stage flags and pods from PlayerCar.ls
+tools/gen_materials.py      shader lighting, scene lights, reflection map
+tools/render_panels.py      render the InfoPanels message panels with the TTF
+tools/render_menu.py        render the main menu text sprites
 tools/verify_physics.py     independent check of the ported car step
 tools/verify_camera.py      independent check of doCam()
 work/final_shots/           auto-drive screenshots (evidence)
@@ -541,20 +732,12 @@ The decompiled Lingo and all cast chunks live under `work/dump/` (scripts,
 
 ## Known gaps
 
-- Traffic cars, the opponent car and the moving plane are not implemented, so
-  their `doCollisions` entries (traffic push, plane collider) are inactive.
-  Every static tile collider is ported exactly.
-- Canal water is treated as drivable ground in free-drive mode, so the
-  autopilot can cut a corner and end up in the canal.
-- Surface tilt is a four-wheel height-field approximation of the original
-  twelve-ray cage. A wheel hanging over a kerb or canal edge can push the tilt
-  to its 30-degree clamp; the original ray test also reacts strongly there.
-- The 12-ray cage ground test is approximated by a 128 x 128 per-tile height
-  field, so steep tree-covered hillsides can still put the view close to
-  foliage.
-- Audio covers the car channels (music, engine, brake/reverse, skid,
-  suspension/landing, nitro and impacts). Pickup, race-pod, Ferris-wheel,
-  repair-garage and menu sounds are extracted but not triggered because those
-  systems are outside this free-drive build.
-- No traffic, opponents, race flags or points. The start-up welcome panel
-  (infoPanels 10) and the opening fade from black are not shown.
+- Canal water is treated as drivable ground, so the autopilot can cut a
+  corner and end up in the canal.
+- The original twelve-ray cage ground test is approximated by a 128 x 128
+  per-tile height field, blended between cells. Steep tree-covered hillsides
+  can still put the view close to foliage, and kerbs become short ramps.
+- The welcome panel (infoPanels 10), the opening fade from black, the menus
+  and online score / time submission are not ported.
+- Traffic does not avoid the player and ignores bridges' upper decks (as in
+  the original, it follows the dots at their height).

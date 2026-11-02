@@ -18,6 +18,10 @@ XMED-6612 in the dump). FreeType cannot load PFR1, so the TrueType conversion
 in assets/Speedway BV.ttf is used; a bold oblique system font stands in only
 if that file is missing.
 
+Panels are baked at PANEL_SCALE x the 256 x 128 stage bitmap so the text stays
+sharp when the HUD draws the 256 wide panel at 960x600 or larger windows;
+src/hud.cpp draws them at 1 / PANEL_SCALE.
+
 Usage: python3 tools/render_panels.py [--font font.ttf] [dump2_chunks] [out_dir]
 """
 
@@ -35,6 +39,7 @@ FALLBACK_FONTS = [
 
 TEXT_WIDTH = 210        # text member box width
 PANEL_OFFSET = (5, 20)  # imagePanel.copyPixels(..., rect + rect(5, 20, 5, 20))
+PANEL_SCALE = 3         # bake resolution / stage resolution
 
 # messageID -> (XMED section of the infoPanels member, char size,
 #               line spacing of the first paragraph, of the following ones)
@@ -45,12 +50,17 @@ MESSAGES = {
     4: (7160, 12, 16, 16),    # NEESON HIGH WIRE
     5: (7162, 12, 16, 16),    # POSHER 9 ELF
     6: (7164, 12, 16, 16),    # FURORE 4 THIRSTY
+    7: (7166, 12, 16, 16),    # SPLASH OF COLOR MACHINE     (doColorTank)
     8: (7168, 12, 16, 16),    # FERRIS' WHEELS              (parking in the wheel)
     9: (7170, 12, 16, 16),    # RIX RAPID REPAIR SHOP       (doRixRapidRepairs)
     16: (7174, 16, 36, 24),   # IgNitro Pickup              (doIgNitro, first bottle)
     18: (7176, 72, 72, 72),   # Ready                       (race start line)
     19: (7178, 72, 72, 72),   # Set
     20: (7180, 72, 72, 72),   # Go!
+    21: (7182, 16, 36, 24),   # STAGE COMPLETE! TIME BONUS  (doPointsFlag)
+    22: (7184, 16, 36, 24),   # POINT STAGE CANCELLED.
+    25: (7190, 16, 36, 24),   # Stage Failed / TIME UP!
+    29: (7198, 16, 36, 24),   # Stage Failed... Car Wrecked!  (doupdate)
     28: (7196, 16, 36, 24),   # RACE CANCELLED.
     30: (7200, 16, 36, 24),   # RACE FAILED / Car Wrecked!
     31: (7202, 16, 36, 18),   # Car Wrecked!                (doupdate, free drive)
@@ -88,21 +98,31 @@ def wrap(draw, font, text, width):
 
 
 def render(panel, font_path, chunks, section, size, first_space, space):
-    font = ImageFont.truetype(font_path, size)
-    mask = Image.new("L", (TEXT_WIDTH, panel.height - PANEL_OFFSET[1]), 0)
+    """Bake one message onto PANEL_SCALE x the panel bitmap.
+
+    Each line is centred by its ink box inside its fixed Director line box, so
+    lines of different glyph heights ("READY" vs "GO!") share one optical
+    baseline grid instead of relying on the font ascent plus a pixel fudge.
+    """
+    s = PANEL_SCALE
+    font = ImageFont.truetype(font_path, size * s)
+    mask_w = TEXT_WIDTH * s
+    mask_h = (panel.height - PANEL_OFFSET[1]) * s
+    mask = Image.new("L", (mask_w, mask_h), 0)
     draw = ImageDraw.Draw(mask)
-    ascent, _ = font.getmetrics()
     y = 0
     for i, para in enumerate(message_text(chunks, section)):
-        line_space = first_space if i == 0 else space
-        for line in wrap(draw, font, para, TEXT_WIDTH):
-            # Fixed line space: the line box is line_space tall, text sits on
-            # its baseline at the bottom of the box like Director draws it.
-            draw.text((0, y + line_space - ascent - 2), line, font=font, fill=255)
+        line_space = (first_space if i == 0 else space) * s
+        for line in wrap(draw, font, para, mask_w):
+            left, top, right, bottom = font.getbbox(line)
+            ink_h = bottom - top
+            # Fixed line space: centre the ink in the line box.
+            ty = y + (line_space - ink_h) // 2 - top
+            draw.text((0, ty), line, font=font, fill=255)
             y += line_space
-    out = panel.copy()
+    out = panel.resize((panel.width * s, panel.height * s), Image.LANCZOS)
     white = Image.new("RGBA", mask.size, (255, 255, 255, 255))
-    out.paste(white, PANEL_OFFSET, mask)
+    out.paste(white, (PANEL_OFFSET[0] * s, PANEL_OFFSET[1] * s), mask)
     return out
 
 

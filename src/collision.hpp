@@ -24,7 +24,7 @@ struct CollisionCtx {
     Vec3 tilePos;     // mVisTileList[tempTile].worldPosition (tile corner)
     Vec3 origin;      // pushOrigin (tile-local)
     Vec3 planeLocal;  // gPlaneCollider.transform.position (relative to mPlane)
-    Vec3 planePos;    // mPlane.worldPosition
+    Mat4 plane = Mat4::identity();   // mPlane world transform (rigid)
     Vec3 radarXAxis;  // mRadar.transform.xAxis
     Vec3 vel;         // velVector
     Vec3 rot;         // rotVector (x pitch, y yaw, z roll, degrees per frame)
@@ -33,7 +33,14 @@ struct CollisionCtx {
     float damage = 0.0f;    // g_DamagePercent
     float impact = 0.0f;    // largest push magnitude, for CrashTinkle
 
-    Vec3 planeWorld() const { return planePos + planeLocal; }
+    Vec3 planeWorld() const { return plane.transformPoint(planeLocal); }
+    // Setting gPlaneCollider.worldPosition: back into mPlane's frame.
+    Vec3 planeToLocal(const Vec3 &world) const {
+        Vec3 d = world - Vec3(plane.m[12], plane.m[13], plane.m[14]);
+        return {d.x * plane.m[0] + d.y * plane.m[1] + d.z * plane.m[2],
+                d.x * plane.m[4] + d.y * plane.m[5] + d.z * plane.m[6],
+                d.x * plane.m[8] + d.y * plane.m[9] + d.z * plane.m[10]};
+    }
 
     // doRadialPush()
     void push(float radius, const Vec3 &origin, int zeroY, int playSfx);
@@ -44,10 +51,7 @@ struct CollisionCtx {
 void collideTile(CollisionCtx &ctx, int tileID, int tileRot, int onTile);
 
 // doCollisions tile pass for the car's current position (four nearest tiles).
+// The airport tiles read the plane and radar state from `world`.
 void resolveTileCollisions(const World &world, Car &car);
-
-// Airport radar spin state (mRadar.rotate(0, 5 * g_FPSFactor, 0) each frame).
-void collideAdvanceFrame(float fps);
-Vec3 collideRadarXAxis();
 
 } // namespace rr4

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <SFML/Audio.hpp>
-
-#include <array>
+#include <memory>
 #include <string>
 
 namespace rr4 {
@@ -23,15 +21,28 @@ struct CarInput;
 //
 // Every car's engine pair is loaded, so Audio::setCar() follows Car::setCar()
 // and uses member playerCarID*2-1 / playerCarID*2 exactly like doEngineSounds.
+//
+// The mixer is a small SDL2 audio callback with five independent voices. The
+// Director channel numbers above describe intent, not a hardware limit: the
+// original port already played engine/brake/reverse on separate voices.
 class Audio {
 public:
+    Audio();
+    ~Audio();
+    Audio(const Audio &) = delete;
+    Audio &operator=(const Audio &) = delete;
+
     bool load(const std::string &dir = "assets/sounds");
     void startMusic();
     void setCar(int id);
 
     void toggleMute();
     void setMuted(bool muted);
-    bool muted() const { return muted_; }
+    // Settings: music and sound effect volume, 0..100 (percent).
+    void setVolumes(float music, float sfx);
+    // Silence the car channels (engine, skid, one-shots); music keeps playing.
+    void stopAll();
+    bool muted() const;
 
     // doEngineSounds(), called at the start of every 60 Hz step before
     // doControls(), exactly like enterFrame.
@@ -45,35 +56,9 @@ public:
     void impact(float magnitude);
 
 private:
-    void playEngine(const sf::SoundBuffer &buffer, float offsetSeconds);
-    void playOneShot(const sf::SoundBuffer &buffer);
-    void stopAll();
-
-    sf::Music music_;
-    std::array<sf::SoundBuffer, 6> engineUp_, engineDown_;
-    const sf::SoundBuffer *engineUpPtr_ = nullptr;
-    const sf::SoundBuffer *engineDownPtr_ = nullptr;
-    sf::SoundBuffer reverse_, brake_;
-    sf::SoundBuffer skidLeft_, skidRight_;
-    sf::SoundBuffer suspension_, landing_, nitro_, repairs_, pickup_, ferris_;
-    sf::SoundBuffer raceStart_, raceStop_, podBonus_;
-    int carId_ = 1;
-    std::array<sf::SoundBuffer, 4> crash_; // small, standard, medium, big
-
-    sf::Sound engine_{engineUp_[0]};
-    sf::Sound trans_{engineDown_[0]};
-    sf::Sound skid_{skidLeft_};
-    sf::Sound oneShot_{suspension_};
-
-    const sf::SoundBuffer *lastOneShot_ = nullptr;   // soundMemberList[1]
-    bool loaded_ = false;
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
     bool muted_ = false;
-
-    int engineState_ = 0;        // 0 idle, 1 revving up, 2 revving down
-    float complete_ = 1.0f;      // soundCompletePercent
-    int skidDir_ = 0;
-    bool downWas_ = false;
-    bool boostWas_ = false;
 };
 
 } // namespace rr4

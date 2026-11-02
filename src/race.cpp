@@ -1,4 +1,5 @@
 #include "race.hpp"
+#include "garage.hpp"
 #include "assets.hpp"
 #include "world.hpp"
 
@@ -37,34 +38,7 @@ const Vec3 kOppCage[4] = {{-50, 30, -60}, {50, 30, -60}, {-50, 30, 60}, {50, 30,
 int gFlagMesh = -1, gPodMesh = -1;
 
 // Director pointAt: the model's front is -Z, so -Z ends up facing `to`.
-float yawTowards(const Vec3 &from, const Vec3 &to) {
-    return std::atan2(to.x - from.x, to.z - from.z) + PI;
-}
-
-// Draw a mesh group by group like drawAssetMesh (opaque first, alpha
-// second), letting the caller scroll, tint or hide individual shaders.
-template <class Fn>
-void drawGroups(Renderer &r, const Camera &cam, const Mat4 &model, const AssetMesh &mesh,
-                Fn &&shader) {
-    r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
-    for (int pass = 0; pass < 2; ++pass) {
-        for (size_t g = 0; g < mesh.groups.size(); ++g) {
-            const AssetGroup &grp = mesh.groups[g];
-            if (grp.count == 0 || grp.material < 0) continue;
-            const AssetMaterial &m = gAssets.materials[size_t(grp.material)];
-            if ((pass == 0) == m.blend) continue;
-            uint32_t tint = m.tint();
-            float du = 0.0f, dv = 0.0f;
-            if (!shader(int(g), tint, du, dv)) continue;
-            r.setSurface(m.lighting);
-            r.setUVOffset(du, dv);
-            r.drawMesh(cam, model, mesh, gAssets.texture(grp.material), tint, false,
-                       m.blend ? 0 : 1, m.opacity, !m.blend, grp.start, grp.count);
-        }
-    }
-    r.setUVOffset(0.0f, 0.0f);
-    r.resetSurface();
-}
+} // namespace
 
 // doRadialPush-style shove of the player away from a point.
 float pushPlayer(Car &player, const Vec3 &centre, float radius, float rotScale) {
@@ -78,7 +52,15 @@ float pushPlayer(Car &player, const Vec3 &centre, float radius, float rotScale) 
     return push.length();
 }
 
-} // namespace
+void flagPolePush(Car &player, const Vec3 &pole) {
+    float mag = pushPlayer(player, pole, 120.0f, 0.4f);
+    if (mag > 20.0f) player.damage += 0.04f;
+    else if (mag > 15.0f) player.damage += 0.03f;
+    else if (mag > 10.0f) player.damage += 0.02f;
+    else if (mag > 5.0f) player.damage += 0.01f;
+    player.impactSpeed = std::max(player.impactSpeed, mag);
+}
+
 
 void Race::setup() {
     selectRace(1);
@@ -93,6 +75,13 @@ void Race::selectRace(int race) {
     flagPos_ = kFlagPos[race - 1];
     flagYawDeg_ = kFlagYaw[race - 1];
     opp_.shell.setCar(race + 1);
+}
+
+Vec3 Race::radarFlag(const int carsOwned[kCarCount]) const {
+    int race = 0;
+    for (int i = 6; i >= 2; --i)
+        if (carsOwned[i - 1] == kNotOwned) race = i - 1;
+    return race == 0 ? flagPos_ : kFlagPos[race - 1];
 }
 
 Vec3 Race::podPos(int pointer) const {
@@ -112,8 +101,8 @@ void Race::spawnOpponent() {
 void Race::placePods() {
     podAt_ = podPos(podPointer_);
     nextPodAt_ = podPos(podPointer_ + 1);
-    podYaw_ = yawTowards(podAt_, nextPodAt_);
-    nextPodYaw_ = yawTowards(nextPodAt_, podAt_);
+    podYaw_ = pointAtYaw(podAt_, nextPodAt_);
+    nextPodYaw_ = pointAtYaw(nextPodAt_, podAt_);
     podVisible_ = nextPodVisible_ = true;
 }
 
@@ -168,12 +157,18 @@ void Race::opponentGround(const World &world) {
         Vec3 local = opp_.rot.transformVector(kOppCage[i]);
         Vec3 p = opp_.shell.pos + local;
         float reach = p.y + 60.0f - 140.0f;
-        float y = world.groundHeightAt(p.x, p.z, reach);
+        toCenter[i] = local;
+        float y;
+        if (!world.groundRayAt(p.x, p.z, reach, y)) {
+            // Ray missed (beside the sunken airport tunnel floor): no imbed.
+            opp_.imbed[i] = 0.0f;
+            cap[i] = 0.0f;
+            continue;
+        }
         opp_.imbed[i] = std::max(0.0f, y - p.y + 30.0f);
         if (y - p.y + 30.0f >= 0.0f) opp_.midAir = false;
         opp_.normal[i] = world.groundNormalAt(p.x, p.z, reach);
         cap[i] = opp_.imbed[i];
-        toCenter[i] = local;
         if (cap[i] > 20.0f) {
             opp_.hoist = std::max(opp_.hoist, opp_.imbed[i] - 20.0f);
             cap[i] = 20.0f;
@@ -315,7 +310,7 @@ void Race::updateFlag(Car &player, World &world) {
             spawnOpponent();
         }
         arrowsV_ += 0.02f;   // translate(0, -0.02, 0)
-        if (diff.length() < 600.0f && inBox) {
+        if (flagShown() && world.stage.state() == 0 && diff.length() < 600.0f && inBox) {
             float prevZ = zAxis.dot(flagPos_ - player.pos);
             if (zDist < 100 && forwardVel > 0 && prevZ >= 100) {
                 // Over the start line: stop on it and line up.
@@ -378,9 +373,10 @@ void Race::updateFlag(Car &player, World &world) {
             flagStartTicks_ = ticks_;
             lightPhase_ = 0;
             int &prize = world.carsOwned[size_t(currentRace_)];   // car currentRace + 1
-            if (prize == 0) {
+            if (prize == kNotOwned) {
                 player.doPanel(34, 0);          // RACE WINNER! You won your opponents car
-                prize = 1;
+                prize = kOwnedParked;
+                player.saveGame = true;
             } else {
                 player.doPanel(44, 0);          // ... and already own this car
             }
@@ -419,11 +415,12 @@ void Race::updateFlag(Car &player, World &world) {
             world.ferris.reset();
             if (player.carId > 1) {
                 // The opponent keeps your car; drive the highest one left.
-                world.carsOwned[size_t(player.carId - 1)] = 0;
+                world.carsOwned[size_t(player.carId - 1)] = kNotOwned;
+                player.saveGame = true;
                 int id = 1;
-                for (int i = 0; i < 6; ++i)
-                    if (world.carsOwned[size_t(i)] > 0) id = i + 1;
-                world.carsOwned[size_t(id - 1)] = 2;
+                for (int i = 0; i < kCarCount; ++i)
+                    if (world.carsOwned[size_t(i)] != kNotOwned) id = i + 1;
+                world.carsOwned[size_t(id - 1)] = kOwnedDriving;
                 player.setCar(id);
                 world.ferris.reset();
                 returnToFerris(player, world);
@@ -443,13 +440,8 @@ void Race::updateFlag(Car &player, World &world) {
         break;
     }
 
-    // The flag pole itself is solid (radius 120).
-    float mag = pushPlayer(player, flagPos_, 120.0f, 0.4f);
-    if (mag > 20.0f) player.damage += 0.04f;
-    else if (mag > 15.0f) player.damage += 0.03f;
-    else if (mag > 10.0f) player.damage += 0.02f;
-    else if (mag > 5.0f) player.damage += 0.01f;
-    player.impactSpeed = std::max(player.impactSpeed, mag);
+    // The flag pole itself is solid (radius 120) while the flag is out.
+    if (flagShown()) flagPolePush(player, flagPos_);
 
     // doRacePods
     if (state_ != 0 && state_ != 6) {
@@ -461,7 +453,7 @@ void Race::updateFlag(Car &player, World &world) {
             } else if (podPointer_ == path_->checkpointCount) {
                 player.sfx.push_back(29);
                 podAt_ = podPos(podPointer_);
-                podYaw_ = yawTowards(podAt_, kPointPodPos) + PI;
+                podYaw_ = pointAtYaw(podAt_, kPointPodPos) + PI;
                 nextPodVisible_ = false;
             } else {
                 podVisible_ = false;
@@ -475,15 +467,18 @@ void Race::updateFlag(Car &player, World &world) {
 
     player.inRace = state_ > 0;
     prevCurrentRace_ = currentRace_;
+    // The flag leaves with the race and comes back 5 s after it ends.
+    if (prevState_ != 0 && state_ == 0) flagReadyTicks_ = ticks_ + 300;
+    prevState_ = state_;
 }
 
 void Race::draw(Renderer &r, const Camera &cam) const {
-    if (gFlagMesh >= 0) {
+    if (gFlagMesh >= 0 && flagShown()) {
         // Shaders 3 and 4: the start lights and the scrolling arrows. A
         // Director textureTransform position p samples the texture at uv - p
         // (V is flipped in the port, so the V shift keeps its sign there).
         Mat4 m = Mat4::translation(flagPos_) * Mat4::rotationY(deg2rad(flagYawDeg_));
-        drawGroups(r, cam, m, gAssets.meshes[size_t(gFlagMesh)],
+        drawAssetGroups(r, cam, m, gAssets.meshes[size_t(gFlagMesh)],
                    [&](int g, uint32_t &, float &du, float &dv) {
                        if (g == 2) du = -lightsU_;
                        if (g == 3) dv = -arrowsV_;
@@ -493,7 +488,7 @@ void Race::draw(Renderer &r, const Camera &cam) const {
     if (gPodMesh >= 0) {
         const AssetMesh &pod = gAssets.meshes[size_t(gPodMesh)];
         if (podVisible_)
-            drawGroups(r, cam, Mat4::translation(podAt_) * Mat4::rotationY(podYaw_), pod,
+            drawAssetGroups(r, cam, Mat4::translation(podAt_) * Mat4::rotationY(podYaw_), pod,
                        [&](int g, uint32_t &, float &du, float &dv) {
                            if (g == 2) { du = -mistU_; dv = -mistV_; }
                            return true;
@@ -501,7 +496,7 @@ void Race::draw(Renderer &r, const Camera &cam) const {
         // The next pod: shaders 1 and 2 dark purple without emission, the
         // mist (shader 3) at blend 0.
         if (nextPodVisible_)
-            drawGroups(r, cam, Mat4::translation(nextPodAt_) * Mat4::rotationY(nextPodYaw_), pod,
+            drawAssetGroups(r, cam, Mat4::translation(nextPodAt_) * Mat4::rotationY(nextPodYaw_), pod,
                        [&](int g, uint32_t &tint, float &, float &) {
                            tint = packRGBA(50, 0, 50);
                            return g != 2;

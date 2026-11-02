@@ -84,17 +84,29 @@ struct Car {
     std::vector<int> sfx;              // puppetSound(1, member(n, "Sfx")) requests
     int timerState = kTimerUnchanged;  // new g_TimerState
     bool timerReset = false;           // timeList = [0, 0, 0, 0, 0]
+    int timerMinutes = -1;             // timeList = [0, 0, 0, 0, n] (stage start)
+    int scoreAdd = 0;                  // g_CurrentScore += n
+    bool saveGame = false;             // doSaveGameData()
+    bool scoreReset = false;           // g_CurrentScore = 0
     static constexpr int kTimerUnchanged = -100;
     void doPanel(int id, int ticks) { panels.push_back({id, ticks}); }
 
+    // doPointsFlag stageState > 0 (time attack running), and the wreck it
+    // must react to (stageState 7).
+    bool inStage = false;
+    bool stageWrecked = false;
     // PlayerCar race state the car's own handlers depend on.
     bool inRace = false;               // raceState > 0
     bool raceWrecked = false;          // damage maxed out during a race
     float igNitroRot = 0.0f;           // doIgNitro: boot bottle flip, degrees
     bool nitroPickedUp = false;        // doIgNitro collected a bottle this step
     // doAnims igNitroBlastJet state: shader blend 0..100, scale.z, spin.
-    int blastBlend = 0;
-    float blastScaleL = 0.2f, blastScaleR = 0.2f;
+    // The jets start in the world at blend 100 and scale 1, so they fade out
+    // on the first frames like the original.
+    int blastBlend = 100;
+    float blastScaleL = 1.0f, blastScaleR = 1.0f;
+    Vec3 blastRAt;                     // mIgNitroBlastR position (see setCar)
+    bool blastRPlaced = false;
     float blastSpinL = 0.0f, blastSpinR = 0.0f;
     bool parked = false;               // in a Ferris wheel cage (ferrisState >= 2)
     bool ferrisCreakSfx = false;       // doFerrisWheel: Sfx 21 when parking
@@ -156,5 +168,7 @@ private:
 // Loads the original car parts from the Shockwave 3D asset pack and the
 // burn smoke particle bitmap.
 void buildCarAssets();
+// doColorTank / doSetupShells: paint car `carId` with paint job 1..8.
+void setCarPaint(int carId, int colorId);
 
 } // namespace rr4

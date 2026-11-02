@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/perry/Dev/rr4/src
+CXX_INCLUDES = -I/home/perry/Dev/rr4/src -isystem /usr/include/SDL2 -isystem /usr/include/libpng16 -isystem /usr/include/webp
 
-CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -O2 -Wall -Wextra -Wno-unused-parameter
+CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -O2 -Wall -Wextra -Wno-unused-parameter -D_REENTRANT
 

@@ -201,6 +201,30 @@ src/car.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/car.cpp.s
 .PHONY : src/car.cpp.s
 
+src/cinematic.o: src/cinematic.cpp.o
+.PHONY : src/cinematic.o
+
+# target to build an object file
+src/cinematic.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/cinematic.cpp.o
+.PHONY : src/cinematic.cpp.o
+
+src/cinematic.i: src/cinematic.cpp.i
+.PHONY : src/cinematic.i
+
+# target to preprocess a source file
+src/cinematic.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/cinematic.cpp.i
+.PHONY : src/cinematic.cpp.i
+
+src/cinematic.s: src/cinematic.cpp.s
+.PHONY : src/cinematic.s
+
+# target to generate assembly for a file
+src/cinematic.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/cinematic.cpp.s
+.PHONY : src/cinematic.cpp.s
+
 src/collision.o: src/collision.cpp.o
 .PHONY : src/collision.o
 
@@ -248,6 +272,30 @@ src/collision_cases.gen.s: src/collision_cases.gen.cpp.s
 src/collision_cases.gen.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/collision_cases.gen.cpp.s
 .PHONY : src/collision_cases.gen.cpp.s
+
+src/colortank.o: src/colortank.cpp.o
+.PHONY : src/colortank.o
+
+# target to build an object file
+src/colortank.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/colortank.cpp.o
+.PHONY : src/colortank.cpp.o
+
+src/colortank.i: src/colortank.cpp.i
+.PHONY : src/colortank.i
+
+# target to preprocess a source file
+src/colortank.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/colortank.cpp.i
+.PHONY : src/colortank.cpp.i
+
+src/colortank.s: src/colortank.cpp.s
+.PHONY : src/colortank.s
+
+# target to generate assembly for a file
+src/colortank.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/colortank.cpp.s
+.PHONY : src/colortank.cpp.s
 
 src/ferris.o: src/ferris.cpp.o
 .PHONY : src/ferris.o
@@ -297,6 +345,30 @@ src/font.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/font.cpp.s
 .PHONY : src/font.cpp.s
 
+src/gl_renderer.o: src/gl_renderer.cpp.o
+.PHONY : src/gl_renderer.o
+
+# target to build an object file
+src/gl_renderer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gl_renderer.cpp.o
+.PHONY : src/gl_renderer.cpp.o
+
+src/gl_renderer.i: src/gl_renderer.cpp.i
+.PHONY : src/gl_renderer.i
+
+# target to preprocess a source file
+src/gl_renderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gl_renderer.cpp.i
+.PHONY : src/gl_renderer.cpp.i
+
+src/gl_renderer.s: src/gl_renderer.cpp.s
+.PHONY : src/gl_renderer.s
+
+# target to generate assembly for a file
+src/gl_renderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gl_renderer.cpp.s
+.PHONY : src/gl_renderer.cpp.s
+
 src/hud.o: src/hud.cpp.o
 .PHONY : src/hud.o
 
@@ -320,6 +392,30 @@ src/hud.s: src/hud.cpp.s
 src/hud.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/hud.cpp.s
 .PHONY : src/hud.cpp.s
+
+src/keyvalue.o: src/keyvalue.cpp.o
+.PHONY : src/keyvalue.o
+
+# target to build an object file
+src/keyvalue.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/keyvalue.cpp.o
+.PHONY : src/keyvalue.cpp.o
+
+src/keyvalue.i: src/keyvalue.cpp.i
+.PHONY : src/keyvalue.i
+
+# target to preprocess a source file
+src/keyvalue.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/keyvalue.cpp.i
+.PHONY : src/keyvalue.cpp.i
+
+src/keyvalue.s: src/keyvalue.cpp.s
+.PHONY : src/keyvalue.s
+
+# target to generate assembly for a file
+src/keyvalue.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/keyvalue.cpp.s
+.PHONY : src/keyvalue.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
@@ -368,6 +464,54 @@ src/material_data.gen.s: src/material_data.gen.cpp.s
 src/material_data.gen.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/material_data.gen.cpp.s
 .PHONY : src/material_data.gen.cpp.s
+
+src/menu.o: src/menu.cpp.o
+.PHONY : src/menu.o
+
+# target to build an object file
+src/menu.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/menu.cpp.o
+.PHONY : src/menu.cpp.o
+
+src/menu.i: src/menu.cpp.i
+.PHONY : src/menu.i
+
+# target to preprocess a source file
+src/menu.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/menu.cpp.i
+.PHONY : src/menu.cpp.i
+
+src/menu.s: src/menu.cpp.s
+.PHONY : src/menu.s
+
+# target to generate assembly for a file
+src/menu.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/menu.cpp.s
+.PHONY : src/menu.cpp.s
+
+src/plane.o: src/plane.cpp.o
+.PHONY : src/plane.o
+
+# target to build an object file
+src/plane.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/plane.cpp.o
+.PHONY : src/plane.cpp.o
+
+src/plane.i: src/plane.cpp.i
+.PHONY : src/plane.i
+
+# target to preprocess a source file
+src/plane.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/plane.cpp.i
+.PHONY : src/plane.cpp.i
+
+src/plane.s: src/plane.cpp.s
+.PHONY : src/plane.s
+
+# target to generate assembly for a file
+src/plane.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/plane.cpp.s
+.PHONY : src/plane.cpp.s
 
 src/race.o: src/race.cpp.o
 .PHONY : src/race.o
@@ -441,6 +585,174 @@ src/renderer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/renderer.cpp.s
 .PHONY : src/renderer.cpp.s
 
+src/savegame.o: src/savegame.cpp.o
+.PHONY : src/savegame.o
+
+# target to build an object file
+src/savegame.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/savegame.cpp.o
+.PHONY : src/savegame.cpp.o
+
+src/savegame.i: src/savegame.cpp.i
+.PHONY : src/savegame.i
+
+# target to preprocess a source file
+src/savegame.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/savegame.cpp.i
+.PHONY : src/savegame.cpp.i
+
+src/savegame.s: src/savegame.cpp.s
+.PHONY : src/savegame.s
+
+# target to generate assembly for a file
+src/savegame.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/savegame.cpp.s
+.PHONY : src/savegame.cpp.s
+
+src/settings.o: src/settings.cpp.o
+.PHONY : src/settings.o
+
+# target to build an object file
+src/settings.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/settings.cpp.o
+.PHONY : src/settings.cpp.o
+
+src/settings.i: src/settings.cpp.i
+.PHONY : src/settings.i
+
+# target to preprocess a source file
+src/settings.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/settings.cpp.i
+.PHONY : src/settings.cpp.i
+
+src/settings.s: src/settings.cpp.s
+.PHONY : src/settings.s
+
+# target to generate assembly for a file
+src/settings.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/settings.cpp.s
+.PHONY : src/settings.cpp.s
+
+src/spritefont.o: src/spritefont.cpp.o
+.PHONY : src/spritefont.o
+
+# target to build an object file
+src/spritefont.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/spritefont.cpp.o
+.PHONY : src/spritefont.cpp.o
+
+src/spritefont.i: src/spritefont.cpp.i
+.PHONY : src/spritefont.i
+
+# target to preprocess a source file
+src/spritefont.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/spritefont.cpp.i
+.PHONY : src/spritefont.cpp.i
+
+src/spritefont.s: src/spritefont.cpp.s
+.PHONY : src/spritefont.s
+
+# target to generate assembly for a file
+src/spritefont.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/spritefont.cpp.s
+.PHONY : src/spritefont.cpp.s
+
+src/stage.o: src/stage.cpp.o
+.PHONY : src/stage.o
+
+# target to build an object file
+src/stage.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage.cpp.o
+.PHONY : src/stage.cpp.o
+
+src/stage.i: src/stage.cpp.i
+.PHONY : src/stage.i
+
+# target to preprocess a source file
+src/stage.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage.cpp.i
+.PHONY : src/stage.cpp.i
+
+src/stage.s: src/stage.cpp.s
+.PHONY : src/stage.s
+
+# target to generate assembly for a file
+src/stage.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage.cpp.s
+.PHONY : src/stage.cpp.s
+
+src/stage_data.gen.o: src/stage_data.gen.cpp.o
+.PHONY : src/stage_data.gen.o
+
+# target to build an object file
+src/stage_data.gen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o
+.PHONY : src/stage_data.gen.cpp.o
+
+src/stage_data.gen.i: src/stage_data.gen.cpp.i
+.PHONY : src/stage_data.gen.i
+
+# target to preprocess a source file
+src/stage_data.gen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage_data.gen.cpp.i
+.PHONY : src/stage_data.gen.cpp.i
+
+src/stage_data.gen.s: src/stage_data.gen.cpp.s
+.PHONY : src/stage_data.gen.s
+
+# target to generate assembly for a file
+src/stage_data.gen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/stage_data.gen.cpp.s
+.PHONY : src/stage_data.gen.cpp.s
+
+src/traffic.o: src/traffic.cpp.o
+.PHONY : src/traffic.o
+
+# target to build an object file
+src/traffic.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic.cpp.o
+.PHONY : src/traffic.cpp.o
+
+src/traffic.i: src/traffic.cpp.i
+.PHONY : src/traffic.i
+
+# target to preprocess a source file
+src/traffic.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic.cpp.i
+.PHONY : src/traffic.cpp.i
+
+src/traffic.s: src/traffic.cpp.s
+.PHONY : src/traffic.s
+
+# target to generate assembly for a file
+src/traffic.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic.cpp.s
+.PHONY : src/traffic.cpp.s
+
+src/traffic_data.gen.o: src/traffic_data.gen.cpp.o
+.PHONY : src/traffic_data.gen.o
+
+# target to build an object file
+src/traffic_data.gen.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic_data.gen.cpp.o
+.PHONY : src/traffic_data.gen.cpp.o
+
+src/traffic_data.gen.i: src/traffic_data.gen.cpp.i
+.PHONY : src/traffic_data.gen.i
+
+# target to preprocess a source file
+src/traffic_data.gen.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic_data.gen.cpp.i
+.PHONY : src/traffic_data.gen.cpp.i
+
+src/traffic_data.gen.s: src/traffic_data.gen.cpp.s
+.PHONY : src/traffic_data.gen.s
+
+# target to generate assembly for a file
+src/traffic_data.gen.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/traffic_data.gen.cpp.s
+.PHONY : src/traffic_data.gen.cpp.s
+
 src/world.o: src/world.cpp.o
 .PHONY : src/world.o
 
@@ -483,27 +795,45 @@ help:
 	@echo "... src/car.o"
 	@echo "... src/car.i"
 	@echo "... src/car.s"
+	@echo "... src/cinematic.o"
+	@echo "... src/cinematic.i"
+	@echo "... src/cinematic.s"
 	@echo "... src/collision.o"
 	@echo "... src/collision.i"
 	@echo "... src/collision.s"
 	@echo "... src/collision_cases.gen.o"
 	@echo "... src/collision_cases.gen.i"
 	@echo "... src/collision_cases.gen.s"
+	@echo "... src/colortank.o"
+	@echo "... src/colortank.i"
+	@echo "... src/colortank.s"
 	@echo "... src/ferris.o"
 	@echo "... src/ferris.i"
 	@echo "... src/ferris.s"
 	@echo "... src/font.o"
 	@echo "... src/font.i"
 	@echo "... src/font.s"
+	@echo "... src/gl_renderer.o"
+	@echo "... src/gl_renderer.i"
+	@echo "... src/gl_renderer.s"
 	@echo "... src/hud.o"
 	@echo "... src/hud.i"
 	@echo "... src/hud.s"
+	@echo "... src/keyvalue.o"
+	@echo "... src/keyvalue.i"
+	@echo "... src/keyvalue.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
 	@echo "... src/material_data.gen.o"
 	@echo "... src/material_data.gen.i"
 	@echo "... src/material_data.gen.s"
+	@echo "... src/menu.o"
+	@echo "... src/menu.i"
+	@echo "... src/menu.s"
+	@echo "... src/plane.o"
+	@echo "... src/plane.i"
+	@echo "... src/plane.s"
 	@echo "... src/race.o"
 	@echo "... src/race.i"
 	@echo "... src/race.s"
@@ -513,6 +843,27 @@ help:
 	@echo "... src/renderer.o"
 	@echo "... src/renderer.i"
 	@echo "... src/renderer.s"
+	@echo "... src/savegame.o"
+	@echo "... src/savegame.i"
+	@echo "... src/savegame.s"
+	@echo "... src/settings.o"
+	@echo "... src/settings.i"
+	@echo "... src/settings.s"
+	@echo "... src/spritefont.o"
+	@echo "... src/spritefont.i"
+	@echo "... src/spritefont.s"
+	@echo "... src/stage.o"
+	@echo "... src/stage.i"
+	@echo "... src/stage.s"
+	@echo "... src/stage_data.gen.o"
+	@echo "... src/stage_data.gen.i"
+	@echo "... src/stage_data.gen.s"
+	@echo "... src/traffic.o"
+	@echo "... src/traffic.i"
+	@echo "... src/traffic.s"
+	@echo "... src/traffic_data.gen.o"
+	@echo "... src/traffic_data.gen.i"
+	@echo "... src/traffic_data.gen.s"
 	@echo "... src/world.o"
 	@echo "... src/world.i"
 	@echo "... src/world.s"

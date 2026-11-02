@@ -1,6 +1,8 @@
 #include "assets.hpp"
 
-#include <SFML/Graphics/Image.hpp>
+#include <unordered_map>
+
+#include <SDL_image.h>
 
 #include <algorithm>
 #include <cstring>
@@ -59,6 +61,48 @@ Texture makeFallbackTexture() {
     return t;
 }
 
+// SDL_image decodes the original JPEG/PNG bytes straight from the pack. The
+// converted surface is ABGR8888, whose little-endian byte order (R, G, B, A)
+// is exactly the uint32_t layout packRGBA() uses.
+bool surfaceToTexture(SDL_Surface *surf, Texture &t) {
+    if (!surf) return false;
+    SDL_Surface *rgba = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_ABGR8888, 0);
+    SDL_FreeSurface(surf);
+    if (!rgba) return false;
+
+    t.w = rgba->w;
+    t.h = rgba->h;
+    t.px.resize(size_t(t.w) * t.h);
+    if (SDL_LockSurface(rgba) == 0) {
+        for (int y = 0; y < t.h; ++y) {
+            const auto *src = reinterpret_cast<const uint32_t *>(
+                static_cast<const uint8_t *>(rgba->pixels) + size_t(y) * rgba->pitch);
+            std::copy_n(src, t.w, t.px.begin() + size_t(y) * t.w);
+        }
+        SDL_UnlockSurface(rgba);
+    }
+    SDL_FreeSurface(rgba);
+    t.version = nextTextureVersion();
+    return true;
+}
+
+void ensureImageReady() {
+    static const bool ready = [] {
+        const int flags = IMG_INIT_PNG | IMG_INIT_JPG;
+        if ((IMG_Init(flags) & flags) != flags)
+            std::fprintf(stderr, "assets: SDL_image init failed (%s)\n", IMG_GetError());
+        return true;
+    }();
+    (void)ready;
+}
+
+bool decodeImage(const void *bytes, size_t size, Texture &t) {
+    ensureImageReady();
+    SDL_RWops *rw = SDL_RWFromConstMem(bytes, int(size));
+    if (!rw) return false;
+    return surfaceToTexture(IMG_Load_RW(rw, 1), t);
+}
+
 } // namespace
 
 bool W3DAssets::load(const std::string &path) {
@@ -91,17 +135,8 @@ bool W3DAssets::load(const std::string &path) {
         const void *bytes = data.data() + r.o;
         r.o += len;
 
-        sf::Image img;
         Texture t;
-        if (img.loadFromMemory(bytes, len)) {
-            auto sz = img.getSize();
-            t.w = int(sz.x);
-            t.h = int(sz.y);
-            t.px.resize(size_t(t.w) * t.h);
-            const uint8_t *src = img.getPixelsPtr();
-            for (size_t k = 0; k < t.px.size(); ++k)
-                t.px[k] = packRGBA(src[k * 4], src[k * 4 + 1], src[k * 4 + 2], src[k * 4 + 3]);
-        } else {
+        if (!decodeImage(bytes, len, t)) {
             std::fprintf(stderr, "assets: texture %u failed (%u bytes, enc %u)\n", i, len, enc);
             t = makeFallbackTexture();
         }
@@ -223,16 +258,38 @@ bool W3DAssets::load(const std::string &path) {
 
         // The packed vertex normals are unreliable (flat road faces carry
         // (1, 0.05, 0) instead of (0, 1, 0)), which only showed once real
-        // lighting was in. Rebuild smooth normals from the geometry: each
-        // vertex averages the area-weighted normals of the faces using it.
-        // Vertices are already split at the authored UV / smoothing seams.
+        // lighting was in. Rebuild them from the geometry. Many meshes (the
+        // car shells) give every triangle its own vertices, so faces are
+        // matched by corner position: a corner averages the area-weighted
+        // normals of the faces meeting there that bend less than 60 degrees
+        // from its own face, which smooths curves and keeps hard edges.
         if (!m.idx.empty()) {
-            for (Vertex &v : m.verts) v.n = {};
-            for (size_t t = 0; t + 2 < m.idx.size(); t += 3) {
-                Vertex &a = m.verts[m.idx[t]], &b = m.verts[m.idx[t + 1]], &c = m.verts[m.idx[t + 2]];
-                Vec3 fn = (b.p - a.p).cross(c.p - a.p);
-                a.n += fn; b.n += fn; c.n += fn;
+            const size_t triCount = m.idx.size() / 3;
+            std::vector<Vec3> faceN(triCount), faceU(triCount);
+            for (size_t t = 0; t < triCount; ++t) {
+                const Vec3 &a = m.verts[m.idx[3 * t]].p, &b = m.verts[m.idx[3 * t + 1]].p,
+                           &c = m.verts[m.idx[3 * t + 2]].p;
+                faceN[t] = (b - a).cross(c - a);
+                float len = faceN[t].length();
+                faceU[t] = len > 1e-9f ? faceN[t] / len : Vec3(0, 0, 0);
             }
+            auto key = [](const Vec3 &p) {
+                auto q = [](float v) { return uint64_t(int64_t(std::lround(v * 100.0f)) & 0x1fffff); };
+                return (q(p.x) << 42) | (q(p.y) << 21) | q(p.z);
+            };
+            std::unordered_map<uint64_t, std::vector<uint32_t>> facesAt;
+            for (size_t t = 0; t < triCount; ++t)
+                for (int k = 0; k < 3; ++k) facesAt[key(m.verts[m.idx[3 * t + k]].p)].push_back(uint32_t(t));
+            const float crease = 0.5f;   // cos 60
+            for (Vertex &v : m.verts) v.n = {};
+            for (size_t t = 0; t < triCount; ++t)
+                for (int k = 0; k < 3; ++k) {
+                    Vertex &v = m.verts[m.idx[3 * t + k]];
+                    Vec3 n;
+                    for (uint32_t f : facesAt[key(v.p)])
+                        if (faceU[f].dot(faceU[t]) > crease) n += faceN[f];
+                    v.n += n.length() > 1e-9f ? n.normalized() : faceU[t];
+                }
             for (Vertex &v : m.verts) {
                 float len = v.n.length();
                 v.n = len > 1e-9f ? v.n / len : Vec3(0, 1, 0);
@@ -264,19 +321,13 @@ int W3DAssets::meshIndex(const std::string &name) const {
 }
 
 bool loadTexture(const std::string &path, Texture &out) {
-    sf::Image img;
-    if (!img.loadFromFile(path)) {
+    ensureImageReady();
+    SDL_Surface *surf = IMG_Load(path.c_str());
+    if (!surf) {
         std::fprintf(stderr, "assets: missing %s\n", path.c_str());
         return false;
     }
-    auto size = img.getSize();
-    out.w = int(size.x);
-    out.h = int(size.y);
-    out.px.resize(size_t(out.w) * out.h);
-    const uint8_t *src = img.getPixelsPtr();
-    for (size_t i = 0; i < out.px.size(); ++i)
-        out.px[i] = packRGBA(src[i * 4], src[i * 4 + 1], src[i * 4 + 2], src[i * 4 + 3]);
-    return true;
+    return surfaceToTexture(surf, out);
 }
 
 const Texture *W3DAssets::texture(int material) const {
@@ -288,7 +339,7 @@ const Texture *W3DAssets::texture(int material) const {
 
 void drawAssetMesh(Renderer &r, const Camera &cam, const Mat4 &model,
                    const AssetMesh &mesh, bool unlit, float alphaScale, bool fog, int cull) {
-    if (fog) r.setFog(packRGBA(176, 203, 226), 9000.0f, 42000.0f);
+    if (fog) r.setWorldFog();
     // Opaque groups first, alpha-blended groups last so glass and decals keep
     // the depth buffer intact underneath them.
     for (int pass = 0; pass < 2; ++pass) {
