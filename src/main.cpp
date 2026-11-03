@@ -17,6 +17,7 @@
 #include <filesystem>
 #include "cinematic.hpp"
 #include "gl_renderer.hpp"
+#include "gamepad.hpp"
 #include "menu.hpp"
 #include "savegame.hpp"
 #include "settings.hpp"
@@ -43,6 +44,27 @@ struct ChaseCam {
     int lookingForwards = 0;
     bool init = false;
 
+    // Free look (port addition, not in the original): the gamepad right
+    // stick orbits the camera around the car. While orbiting, the original
+    // follow-behind rotation is paused. After the stick has been idle for
+    // kOrbitReturnDelay ticks of driving, the camera eases back behind the
+    // car; R3 (recenter) snaps it back at once.
+    static constexpr float kOrbitRateDeg = 3.0f;          // per tick at full deflection
+    static constexpr int kOrbitReturnDelay = 180;         // 3 s of driving at 60 Hz
+    static constexpr float kOrbitReturnSpeed = 5.0f;      // car speed that counts as driving
+    static constexpr float kOrbitReturnEase = 0.04f;      // fraction of the angle per tick
+    static constexpr float kOrbitReturnMinDeg = 0.5f;     // slowest return step
+    static constexpr float kOrbitSnapDeg = 1.0f;          // close enough: hand back to doCam
+    static constexpr float kOrbitRamp = 0.08f;            // fraction of the speed gap closed per tick (ramp up / down)
+    static constexpr float kRecenterEase = 0.10f;         // R3 return: faster than the idle return
+    static constexpr float kRecenterMinDeg = 1.5f;
+    float orbitAxis = 0.0f;   // right stick X, -1..1 (right = counter-clockwise from above)
+    bool recenter = false;    // R3 pressed
+    bool recentering = false; // easing back after R3
+    float orbitVel = 0.0f;    // smoothed orbit speed, deg per tick
+    bool freeLook = false;
+    int orbitIdle = 0;
+
     // doCam() from BehaviorScript 4 - PlayerCar.ls.
     void update(const Car &car, int tileID, float factor) {
         if (!init) {
@@ -56,6 +78,8 @@ struct ChaseCam {
         if (car.respawned) {
             // doDamageMaxOutReset: camState 1, camRange 200, camHeight 50.
             state = 1;
+            freeLook = recentering = false;
+            orbitVel = 0.0f;
             range = 200.0f;
             height = 50.0f;
             aim = car.pos + Vec3(0, 50, -100);
@@ -63,6 +87,8 @@ struct ChaseCam {
         }
 
         if (car.raceReturn) {
+            freeLook = recentering = false;
+            orbitVel = 0.0f;
             // doRaceFlag: camAim and cam.worldPosition as doSetupPlayerCar.
             aim = car.pos + Vec3(-80, 50, 200);
             cam.pos = car.pos + Vec3(-80, 50, -200);
@@ -88,12 +114,43 @@ struct ChaseCam {
         if (lookingForwards > 0) tempRot = -tempRot;
         else tempRot = 0;
 
+        // Ramp the orbit speed up and down instead of jumping to the stick value.
+        // Pushing right turns the camera counter-clockwise from above.
+        orbitVel += (-orbitAxis * kOrbitRateDeg - orbitVel) * (1.0f - std::pow(1.0f - kOrbitRamp, factor));
+        if (std::fabs(orbitVel) < 0.01f && orbitAxis == 0.0f) orbitVel = 0.0f;
+        if (orbitAxis != 0.0f) { freeLook = true; orbitIdle = 0; recentering = false; }
+        if (recenter && freeLook) recentering = true;
+        if (freeLook) tempRot = 0.0f;
+
         Vec3 offset(cam.pos.x - car.pos.x, 0, cam.pos.z - car.pos.z);
         if (offset.length() > 1e-4f) {
             offset = offset.normalized();
             if (tempRot != 0.0f)
                 offset = Mat4::rotationY(deg2rad(tempRot * factor)).transformVector(offset);
+            if (orbitVel != 0.0f)
+                offset = Mat4::rotationY(deg2rad(orbitVel * factor)).transformVector(offset);
+            const bool idleReturn = freeLook && orbitAxis == 0.0f && car.vel.length() > kOrbitReturnSpeed &&
+                                    ++orbitIdle > kOrbitReturnDelay;
+            if (freeLook && (recentering || idleReturn)) {
+                // Ease the camera direction back behind the car.
+                float delta = std::atan2(front.x, front.z) - std::atan2(offset.x, offset.z);
+                while (delta > PI) delta -= 2.0f * PI;
+                while (delta < -PI) delta += 2.0f * PI;
+                const float deg = delta * 180.0f / PI;
+                if (std::fabs(deg) < kOrbitSnapDeg) {
+                    freeLook = false;
+                    recentering = false;
+                    orbitVel = 0.0f;
+                } else {
+                    const float ease = recentering ? kRecenterEase : kOrbitReturnEase;
+                    const float minDeg = recentering ? kRecenterMinDeg : kOrbitReturnMinDeg;
+                    float step = deg * ease;
+                    if (std::fabs(step) < minDeg) step = std::copysign(minDeg, deg);
+                    offset = Mat4::rotationY(deg2rad(step * factor)).transformVector(offset);
+                }
+            }
         }
+        recenter = false;
 
         // camState: tile 7 and tile 20 pull the camera up and back.
         state = (tileID == 7 || tileID == 20) ? 2 : 1;
@@ -133,7 +190,7 @@ void drawDebugHud(Renderer &r, const World &world, const Car &car, float fps) {
     std::snprintf(buf, sizeof(buf), "TILE %02d %s", id, tileName(id));
     drawText(r, 14, 106, buf, packRGBA(200, 214, 226), 1);
     std::snprintf(buf, sizeof(buf), "TILT %+5.1f / %+5.1f  BOOST %.0f%%",
-                  car.bodyPitchDeg, car.bodyRollDeg, car.boostMeter * 100.0f);
+                  car.pitchDeg(), car.rollDeg(), car.boostMeter * 100.0f);
     drawText(r, 14, 118, buf, packRGBA(200, 214, 226), 1);
     drawText(r, 14, 134, "ARROWS DRIVE  SHIFT BOOST  M MUTE  F1 DEBUG",
              packRGBA(150, 170, 190), 1);
@@ -392,7 +449,7 @@ CarInput autoInput(const Car &car, int &wpIndex, int frame, int &stuckFrames) {
     }
 
     float desired = std::atan2(dx, dz);
-    float err = wrapAngle(desired - car.yaw);
+    float err = wrapAngle(desired - car.heading());
     if (err > 0.05f) in.left = true;
     if (err < -0.05f) in.right = true;
 
@@ -431,7 +488,7 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
     car.setCar(carId);
     if (place) {
         car.pos = {px, 0.0f, pz};
-        car.yaw = deg2rad(pyaw);
+        car.setRotationDeg({0.0f, pyaw, 0.0f});
         world.resolveCarCollision(car);
         world.updateGround(car);
     }
@@ -445,7 +502,7 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
 
     std::printf("auto-drive: %d frames at 60 Hz\n", totalFrames);
     std::printf("start pos=(%.2f, %.2f, %.2f) yaw=%.1f deg tile=%d (%s)\n",
-                car.pos.x, car.pos.y, car.pos.z, car.yaw * 180.0f / PI,
+                car.pos.x, car.pos.y, car.pos.z, car.heading() * 180.0f / PI,
                 world.tileIDAt(car.pos.x, car.pos.z),
                 tileName(world.tileIDAt(car.pos.x, car.pos.z)));
 
@@ -462,8 +519,8 @@ int runAuto(const std::string &shotDir, int totalFrames, int carId, int shotEver
         if (frame % 60 == 0) {
             std::printf("frame %4d  pos=(%8.1f,%8.1f) yaw=%6.1f  speed=%5.1f km/h  "
                         "tilt=%+5.1f/%+5.1f  damage=%.2f  tile=%02d %s\n",
-                        frame, car.pos.x, car.pos.z, car.yaw * 180.0f / PI,
-                        car.speedKmh, car.bodyPitchDeg, car.bodyRollDeg, car.damage,
+                        frame, car.pos.x, car.pos.z, car.heading() * 180.0f / PI,
+                        car.speedKmh, car.pitchDeg(), car.rollDeg(), car.damage,
                         world.tileIDAt(car.pos.x, car.pos.z),
                         tileName(world.tileIDAt(car.pos.x, car.pos.z)));
             std::fflush(stdout);
@@ -510,7 +567,7 @@ int runTrace(int frames, int carId) {
         car.update(in, 1.0f);
         std::printf("%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
                     "%.6f,%.6f\n",
-                    f, car.throttle, car.steer, car.yaw * 180.0f / PI, car.yawVelDeg,
+                    f, car.throttle, car.steer, car.heading() * 180.0f / PI, car.yawVelDeg,
                     car.vel.x, car.vel.y, car.vel.z, car.pos.x, car.pos.y, car.pos.z,
                     car.rotXDeg, car.rotZDeg);
     }
@@ -526,20 +583,24 @@ int runCamTrace(int frames, int carId) {
     int wpIndex = 0, stuckFrames = 0;
 
     std::printf("frame,tile,throttle,yawDeg,posX,posY,posZ,velX,velY,velZ,"
-                "range,height,aimX,aimY,aimZ,camX,camY,camZ\n");
+                "range,height,aimX,aimY,aimZ,camX,camY,camZ,"
+                "zAxisX,zAxisY,zAxisZ,xAxisX,xAxisY,xAxisZ\n");
     for (int f = 0; f <= frames; ++f) {
         CarInput in = autoInput(car, wpIndex, f, stuckFrames);
         car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
                    [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
         tickHud(car);
         chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
+        const Vec3 zAxis = car.forward(), xAxis = car.rightAxis();
         std::printf("%d,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
-                    "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
+                    "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,"
+                    "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
                     f, world.tileIDAt(car.pos.x, car.pos.z), car.throttle,
-                    car.yaw * 180.0f / PI, car.pos.x, car.pos.y, car.pos.z,
+                    car.heading() * 180.0f / PI, car.pos.x, car.pos.y, car.pos.z,
                     car.vel.x, car.vel.y, car.vel.z, chase.range, chase.height,
                     chase.aim.x, chase.aim.y, chase.aim.z, chase.cam.pos.x,
-                    chase.cam.pos.y, chase.cam.pos.z);
+                    chase.cam.pos.y, chase.cam.pos.z, zAxis.x, zAxis.y, zAxis.z,
+                    xAxis.x, xAxis.y, xAxis.z);
     }
     return 0;
 }
@@ -655,7 +716,7 @@ int runDrive(int frames, float x, float z, float yawDeg, int carId) {
     Car car;
     car.setCar(carId);
     car.pos = {x, 0.0f, z};
-    car.yaw = deg2rad(yawDeg);
+    car.setRotationDeg({0.0f, yawDeg, 0.0f});
     world.resolveCarCollision(car);
     world.updateGround(car);
     ChaseCam chase;
@@ -671,7 +732,7 @@ int runDrive(int frames, float x, float z, float yawDeg, int carId) {
         if (f % 5 == 0 || f == frames)
             std::printf("%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.2f,%.2f,%.2f,%d\n", f,
                         car.pos.x, car.pos.y, car.pos.z,
-                        car.yaw * 180.0f / PI, car.speedKmh, car.damage,
+                        car.heading() * 180.0f / PI, car.speedKmh, car.damage,
                         car.impactSpeed, car.rotXDeg, car.rotZDeg,
                         world.tileIDAt(car.pos.x, car.pos.z));
     }
@@ -686,7 +747,7 @@ int runProbe(float x, float z, float yawDeg, int carId) {
     Car car;
     car.setCar(carId);
     car.pos = {x, 0.0f, z};
-    car.yaw = deg2rad(yawDeg);
+    car.setRotationDeg({0.0f, yawDeg, 0.0f});
     world.resolveCarCollision(car);
     // Let doRayCasting settle the chassis the same way a real step does.
     for (int i = 0; i < 240; ++i) {
@@ -698,7 +759,7 @@ int runProbe(float x, float z, float yawDeg, int carId) {
     std::printf("probe x=%.1f z=%.1f yaw=%.1f car=%d tile=%02d %s y=%.2f "
                 "pitch=%+.2f roll=%+.2f ground=%+.2f/%+.2f\n",
                 car.pos.x, car.pos.z, yawDeg, carId, id, tileName(id),
-                car.pos.y, car.bodyPitchDeg, car.bodyRollDeg,
+                car.pos.y, car.pitchDeg(), car.rollDeg(),
                 car.groundPitchDeg, car.groundRollDeg);
     const CarConfig &cfg = carConfig(carId);
     Vec3 fwd = car.forward(), axisX = car.rightAxis();
@@ -731,10 +792,9 @@ int runSlopeScan() {
             int id = world.tileIDAt(float(x), float(z));
             if (!isRoadTile(id)) continue;
             car.pos = {float(x), 0.0f, float(z)};
-            car.yaw = 0.0f;
+            car.setRotationDeg({});
             car.vel = {};
             car.rotXDeg = car.rotZDeg = 0.0f;
-            car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
             car.groundPitchDeg = car.groundRollDeg = 0.0f;
             world.updateGround(car);
             float score = std::max(std::fabs(car.groundPitchDeg),
@@ -909,7 +969,7 @@ int main(int argc, char **argv) {
         car.boostMeter = save.carIgNitro[carId - 1];
         if (place) {
             car.pos = {placeX, 0.0f, placeZ};
-            car.yaw = deg2rad(placeYaw);
+            car.setRotationDeg({0.0f, placeYaw, 0.0f});
             world.resolveCarCollision(car);
             world.updateGround(car);
         }
@@ -940,6 +1000,8 @@ int main(int argc, char **argv) {
     menu.setSettings(settings, resolutions);
     CinematicCamera cinematic;
     MenuInput menuIn;
+    Gamepad pad;
+    pad.init();
     if (place) {
         startSession();
         sessionActive = true;
@@ -960,6 +1022,7 @@ int main(int argc, char **argv) {
         Renderer &r = *renderer;
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
+            pad.handleEvent(ev);
             if (ev.type == SDL_QUIT) {
                 if (sessionActive) autosave();
                 running = false;
@@ -990,6 +1053,23 @@ int main(int argc, char **argv) {
         }
         if (!running) break;
 
+        // Gamepad: menu presses feed the menu; Start pauses a running game.
+        const MenuInput padMenu = pad.takeMenu();
+        const bool padPause = pad.takePause();
+        if (screen == Screen::Menu) {
+            menuIn.up |= padMenu.up;
+            menuIn.down |= padMenu.down;
+            menuIn.left |= padMenu.left;
+            menuIn.right |= padMenu.right;
+            menuIn.confirm |= padMenu.confirm;
+            menuIn.back |= padMenu.back;
+        } else if (padPause) {
+            autosave();
+            audio.stopAll();
+            menu.open(true);
+            screen = Screen::Menu;
+        }
+
         const Uint8 *keys = SDL_GetKeyboardState(nullptr);
         CarInput in;
         in.up = keys[SDL_SCANCODE_UP] != 0;
@@ -997,6 +1077,19 @@ int main(int argc, char **argv) {
         in.left = keys[SDL_SCANCODE_LEFT] != 0;
         in.right = keys[SDL_SCANCODE_RIGHT] != 0;
         in.boost = keys[SDL_SCANCODE_LSHIFT] != 0;
+        in.handbrake = keys[SDL_SCANCODE_SPACE] != 0;
+        const CarInput padIn = pad.car();
+        in.up |= padIn.up;
+        in.down |= padIn.down;
+        in.left |= padIn.left;
+        in.right |= padIn.right;
+        in.boost |= padIn.boost;
+        in.handbrake |= padIn.handbrake;
+        chase.orbitAxis = screen == Screen::Game ? pad.cameraAxis() : 0.0f;
+        if (pad.takeCameraReset()) chase.recenter = screen == Screen::Game;
+        // Analog axes only apply when the keyboard is not steering / driving.
+        if (!keys[SDL_SCANCODE_LEFT] && !keys[SDL_SCANCODE_RIGHT]) in.steerAxis = padIn.steerAxis;
+        if (!keys[SDL_SCANCODE_UP] && !keys[SDL_SCANCODE_DOWN]) in.throttleAxis = padIn.throttleAxis;
 
         const auto now = std::chrono::steady_clock::now();
         const double dt = std::chrono::duration<double>(now - previous).count();
@@ -1040,6 +1133,7 @@ int main(int argc, char **argv) {
                 car.update(in, 1.0f, [&](Car &c) { world.updateGround(c); },
                            [&](Car &c) { world.doCollisions(c); world.doWorldObjects(c, in); });
                 audio.tickCar(car, in);
+                pad.rumble(car, in);
                 tickHud(car);
                 chase.update(car, world.tileIDAt(car.pos.x, car.pos.z), 1.0f);
                 if (car.saveGame) autosave();

@@ -128,9 +128,8 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
             car.pos.x = kWheelPos.x;
             car.vel.x = 0.0f;
             car.yawVelDeg = car.rotXDeg = car.rotZDeg = 0.0f;
-            car.yaw *= 0.95f;   // mPlayerCar.transform.rotation * 0.95
-            car.bodyPitchDeg *= 0.95f;
-            car.bodyRollDeg *= 0.95f;
+            // mPlayerCar.transform.rotation * 0.95
+            car.setRotationDeg(car.rotationDeg() * 0.95f);
             if (car.pos.z > kWheelPos.z) {
                 // Park the car in the bottom cage.
                 carDamage_[car.carId - 1] = car.damage;
@@ -143,7 +142,7 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
                 car.parked = true;
                 car.doPanel(8, 0);       // FERRIS' WHEELS instructions
                 car.saveGame = true;
-                car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
+                car.setRotationDeg({});
                 car.resetParts();
             }
         }
@@ -160,7 +159,7 @@ bool FerrisWheel::update(Car &car, const CarInput &in, float factor) {
             car.setCar(id);
             car.saveGame = true;
             car.parked = false;
-            car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
+            car.setRotationDeg({});
             car.doPanel(0, 0);
         } else {
             // Any Left / Right press hides the panel, even with no car to

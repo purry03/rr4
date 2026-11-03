@@ -70,10 +70,18 @@ Controls:
 | Up / Down | accelerate / brake + reverse |
 | Left / Right | steer (also: pick a cage in the Ferris wheel, pick a paint job in the paint machine) |
 | Shift | nitro boost |
+| Space | handbrake (port addition: lowers sideways grip and adds drag only while held) |
 | M | mute / unmute (original MUTE+PAUSE button) |
 | F12 | save a PNG screenshot to `work/shots/` |
 | F1 | toggle the optional debug readout (speed, tile, tilt, FPS) |
 | Esc | quit |
+
+Gamepad (any SDL game controller, hot-pluggable; not in the original, which is
+keyboard-only, so it maps onto the same digital inputs): D-pad or left stick
+steer / accelerate / brake (the stick and triggers are analog: steering angle
+and the throttle ceiling scale with how far they are pushed, using the same
+ramp rates as the keys; the D-pad is a full digital press), RT / LT accelerate / brake, A or X nitro boost, B or RB handbrake,
+right stick orbits the camera (it eases back behind the car after 3 s of driving without input, or smoothly on R3; port addition), Start pause, rumble (impacts, nitro, handbrake slides; a port addition), and in the menus D-pad or stick navigate, A confirm, B / Start back.
 
 The in-game HUD is the original one: score digits (top left), damage bar and
 skull, boost bar with the `igNitro` logo (top right), race timer, the radar
@@ -195,6 +203,9 @@ Long fields span several XMED text blocks, which the tool joins.
 - On Go! the timer runs (`g_TimerState = -2`, 2 hundredths per tick as in
   Score&Timer.ls), the opponent drives the red dots (target speed = dot
   spacing x 0.04, acceleration 0.03), and the two race igNitro bottles appear.
+  Deliberate deviation: `doOpponent` applies its ground friction when the
+  *player's* `midAir` is 0 (a copy-paste slip); the port tests the opponent's
+  own ground contact.
 - Pods: pass within 800 units of the bright pod to move on (Sfx 29); the dim
   one is the pod after it. Each pod's arrow points at the next one (`pointAt`
   turns the model's -Z front to the target). Clearing every pod wins:
@@ -549,9 +560,13 @@ difference.
 ## Ground contact and the impact wiggle
 
 `rotVector` in the original is an angular **velocity**, not an angle: `doupdate`
-does `mPlayerCar.rotate(rotVector * g_FPSFactor, #parent)`, so the body rotation
-accumulates frame by frame (`Car::bodyPitchDeg` / `bodyRollDeg`, drawn as the
-car's pitch and roll). `Car::rotXDeg` / `rotZDeg` are that angular velocity.
+does `mPlayerCar.rotate(rotVector * g_FPSFactor, #parent)`. `gPlayerCar` (the
+parent) is only ever translated, so `rotVector` turns the car about the
+**world** X / Y / Z axes and the body rotation accumulates frame by frame in
+`Car::orient` (the `mPlayerCar` transform). `Car::rotXDeg` / `yawVelDeg` /
+`rotZDeg` are that angular velocity. Throttle, tyre grip, the tyre roll and the
+camera all read the full body axes (`getWorldTransform().zAxis` / `.xAxis`), so
+on a slope the throttle pushes along it.
 
 Two things feed it:
 
@@ -561,20 +576,29 @@ Two things feed it:
 - `doRayCasting`: twelve downward rays from `gCageList`. The four wheel points
   (y = 30) get `imbed = isectY - cageY + 30` (floored at 0, capped at 20), an
   upward impulse `vel.y += cap * 0.045`, and a torque
-  `rot.x -= cage.z * cap * 0.0008`, `rot.z += cage.x * cap * 0.0008`. The eight
+  `rot.x -= toCenter.z * cap * 0.0008`, `rot.z += toCenter.x * cap * 0.0008`. The eight
   upper points use `0.0003` plus a velocity/rotation coupling. Anything deeper
   than 20 units becomes `hoist`, added to the position by `doupdate`.
 
 That torque is the spring: when an impact tips the chassis, the wheels on the
 low side embed further, the impulse pushes them back up, and the car rocks until
-the torque and `0.16`/frame angular damping settle it. On flat ground the
+the torque and the angular damping settle it. On flat ground the
 equilibrium is `y = ground - 5.55`, which is exactly the original spawn height
 `doSetupPlayerCar` uses (`-5.56`).
 
-The torque uses the cage points in the car's **own** frame (`kCage[i].x/.z`),
-not the world-rotated offsets: `rotVector` is applied about the body's pitch and
-roll axes, so mixing a world lever arm into a body-frame rotation makes the
-suspension unstable at any heading other than the axis-aligned ones.
+The torque lever arms are `toCenterList`, the world-space cage offsets, which
+matches `rotVector`'s world axes; `doBodyRoll`, the upper-cage coupling and the
+`doRadialPush` kicks are world-space too, so the car behaves the same at every
+heading.
+
+Deliberate deviation: `doFriction` damps all of `rotVector` by 0.16 per frame;
+the port damps pitch and roll (`rotVector.x` / `.z`) by 0.35
+(`kBodyTiltDamping`) so the body settles after kerbs, wall scrapes and landings
+instead of rocking for ~25 frames. Yaw keeps 0.16, so steering is unchanged.
+
+`doControls` only turns the car while `imbedList[1]` or `[2]` (the two
+z = -60 wheel rays) is embedded, and only snaps a reversed throttle back to 0
+on the ground; both are ported as written.
 
 The tile grid uses the original indexing: `onTileCol = integer(x / 5000 + 0.5)`,
 tile centres at `col * 5000 - 2500` (the `mVisTileList[]` world position) and
@@ -648,16 +672,16 @@ branch; the other five are in the same `kCars` table:
 | Original | Port |
 | --- | --- |
 | start position `(32053.57, -5.56, 30797.51)` | `Car::pos`, ground plane at Y = 0 |
-| start rotation `(0, 45, 0)` | `Car::yaw = 45 deg` |
+| start rotation `(0, 45, 0)` | `Car::orient = rotationXYZDeg(0, 45, 0)` |
 | steering +/-2/frame, return 5/frame, clamp +/-40 | `Car::update` |
 | throttle +/-0.2/frame, clamp -8..10 | `Car::update` |
 | accel `vel += forward * throttle * 0.025` (car 1) .. `0.0425` (car 6) | `Car::update` |
 | nitro: second 0.025 accel, 0.005/frame drain | `Car::update` |
 | gravity 1/frame, Y damping 5 %, drag 0.5 %/frame | `Car::update` |
-| yaw damping 16 %/frame, `steerVel = clamp(steer * 0.001 * forwardSpeed, +/-0.5)` | `Car::update` |
+| yaw damping 16 %/frame (pitch/roll 35 %, see above), `steerVel = clamp(steer * 0.001 * forwardSpeed, +/-0.5)` | `Car::update` |
 | tyre grip: strip lateral velocity, capped at 1/frame | `Car::update` |
 | body roll `rotVector.x/z` from `vel - prevVel` | `Car::rotXDeg/rotZDeg` |
-| `rotVector` is angular velocity, accumulated by `doupdate` | `Car::bodyPitchDeg/bodyRollDeg` |
+| `rotVector` is world-axis angular velocity, accumulated by `doupdate` | `Car::orient` |
 | cage-ray suspension (`imbed`, `imbedCap`, `hoist`, torques) | `World::updateGround` |
 | camera FOV 55, range 320/480, height 120/200, aim +90, `lookingForwards` | `ChaseCam::update` (`doCam`) |
 | `tileIDList` / `tileRotList` (144 cells) | `src/world.cpp`, byte-for-byte values |

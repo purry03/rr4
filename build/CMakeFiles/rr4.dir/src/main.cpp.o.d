@@ -431,7 +431,8 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/c++/15/bits/fs_fwd.h /usr/include/c++/15/bits/fs_path.h \
  /usr/include/c++/15/codecvt /usr/include/c++/15/bits/fs_dir.h \
  /usr/include/c++/15/bits/fs_ops.h /home/perry/Dev/rr4/src/cinematic.hpp \
- /home/perry/Dev/rr4/src/gl_renderer.hpp /home/perry/Dev/rr4/src/menu.hpp \
+ /home/perry/Dev/rr4/src/gl_renderer.hpp \
+ /home/perry/Dev/rr4/src/gamepad.hpp /home/perry/Dev/rr4/src/menu.hpp \
  /home/perry/Dev/rr4/src/settings.hpp \
  /home/perry/Dev/rr4/src/spritefont.hpp \
  /home/perry/Dev/rr4/src/savegame.hpp

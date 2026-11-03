@@ -9,6 +9,14 @@ namespace rr4 {
 
 struct CarInput {
     bool up = false, down = false, left = false, right = false, boost = false;
+    // Handbrake (port addition, not in the original): only acts while held.
+    bool handbrake = false;
+    // Analog gamepad axes (not in the original, which is keyboard-only).
+    // 0 = not in use, so the digital flags above act exactly as the Lingo.
+    // steerAxis: -1 (full left) .. 1 (full right); throttleAxis: -1 (full
+    // brake / reverse) .. 1 (full accelerate). up/down/left/right are also
+    // set whenever the matching axis is outside its dead zone.
+    float steerAxis = 0.0f, throttleAxis = 0.0f;
 };
 
 // Per-car data from BehaviorScript 4 - PlayerCar.ls (doSetupShells,
@@ -52,15 +60,17 @@ const CarConfig &carConfig(int id); // id 1..6
 struct Car {
     int carId = 1;
     Vec3 pos{32053.57f, -5.56f, 30797.51f};
-    float yaw = deg2rad(45.0f);       // mPlayerCar.transform.rotation.y
+    // mPlayerCar.transform (rotation only). gPlayerCar is never rotated, so
+    // this is the car's world orientation; doupdate turns it by rotVector
+    // about the world axes (mPlayerCar.rotate(rotVector, #parent)).
+    Mat4 orient = rotationXYZDeg({0.0f, 45.0f, 0.0f});
     Vec3 vel;                          // velVector
     float steer = 0.0f;                // steer, -40..40
     float throttle = 0.0f;             // throttle, -8..10
-    float yawVelDeg = 0.0f;            // rotVector.y (degrees / frame)
-    float rotXDeg = 0.0f;              // rotVector.x: pitch angular velocity, deg/frame
-    float rotZDeg = 0.0f;              // rotVector.z: roll angular velocity, deg/frame
-    float bodyPitchDeg = 0.0f;         // mPlayerCar.transform.rotation.x, deg
-    float bodyRollDeg = 0.0f;          // mPlayerCar.transform.rotation.z, deg
+    // rotVector: angular velocity about the world X / Y / Z axes, deg/frame.
+    float yawVelDeg = 0.0f;            // rotVector.y
+    float rotXDeg = 0.0f;              // rotVector.x
+    float rotZDeg = 0.0f;              // rotVector.z
     float hoist = 0.0f;                // doRayCasting hoist, applied by doupdate
     float wheelImbed[4] = {};          // imbedList[1..4]: wheel cage ray depth
     float boostMeter = 1.0f;           // g_BoostPercent
@@ -139,8 +149,26 @@ struct Car {
                 const std::function<void(Car &)> &ground = {},
                 const std::function<void(Car &)> &collide = {});
     void setCar(int id);
-    Vec3 forward() const { return Vec3(std::sin(yaw), 0, std::cos(yaw)); }
-    Vec3 rightAxis() const { return Vec3(std::cos(yaw), 0, -std::sin(yaw)); }
+    // mPlayerCar.getWorldTransform().zAxis / .xAxis, pitch and roll included.
+    // Throttle pushes along +zAxis (velVector - (-zAxis) * throttle).
+    Vec3 forward() const { return orient.transformVector({0, 0, 1}); }
+    Vec3 rightAxis() const { return orient.transformVector({1, 0, 0}); }
+    // mPlayerCar.transform.rotation (degrees) and assigning it.
+    Vec3 rotationDeg() const { return eulerXYZDeg(orient); }
+    void setRotationDeg(const Vec3 &deg) { orient = rotationXYZDeg(deg); }
+    // Body tilt for the port's diagnostics, degrees (nose-down pitch, roll
+    // lifting the right side). transform.rotation x / z are no use here:
+    // its X-Y-Z Euler angles are singular at a heading of +/-90.
+    float pitchDeg() const { return -std::asin(std::clamp(forward().y, -1.0f, 1.0f)) * 180.0f / PI; }
+    float rollDeg() const { return std::asin(std::clamp(rightAxis().y, -1.0f, 1.0f)) * 180.0f / PI; }
+    // Heading of the forward axis about world Y, radians (port tools only).
+    float heading() const { Vec3 f = forward(); return std::atan2(f.x, f.z); }
+    // doControls steers only while imbedList[1] or imbedList[2] (the two
+    // z = -60 wheel rays) is embedded. The flat-floor trace has no rays, so
+    // there every wheel is down whenever the car is grounded.
+    bool steerWheelsDown() const {
+        return useGroundMap ? (wheelImbed[0] > 0.0f || wheelImbed[1] > 0.0f) : !midAir;
+    }
     float forwardSpeed() const { return vel.dot(forward()); }
     float lateralSpeed() const { return vel.dot(rightAxis()); }
 

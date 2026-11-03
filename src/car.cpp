@@ -72,6 +72,16 @@ Texture gBurnSmokeTex;   // Textures cast member 6, texture_BurnSmoke_000
 int gNitroBottle = -1;   // igNitroBottle_001 (mIgNitro, the boot bottle)
 int gNitroBlast = -1;    // igNitroBlastJet_000
 
+// doFriction damps all of rotVector by 0.16 per frame. Deliberate
+// deviation: pitch and roll (rotVector.x / .z) are damped harder so the body
+// settles after kerbs, wall scrapes and landings instead of rocking for ~25
+// frames. Yaw keeps the original 0.16, so steering is unchanged.
+constexpr float kBodyTiltDamping = 0.35f;
+// Handbrake (port addition, no Lingo counterpart): lateral grip limit per tick
+// while held (original doTireGrip uses 1.0) and extra per-tick velocity drag.
+constexpr float kHandbrakeGrip = 0.3f;
+constexpr float kHandbrakeDrag = 0.02f;
+
 uint32_t nextRand(uint32_t &s) { s ^= s << 13; s ^= s >> 17; s ^= s << 5; return s; }
 float rand01(uint32_t &s) { return float(nextRand(s) >> 8) * (1.0f / 16777216.0f); }
 
@@ -185,6 +195,19 @@ void Car::update(const CarInput &in, float factor,
     if (ground) ground(*this);
 
     // ---- doControls -------------------------------------------------------
+    if (in.steerAxis != 0.0f) {
+        // Analog steering: same ramp rates as the keys (+2 per tick, -5 back
+        // towards centre) but the target is proportional to the stick.
+        const float target = -in.steerAxis * 40.0f;
+        if ((steer > 0 && target < 0) || (steer < 0 && target > 0)) steer = 0;
+        if (std::fabs(target) > std::fabs(steer)) {
+            const float d = 2.0f * factor;
+            steer = target > steer ? std::min(target, steer + d) : std::max(target, steer - d);
+        } else {
+            const float d = 5.0f * factor;
+            steer = target > steer ? std::min(target, steer + d) : std::max(target, steer - d);
+        }
+    } else if (in.left || in.right) {
     if (in.left) {
         if (steer < 0) steer = 0;
         if (steer < 40) steer += 2.0f * factor;
@@ -193,23 +216,31 @@ void Car::update(const CarInput &in, float factor,
         if (steer > 0) steer = 0;
         if (steer > -40) steer -= 2.0f * factor;
     }
-    if (!in.left && !in.right) {
+    }
+    if (!in.left && !in.right && in.steerAxis == 0.0f) {
         if (steer > 0) steer = std::max(0.0f, steer - 5.0f * factor);
         if (steer < 0) steer = std::min(0.0f, steer + 5.0f * factor);
     }
     // keyPressedList[4] (Up) raises throttle, keyPressedList[3] (Down) lowers it.
     // A wrecked car (damage >= 1) keeps its throttle but cannot raise it.
+    // Only a grounded car snaps a reversed throttle back to 0 first.
     if (in.up && !in.down) {
-        if (throttle < 0) throttle = 0;
+        if (!midAir && throttle < 0) throttle = 0;
         if (damage < 1.0f) throttle += 0.2f * factor;
     }
     if (in.down && !in.up) {
-        if (throttle > 0) throttle = 0;
+        if (!midAir && throttle > 0) throttle = 0;
         if (damage < 1.0f) throttle -= 0.2f * factor;
     }
     if (!in.up && !in.down) throttle = 0;
     throttle = clampf(throttle, -8.0f, 10.0f);
+    // Analog pedal: the ramp above runs as usual but tops out at a fraction
+    // of the key limits (+10 forward, -8 reverse).
+    if (in.throttleAxis > 0.0f) throttle = std::min(throttle, 10.0f * in.throttleAxis);
+    if (in.throttleAxis < 0.0f) throttle = std::max(throttle, 8.0f * in.throttleAxis);
 
+    // throttleVector = -mPlayerCar.transform.zAxis and the doTireGrip xAxis:
+    // the full body axes, so on a slope the throttle pushes along it.
     Vec3 fwd = forward();
     Vec3 right = rightAxis();
 
@@ -222,11 +253,11 @@ void Car::update(const CarInput &in, float factor,
         }
     }
 
-    // tempFactor = -zAxis . vel; rotVector.y -= steerVel, but only while a
-    // front cage ray is embedded (imbedList[1] or [2] > 0).
+    // tempFactor = -zAxis . vel; rotVector.y -= steerVel, but only while one
+    // of the z = -60 wheel rays is embedded (imbedList[1] or [2] > 0).
     float fwdSpeed = fwd.dot(vel);
     float steerVel = clampf(steer * 0.001f * fwdSpeed, -0.5f, 0.5f);
-    if (!midAir) yawVelDeg += steerVel * factor;
+    if (steerWheelsDown()) yawVelDeg += steerVel * factor;
 
     // ---- doGravity --------------------------------------------------------
     vel.y -= 1.0f * factor;
@@ -236,15 +267,19 @@ void Car::update(const CarInput &in, float factor,
         vel.y -= vel.y * 0.05f * factor;
         vel -= vel * (0.005f * factor);
         yawVelDeg -= yawVelDeg * (0.16f * factor);
-        rotXDeg -= rotXDeg * (0.16f * factor);
-        rotZDeg -= rotZDeg * (0.16f * factor);
+        rotXDeg -= rotXDeg * (kBodyTiltDamping * factor);
+        rotZDeg -= rotZDeg * (kBodyTiltDamping * factor);
     }
 
     // ---- doTireGrip -------------------------------------------------------
     float lat = vel.dot(right);
     Vec3 grip = right * lat;
-    if (grip.length() > 1.0f * factor) grip = grip.normalized() * (1.0f * factor);
+    // Handbrake (port addition): while held, the sideways grip limit drops
+    // so the car slides, and extra drag slows it. Released = original grip.
+    const float gripLimit = (in.handbrake && !midAir) ? kHandbrakeGrip : 1.0f;
+    if (grip.length() > gripLimit * factor) grip = grip.normalized() * (gripLimit * factor);
     if (!midAir) vel -= grip;
+    if (in.handbrake && !midAir) vel -= vel * (kHandbrakeDrag * factor);
 
     // ---- doCollisions -----------------------------------------------------
     // Runs before doBodyRoll and doupdate. The radial pushes act on this
@@ -264,13 +299,11 @@ void Car::update(const CarInput &in, float factor,
     prevVel_ = vel;
 
     // ---- doupdate ---------------------------------------------------------
-    // rotVector is an angular velocity: the body rotation accumulates it.
+    // mPlayerCar.rotate(rotVector * g_FPSFactor, #parent): rotVector is an
+    // angular velocity about the world axes (gPlayerCar is never rotated).
     pos += vel * factor + Vec3(0.0f, hoist * factor, 0.0f);
-    bodyPitchDeg += rotXDeg * factor;
-    bodyRollDeg += rotZDeg * factor;
-    yaw += deg2rad(yawVelDeg * factor);
-    if (yaw > PI) yaw -= 2 * PI;
-    if (yaw < -PI) yaw += 2 * PI;
+    orient = orthonormalized(
+        rotationXYZDeg(Vec3(rotXDeg, yawVelDeg, rotZDeg) * factor) * orient);
 
     // doupdate: damage maxing out starts a 300 tick (5 s) countdown, then
     // doDamageMaxOutReset repairs the car at Rix Rapid Repairs.
@@ -321,7 +354,7 @@ void Car::update(const CarInput &in, float factor,
     rollVec.y = 0.0f;
     float rollFactor = rollVec.length();
     float rollVel = 0.0f;
-    if (rollFactor > 1e-4f) rollVel = (rollVec / rollFactor).dot(fwd) * rollFactor;
+    if (rollFactor > 1e-4f) rollVel = (rollVec / rollFactor).dot(forward()) * rollFactor;
     wheelSpin += (rollVel + throttle * 2.0f) * factor;
 
     doParts(in, factor);
@@ -339,8 +372,7 @@ void Car::damageMaxOutReset() {
     damage = 0.0f;
     boostMeter = 1.0f;
     pos = kRepairSpawn;
-    yaw = 0.0f;                       // mPlayerCar.transform.rotation = (0, 0, 0)
-    bodyPitchDeg = bodyRollDeg = 0.0f;
+    setRotationDeg({});               // mPlayerCar.transform.rotation = (0, 0, 0)
     vel = {};
     yawVelDeg = rotXDeg = rotZDeg = 0.0f;
     resetParts();
@@ -496,11 +528,7 @@ void Car::draw(Renderer &r, const Camera &cam) const {
 
     const CarConfig &cfg = carConfig(carId);
     const CarMeshes &meshes = gCarMeshes[size_t(carId) - 1];
-    // Surface alignment and the doBodyRoll impulses both live in rotVector, so
-    // the body rotation is simply the accumulated pitch and roll.
-    Mat4 base = Mat4::translation(pos) * Mat4::rotationY(yaw) *
-                Mat4::rotationZ(deg2rad(bodyRollDeg)) *
-                Mat4::rotationX(deg2rad(bodyPitchDeg));
+    Mat4 base = Mat4::translation(pos) * orient;
 
     if (parked) {
         // In a Ferris wheel cage the car is drawn by the wheel; mPlayerCar is

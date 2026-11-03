@@ -366,10 +366,24 @@ CMakeFiles/rr4.dir/src/menu.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/menu.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/menu.cpp -o CMakeFiles/rr4.dir/src/menu.cpp.s
 
+CMakeFiles/rr4.dir/src/gamepad.cpp.o: CMakeFiles/rr4.dir/flags.make
+CMakeFiles/rr4.dir/src/gamepad.cpp.o: /home/perry/Dev/rr4/src/gamepad.cpp
+CMakeFiles/rr4.dir/src/gamepad.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/rr4.dir/src/gamepad.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/gamepad.cpp.o -MF CMakeFiles/rr4.dir/src/gamepad.cpp.o.d -o CMakeFiles/rr4.dir/src/gamepad.cpp.o -c /home/perry/Dev/rr4/src/gamepad.cpp
+
+CMakeFiles/rr4.dir/src/gamepad.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/rr4.dir/src/gamepad.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/perry/Dev/rr4/src/gamepad.cpp > CMakeFiles/rr4.dir/src/gamepad.cpp.i
+
+CMakeFiles/rr4.dir/src/gamepad.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/rr4.dir/src/gamepad.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/perry/Dev/rr4/src/gamepad.cpp -o CMakeFiles/rr4.dir/src/gamepad.cpp.s
+
 CMakeFiles/rr4.dir/src/spritefont.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/spritefont.cpp.o: /home/perry/Dev/rr4/src/spritefont.cpp
 CMakeFiles/rr4.dir/src/spritefont.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/rr4.dir/src/spritefont.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/rr4.dir/src/spritefont.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/spritefont.cpp.o -MF CMakeFiles/rr4.dir/src/spritefont.cpp.o.d -o CMakeFiles/rr4.dir/src/spritefont.cpp.o -c /home/perry/Dev/rr4/src/spritefont.cpp
 
 CMakeFiles/rr4.dir/src/spritefont.cpp.i: cmake_force
@@ -383,7 +397,7 @@ CMakeFiles/rr4.dir/src/spritefont.cpp.s: cmake_force
 CMakeFiles/rr4.dir/src/settings.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/settings.cpp.o: /home/perry/Dev/rr4/src/settings.cpp
 CMakeFiles/rr4.dir/src/settings.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/rr4.dir/src/settings.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/rr4.dir/src/settings.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/settings.cpp.o -MF CMakeFiles/rr4.dir/src/settings.cpp.o.d -o CMakeFiles/rr4.dir/src/settings.cpp.o -c /home/perry/Dev/rr4/src/settings.cpp
 
 CMakeFiles/rr4.dir/src/settings.cpp.i: cmake_force
@@ -397,7 +411,7 @@ CMakeFiles/rr4.dir/src/settings.cpp.s: cmake_force
 CMakeFiles/rr4.dir/src/keyvalue.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/keyvalue.cpp.o: /home/perry/Dev/rr4/src/keyvalue.cpp
 CMakeFiles/rr4.dir/src/keyvalue.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/rr4.dir/src/keyvalue.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/rr4.dir/src/keyvalue.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/keyvalue.cpp.o -MF CMakeFiles/rr4.dir/src/keyvalue.cpp.o.d -o CMakeFiles/rr4.dir/src/keyvalue.cpp.o -c /home/perry/Dev/rr4/src/keyvalue.cpp
 
 CMakeFiles/rr4.dir/src/keyvalue.cpp.i: cmake_force
@@ -411,7 +425,7 @@ CMakeFiles/rr4.dir/src/keyvalue.cpp.s: cmake_force
 CMakeFiles/rr4.dir/src/cinematic.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/cinematic.cpp.o: /home/perry/Dev/rr4/src/cinematic.cpp
 CMakeFiles/rr4.dir/src/cinematic.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/rr4.dir/src/cinematic.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/rr4.dir/src/cinematic.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/cinematic.cpp.o -MF CMakeFiles/rr4.dir/src/cinematic.cpp.o.d -o CMakeFiles/rr4.dir/src/cinematic.cpp.o -c /home/perry/Dev/rr4/src/cinematic.cpp
 
 CMakeFiles/rr4.dir/src/cinematic.cpp.i: cmake_force
@@ -425,7 +439,7 @@ CMakeFiles/rr4.dir/src/cinematic.cpp.s: cmake_force
 CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o: /home/perry/Dev/rr4/src/stage_data.gen.cpp
 CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o -MF CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o.d -o CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o -c /home/perry/Dev/rr4/src/stage_data.gen.cpp
 
 CMakeFiles/rr4.dir/src/stage_data.gen.cpp.i: cmake_force
@@ -439,7 +453,7 @@ CMakeFiles/rr4.dir/src/stage_data.gen.cpp.s: cmake_force
 CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: CMakeFiles/rr4.dir/flags.make
 CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: /home/perry/Dev/rr4/src/material_data.gen.cpp
 CMakeFiles/rr4.dir/src/material_data.gen.cpp.o: CMakeFiles/rr4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/rr4.dir/src/material_data.gen.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building CXX object CMakeFiles/rr4.dir/src/material_data.gen.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/rr4.dir/src/material_data.gen.cpp.o -MF CMakeFiles/rr4.dir/src/material_data.gen.cpp.o.d -o CMakeFiles/rr4.dir/src/material_data.gen.cpp.o -c /home/perry/Dev/rr4/src/material_data.gen.cpp
 
 CMakeFiles/rr4.dir/src/material_data.gen.cpp.i: cmake_force
@@ -473,6 +487,7 @@ rr4_OBJECTS = \
 "CMakeFiles/rr4.dir/src/colortank.cpp.o" \
 "CMakeFiles/rr4.dir/src/savegame.cpp.o" \
 "CMakeFiles/rr4.dir/src/menu.cpp.o" \
+"CMakeFiles/rr4.dir/src/gamepad.cpp.o" \
 "CMakeFiles/rr4.dir/src/spritefont.cpp.o" \
 "CMakeFiles/rr4.dir/src/settings.cpp.o" \
 "CMakeFiles/rr4.dir/src/keyvalue.cpp.o" \
@@ -504,6 +519,7 @@ rr4: CMakeFiles/rr4.dir/src/stage.cpp.o
 rr4: CMakeFiles/rr4.dir/src/colortank.cpp.o
 rr4: CMakeFiles/rr4.dir/src/savegame.cpp.o
 rr4: CMakeFiles/rr4.dir/src/menu.cpp.o
+rr4: CMakeFiles/rr4.dir/src/gamepad.cpp.o
 rr4: CMakeFiles/rr4.dir/src/spritefont.cpp.o
 rr4: CMakeFiles/rr4.dir/src/settings.cpp.o
 rr4: CMakeFiles/rr4.dir/src/keyvalue.cpp.o
@@ -516,7 +532,7 @@ rr4: /usr/lib/x86_64-linux-gnu/libGL.so
 rr4: /usr/lib/x86_64-linux-gnu/libSDL2_image.so
 rr4: /usr/lib/x86_64-linux-gnu/libSDL2.so
 rr4: CMakeFiles/rr4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Linking CXX executable rr4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/perry/Dev/rr4/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Linking CXX executable rr4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/rr4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

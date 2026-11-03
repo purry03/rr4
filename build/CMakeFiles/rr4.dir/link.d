@@ -23,6 +23,7 @@ rr4: \
   CMakeFiles/rr4.dir/src/colortank.cpp.o \
   CMakeFiles/rr4.dir/src/savegame.cpp.o \
   CMakeFiles/rr4.dir/src/menu.cpp.o \
+  CMakeFiles/rr4.dir/src/gamepad.cpp.o \
   CMakeFiles/rr4.dir/src/spritefont.cpp.o \
   CMakeFiles/rr4.dir/src/settings.cpp.o \
   CMakeFiles/rr4.dir/src/keyvalue.cpp.o \
@@ -163,6 +164,8 @@ CMakeFiles/rr4.dir/src/colortank.cpp.o:
 CMakeFiles/rr4.dir/src/savegame.cpp.o:
 
 CMakeFiles/rr4.dir/src/menu.cpp.o:
+
+CMakeFiles/rr4.dir/src/gamepad.cpp.o:
 
 CMakeFiles/rr4.dir/src/spritefont.cpp.o:
 

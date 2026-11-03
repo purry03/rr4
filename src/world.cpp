@@ -504,9 +504,7 @@ void World::doRixRapidRepairs(Car &car) {
     auto straighten = [&] {
         car.pos.x = kRixDoorPos.x;
         // mPlayerCar.transform.rotation * 0.95
-        car.yaw *= 0.95f;
-        car.bodyPitchDeg *= 0.95f;
-        car.bodyRollDeg *= 0.95f;
+        car.setRotationDeg(car.rotationDeg() * 0.95f);
     };
     if (car.repairState == 0) {
         if (std::fabs(diff.x) < 200.0f && inside) {
@@ -738,11 +736,8 @@ void World::updateGround(Car &car) const {
         return;
     }
 
-    // The cage is a child of mPlayerCar, so it inherits the accumulated body
-    // rotation (not rotVector, which is the angular velocity).
-    Mat4 body = Mat4::rotationY(car.yaw) *
-                Mat4::rotationZ(deg2rad(car.bodyRollDeg)) *
-                Mat4::rotationX(deg2rad(car.bodyPitchDeg));
+    // The cage is a child of mPlayerCar, so it inherits the body rotation.
+    const Mat4 &body = car.orient;
 
     float imbed[12] = {};
     float cap[12] = {};
@@ -781,14 +776,13 @@ void World::updateGround(Car &car) const {
     car.hoist = hoist;
     for (int i = 0; i < 4; ++i) car.wheelImbed[i] = imbed[i];
 
-    // Wheels: support impulse, torque about the body, and a nudge along the
-    // surface normal (downhill on slopes). The torque uses the cage points in
-    // the car's own frame: rotVector is applied about the body's pitch/roll
-    // axes, so the lever arms must be the unrotated cage offsets.
+    // Wheels: support impulse, torque, and a nudge along the surface normal
+    // (downhill on slopes). The lever arms are toCenterList, the world-space
+    // cage offsets, matching rotVector's world axes.
     for (int i = 0; i < 4; ++i) {
         car.vel.y += cap[i] * 0.045f;
-        car.rotXDeg -= kCage[i].z * cap[i] * 0.0008f;
-        car.rotZDeg += kCage[i].x * cap[i] * 0.0008f;
+        car.rotXDeg -= toCenter[i].z * cap[i] * 0.0008f;
+        car.rotZDeg += toCenter[i].x * cap[i] * 0.0008f;
         if (imbed[i] > 0.0f) {
             car.vel.x += normal[i].x * 0.1f;
             car.vel.z += normal[i].z * 0.1f;
@@ -797,8 +791,8 @@ void World::updateGround(Car &car) const {
     // Upper cage points: weaker torque plus the velocity/rotation coupling
     // that lets the shell rock on kerbs and landings.
     for (int i = 4; i < 12; ++i) {
-        car.rotXDeg -= kCage[i].z * cap[i] * 0.0003f;
-        car.rotZDeg += kCage[i].x * cap[i] * 0.0003f;
+        car.rotXDeg -= toCenter[i].z * cap[i] * 0.0003f;
+        car.rotZDeg += toCenter[i].x * cap[i] * 0.0003f;
         if (cap[i] > 0.0f) {
             car.vel.x -= car.rotZDeg * 0.06f;
             car.vel.z += car.rotXDeg * 0.06f;
@@ -829,7 +823,7 @@ void World::updateGround(Car &car) const {
                      "pitch=%.2f roll=%.2f rotX=%.2f rotZ=%.2f hoist=%.2f air=%d "
                      "cap=(%.2f,%.2f,%.2f,%.2f) tz=(%.1f,%.1f,%.1f,%.1f)\n",
                      car.pos.x, car.pos.y, car.pos.z, car.vel.x, car.vel.y,
-                     car.vel.z, car.bodyPitchDeg, car.bodyRollDeg, car.rotXDeg,
+                     car.vel.z, car.pitchDeg(), car.rollDeg(), car.rotXDeg,
                      car.rotZDeg, hoist, car.midAir ? 1 : 0,
                      cap[0], cap[1], cap[2], cap[3],
                      toCenter[0].z, toCenter[1].z, toCenter[2].z, toCenter[3].z);

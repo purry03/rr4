@@ -3,10 +3,10 @@ version = 1
 resolution = 1920x1080
 fullscreen = on
 vsync = on
-msaa = 4
+msaa = 8
 shadows = on
 # tiles drawn around the camera, 2..5 (the original draws 2)
 draw_distance = 4
-smooth_textures = off
+smooth_textures = on
 music_volume = 100
 sfx_volume = 100

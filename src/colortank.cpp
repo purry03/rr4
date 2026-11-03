@@ -71,7 +71,7 @@ void ColorTank::setup() {
 void ColorTank::lockCar(Car &car) const {
     car.pos.x = kCansPos.x;
     car.pos.z = kCansPos.z - kParkDist;
-    car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
+    car.setRotationDeg({});
     car.vel = {};
 }
 
@@ -96,9 +96,8 @@ void ColorTank::update(Car &car, const CarInput &in, int carColors[kCarCount]) {
         Vec3 d = kCansPos - car.pos;
         if (std::fabs(d.x) < kBayHalfWidth && d.z > 0.0f && d.z < kBayDepth) {
             car.pos.x = kCansPos.x;
-            car.yaw *= kStraighten;   // mPlayerCar.transform.rotation * 0.9
-            car.bodyPitchDeg *= kStraighten;
-            car.bodyRollDeg *= kStraighten;
+            // mPlayerCar.transform.rotation * 0.9
+            car.setRotationDeg(car.rotationDeg() * kStraighten);
             if (d.z < kParkDist && car.damage < kWrecked) {
                 car.pos.z = kCansPos.z - kParkDist;
                 car.vel.z = 0.0f;
@@ -111,7 +110,7 @@ void ColorTank::update(Car &car, const CarInput &in, int carColors[kCarCount]) {
     case kParked:
         car.pos.x = kCansPos.x;
         car.pos.z = kCansPos.z - kParkDist;
-        car.yaw = car.bodyPitchDeg = car.bodyRollDeg = 0.0f;
+        car.setRotationDeg({});
         if (in.down) {
             state_ = kIdle;
             car.doPanel(kHidePanel, 0);

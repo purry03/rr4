@@ -32,7 +32,6 @@ def simulate(rows):
 
     for row in rows:
         throttle = float(row["throttle"])
-        yaw = math.radians(float(row["yawDeg"]))
         pos = [float(row["posX"]), float(row["posY"]), float(row["posZ"])]
         vel = [float(row["velX"]), float(row["velY"]), float(row["velZ"])]
         tile = int(row["tile"])
@@ -44,8 +43,10 @@ def simulate(rows):
         if throttle < 0.0:
             looking_forwards = 0
 
-        fwd = [math.sin(yaw), 0.0, math.cos(yaw)]      # mPlayerCar zAxis
-        right = [math.cos(yaw), 0.0, -math.sin(yaw)]   # mPlayerCar xAxis
+        # mPlayerCar.getWorldTransform().zAxis / .xAxis (pitch and roll
+        # included); doCam flattens them itself.
+        fwd = [float(row["zAxisX"]), float(row["zAxisY"]), float(row["zAxisZ"])]
+        right = [float(row["xAxisX"]), float(row["xAxisY"]), float(row["xAxisZ"])]
         to_cam = [cam[0] - pos[0], 0.0, cam[2] - pos[2]]
         to_cam = norm(to_cam)
         side = norm([-right[0], 0.0, -right[2]])

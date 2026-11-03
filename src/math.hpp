@@ -127,6 +127,45 @@ struct Mat4 {
     }
 };
 
+// Director `transform.rotation = (x, y, z)` in degrees: X, then Y, then Z.
+inline Mat4 rotationXYZDeg(const Vec3 &deg) {
+    return Mat4::rotationZ(deg2rad(deg.z)) * Mat4::rotationY(deg2rad(deg.y)) *
+           Mat4::rotationX(deg2rad(deg.x));
+}
+
+// The Euler angles (degrees) Director reports as `transform.rotation` for a
+// rotation matrix built as rotationXYZDeg.
+inline Vec3 eulerXYZDeg(const Mat4 &r) {
+    // Column-major: r.m[col * 4 + row].
+    const float sinY = std::clamp(-r.m[2], -1.0f, 1.0f);
+    const float y = std::asin(sinY);
+    float x, z;
+    if (std::fabs(sinY) < 0.99999f) {
+        x = std::atan2(r.m[6], r.m[10]);
+        z = std::atan2(r.m[1], r.m[0]);
+    } else {
+        // Gimbal lock: fold Z into X.
+        x = std::atan2(-r.m[9], r.m[5]);
+        z = 0.0f;
+    }
+    const float toDeg = 180.0f / PI;
+    return {x * toDeg, y * toDeg, z * toDeg};
+}
+
+// Re-orthonormalize the rotation part (Gram-Schmidt on Z, then X), so a
+// matrix that accumulates a small rotation every frame does not drift.
+inline Mat4 orthonormalized(const Mat4 &r) {
+    Vec3 z = Vec3(r.m[8], r.m[9], r.m[10]).normalized();
+    Vec3 x = Vec3(r.m[0], r.m[1], r.m[2]);
+    x = (x - z * z.dot(x)).normalized();
+    Vec3 y = z.cross(x);
+    Mat4 o = r;
+    o.m[0] = x.x; o.m[1] = x.y; o.m[2] = x.z;
+    o.m[4] = y.x; o.m[5] = y.y; o.m[6] = y.z;
+    o.m[8] = z.x; o.m[9] = z.y; o.m[10] = z.z;
+    return o;
+}
+
 // Director pointAt (default orientation): the yaw that turns a model's -Z
 // towards `to`.
 inline float pointAtYaw(const Vec3 &from, const Vec3 &to) {

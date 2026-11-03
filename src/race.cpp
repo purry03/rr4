@@ -115,8 +115,7 @@ void Race::hideRaceObjects(World &world) {
 // Ferris' Wheels spawn with the race torn down.
 void Race::returnToFerris(Car &player, World &world) {
     player.pos = kFerrisSpawn;
-    player.yaw = deg2rad(45.0f);
-    player.bodyPitchDeg = player.bodyRollDeg = 0.0f;
+    player.setRotationDeg({0.0f, 45.0f, 0.0f});
     player.resetParts();
     player.vel = {};
     player.yawVelDeg = player.rotXDeg = player.rotZDeg = 0.0f;
@@ -228,8 +227,11 @@ void Race::updateOpponent(Car &player, const World &world) {
         float steerVel = clampf(o.steer * 0.001f * -zAxis.dot(o.vel), -0.5f, 0.5f);
         if (opp_.imbed[0] > 0.0f || opp_.imbed[1] > 0.0f) opp_.rotVel.y -= steerVel;
         o.vel.y -= 1.0f;
-        // The original damps the opponent when the *player* is on the ground.
-        if (!player.midAir) {
+        // Deliberate deviation: doOpponent tests the player's midAir here (a
+        // copy-paste slip from doFriction), so the opponent was damped
+        // whenever the player was grounded. Use the opponent's own state, as
+        // its throttle and grip checks already do.
+        if (!opp_.midAir) {
             o.vel.y -= o.vel.y * 0.05f;
             o.vel -= o.vel * 0.005f;
             opp_.rotVel -= opp_.rotVel * 0.16f;

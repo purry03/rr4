@@ -15,18 +15,40 @@ import sys
 
 PI = math.pi
 TILE = 5000.0
+BODY_TILT_DAMPING = 0.35
 
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
 
 
-def wrap(a):
-    if a > PI:
-        a -= 2 * PI
-    if a < -PI:
-        a += 2 * PI
-    return a
+def mat_mul(a, b):
+    return [[sum(a[r][k] * b[k][c] for k in range(3)) for c in range(3)]
+            for r in range(3)]
+
+
+def rot_x(deg):
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    return [[1, 0, 0], [0, c, -s], [0, s, c]]
+
+
+def rot_y(deg):
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    return [[c, 0, s], [0, 1, 0], [-s, 0, c]]
+
+
+def rot_z(deg):
+    c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    return [[c, -s, 0], [s, c, 0], [0, 0, 1]]
+
+
+def rotation_xyz(x, y, z):
+    """Director transform.rotation = (x, y, z): X, then Y, then Z."""
+    return mat_mul(rot_z(z), mat_mul(rot_y(y), rot_x(x)))
+
+
+def column(m, c):
+    return [m[0][c], m[1][c], m[2][c]]
 
 
 def trace_input(frame):
@@ -39,7 +61,7 @@ def trace_input(frame):
 
 def simulate():
     pos = [32053.57, 0.0, 30797.51]   # doSetupPlayerCar (Y flattened by the port)
-    yaw = math.radians(45.0)          # mPlayerCar.transform.rotation = (0, 45, 0)
+    orient = rotation_xyz(0, 45, 0)   # mPlayerCar.transform.rotation = (0, 45, 0)
     vel = [0.0, 0.0, 0.0]
     steer = 0.0
     throttle = 0.0
@@ -71,19 +93,20 @@ def simulate():
                 steer = min(0.0, steer + 5.0)
 
         if up and not down:
-            if throttle < 0:
+            if not mid_air and throttle < 0:
                 throttle = 0.0
             throttle += 0.2
         if down and not up:
-            if throttle > 0:
+            if not mid_air and throttle > 0:
                 throttle = 0.0
             throttle -= 0.2
         if not up and not down:
             throttle = 0.0
         throttle = clamp(throttle, -8.0, 10.0)
 
-        fwd = [math.sin(yaw), 0.0, math.cos(yaw)]
-        right_axis = [math.cos(yaw), 0.0, -math.sin(yaw)]
+        # -throttleVector = mPlayerCar.transform.zAxis; doTireGrip xAxis.
+        fwd = column(orient, 2)
+        right_axis = column(orient, 0)
 
         if not mid_air:
             vel = [vel[i] + fwd[i] * throttle * 0.025 for i in range(3)]
@@ -99,8 +122,10 @@ def simulate():
             vel[1] -= vel[1] * 0.05
             vel = [v - v * 0.005 for v in vel]
             yaw_vel -= yaw_vel * 0.16
-            rot_x -= rot_x * 0.16
-            rot_z -= rot_z * 0.16
+            # Port deviation: pitch / roll damped at kBodyTiltDamping
+            # (src/car.cpp) instead of the original 0.16; yaw keeps 0.16.
+            rot_x -= rot_x * BODY_TILT_DAMPING
+            rot_z -= rot_z * BODY_TILT_DAMPING
 
         # ---- doTireGrip ---------------------------------------------------
         lat = sum(right_axis[i] * vel[i] for i in range(3))
@@ -123,7 +148,8 @@ def simulate():
 
         # ---- doupdate -----------------------------------------------------
         pos = [pos[i] + vel[i] for i in range(3)]
-        yaw = wrap(yaw + math.radians(yaw_vel))
+        # mPlayerCar.rotate(rotVector, #parent): world axes, premultiplied.
+        orient = mat_mul(rotation_xyz(rot_x, yaw_vel, rot_z), orient)
         if pos[1] <= 0.0:
             pos[1] = 0.0
             if vel[1] < 0:
@@ -132,7 +158,9 @@ def simulate():
         else:
             mid_air = True
 
-        rows.append((frame, throttle, steer, math.degrees(yaw), yaw_vel,
+        heading = column(orient, 2)
+        rows.append((frame, throttle, steer,
+                     math.degrees(math.atan2(heading[0], heading[2])), yaw_vel,
                      vel[0], vel[1], vel[2], pos[0], pos[1], pos[2],
                      rot_x, rot_z))
     return rows

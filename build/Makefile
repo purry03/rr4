@@ -345,6 +345,30 @@ src/font.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/font.cpp.s
 .PHONY : src/font.cpp.s
 
+src/gamepad.o: src/gamepad.cpp.o
+.PHONY : src/gamepad.o
+
+# target to build an object file
+src/gamepad.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gamepad.cpp.o
+.PHONY : src/gamepad.cpp.o
+
+src/gamepad.i: src/gamepad.cpp.i
+.PHONY : src/gamepad.i
+
+# target to preprocess a source file
+src/gamepad.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gamepad.cpp.i
+.PHONY : src/gamepad.cpp.i
+
+src/gamepad.s: src/gamepad.cpp.s
+.PHONY : src/gamepad.s
+
+# target to generate assembly for a file
+src/gamepad.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/gamepad.cpp.s
+.PHONY : src/gamepad.cpp.s
+
 src/gl_renderer.o: src/gl_renderer.cpp.o
 .PHONY : src/gl_renderer.o
 
@@ -813,6 +837,9 @@ help:
 	@echo "... src/font.o"
 	@echo "... src/font.i"
 	@echo "... src/font.s"
+	@echo "... src/gamepad.o"
+	@echo "... src/gamepad.i"
+	@echo "... src/gamepad.s"
 	@echo "... src/gl_renderer.o"
 	@echo "... src/gl_renderer.i"
 	@echo "... src/gl_renderer.s"

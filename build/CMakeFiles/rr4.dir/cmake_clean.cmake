@@ -18,6 +18,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/rr4.dir/src/ferris.cpp.o.d"
   "CMakeFiles/rr4.dir/src/font.cpp.o"
   "CMakeFiles/rr4.dir/src/font.cpp.o.d"
+  "CMakeFiles/rr4.dir/src/gamepad.cpp.o"
+  "CMakeFiles/rr4.dir/src/gamepad.cpp.o.d"
   "CMakeFiles/rr4.dir/src/gl_renderer.cpp.o"
   "CMakeFiles/rr4.dir/src/gl_renderer.cpp.o.d"
   "CMakeFiles/rr4.dir/src/hud.cpp.o"

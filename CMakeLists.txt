@@ -32,6 +32,7 @@ add_executable(rr4
     src/colortank.cpp
     src/savegame.cpp
     src/menu.cpp
+    src/gamepad.cpp
     src/spritefont.cpp
     src/settings.cpp
     src/keyvalue.cpp
