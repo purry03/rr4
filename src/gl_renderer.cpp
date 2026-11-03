@@ -1,8 +1,12 @@
-#define GL_GLEXT_PROTOTYPES 1
 #include "gl_renderer.hpp"
 
+#ifdef __vita__
+#include <vitaGL.h>
+#else
+#define GL_GLEXT_PROTOTYPES 1
 #include <GL/gl.h>
 #include <GL/glext.h>
+#endif
 
 #include <cmath>
 #include <cstddef>
@@ -31,25 +35,50 @@ constexpr float kShadowSlopeBias = 2.0f, kShadowUnitBias = 4.0f;   // glPolygonO
 constexpr int kMaxLights = 4;
 constexpr float kMaxAnisotropy = 8.0f;
 
-const char *kMeshVS = R"(#version 120
-attribute vec3 aPos;
+#ifdef __vita__
+// vitaGL: draw straight into the display buffer (multisampling is chosen at
+// vglInit), upload level 0 and let the GPU build the mip chain, and compile
+// the shaders without the shadow map (sampler2DShadow is not translated).
+constexpr bool kDrawToBackbuffer = true;
+constexpr bool kUploadMips = false;
+constexpr bool kShadowMapSupported = false;
+const char *kShaderHeader = "#version 120\n#define RR4_NO_SHADOW_MAP 1\n";
+#else
+constexpr bool kDrawToBackbuffer = false;
+constexpr bool kUploadMips = true;
+constexpr bool kShadowMapSupported = true;
+const char *kShaderHeader = "#version 120\n";
+#endif
+
+const char *kMeshVS = R"(attribute vec3 aPos;
 attribute vec3 aNormal;
 attribute vec2 aUV;
-uniform mat4 uModel, uView, uProj, uLightVP;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProj;
+uniform mat4 uLightVP;
 uniform vec3 uCamPos;
 uniform vec2 uUVOffset;
 uniform vec3 uBase;        // emissive + ambient lights * material ambient
 uniform vec3 uDiffuse;     // white when textured (useDiffuseWithTexture FALSE)
 uniform vec3 uSpecular;
 uniform float uShininess;  // exponent
-uniform int uHasSpec, uUnlit, uLightCount, uKeyLight;
+uniform int uHasSpec;
+uniform int uUnlit;
+uniform int uLightCount;
+uniform int uKeyLight;
 uniform float uReflect;
 uniform vec3 uLightColor[4];
 uniform vec3 uLightToward[4];
-uniform float uFogStart, uFogScale;
-varying vec2 vUV, vRefl;
+uniform float uFogStart;
+uniform float uFogScale;
+varying vec2 vUV;
+varying vec2 vRefl;
 varying float vFog;
-varying vec3 vLit, vLitKey, vSpec, vSpecKey;
+varying vec3 vLit;
+varying vec3 vLitKey;
+varying vec3 vSpec;
+varying vec3 vSpecKey;
 varying vec4 vShadow;
 void main() {
     vec4 world = uModel * vec4(aPos, 1.0);
@@ -61,7 +90,7 @@ void main() {
     vLit = vec3(1.0); vLitKey = vec3(0.0); vSpec = vec3(0.0); vSpecKey = vec3(0.0);
     vRefl = vec2(0.0);
     if (uUnlit == 0) {
-        vec3 wn = normalize(mat3(uModel) * aNormal);
+        vec3 wn = normalize((uModel * vec4(aNormal, 0.0)).xyz);
         vec3 toEye = normalize(uCamPos - world.xyz);
         vLit = uBase;
         for (int i = 0; i < 4; ++i) {
@@ -80,7 +109,7 @@ void main() {
         if (uReflect > 0.0) {
             // #reflection: sphere map from the camera-space reflection vector.
             vec3 e = normalize(view.xyz);
-            vec3 n = normalize(mat3(uView) * mat3(uModel) * aNormal);
+            vec3 n = normalize((uView * (uModel * vec4(aNormal, 0.0))).xyz);
             vec3 rf = e - n * (2.0 * dot(n, e));
             float m = max(2.0 * sqrt(rf.x * rf.x + rf.y * rf.y + (rf.z + 1.0) * (rf.z + 1.0)), 1e-6);
             vRefl = vec2(rf.x / m + 0.5, 1.0 - (rf.y / m + 0.5));
@@ -89,18 +118,33 @@ void main() {
 }
 )";
 
-const char *kMeshFS = R"(#version 120
-uniform sampler2D uTex, uRefl;
+const char *kMeshFS = R"(uniform sampler2D uTex, uRefl;
+#ifndef RR4_NO_SHADOW_MAP
 uniform sampler2DShadow uShadowMap;
+#endif
 uniform vec4 uTint;          // rgb tint, a = draw alpha * tint alpha
-uniform int uHasTex, uHasSpec, uUnlit, uShadowOn;
-uniform float uReflect, uAlphaCut, uShadowTexel, uShadowStrength, uShadowBias;
+uniform int uHasTex;
+uniform int uHasSpec;
+uniform int uUnlit;
+uniform int uShadowOn;
+uniform float uReflect;
+uniform float uAlphaCut;
+uniform float uShadowTexel;
+uniform float uShadowStrength;
+uniform float uShadowBias;
 uniform vec3 uFogColor;
-varying vec2 vUV, vRefl;
+varying vec2 vUV;
+varying vec2 vRefl;
 varying float vFog;
-varying vec3 vLit, vLitKey, vSpec, vSpecKey;
+varying vec3 vLit;
+varying vec3 vLitKey;
+varying vec3 vSpec;
+varying vec3 vSpecKey;
 varying vec4 vShadow;
 float shadowFactor() {
+#ifdef RR4_NO_SHADOW_MAP
+    return 1.0;
+#else
     if (uShadowOn == 0) return 1.0;
     vec3 c = vShadow.xyz / vShadow.w * 0.5 + 0.5;
     if (c.x <= 0.0 || c.x >= 1.0 || c.y <= 0.0 || c.y >= 1.0 || c.z >= 1.0) return 1.0;
@@ -114,6 +158,7 @@ float shadowFactor() {
     vec2 e = min(c.xy, 1.0 - c.xy);
     float fade = clamp(min(e.x, e.y) * 20.0, 0.0, 1.0);
     return 1.0 - (1.0 - s) * uShadowStrength * fade;
+#endif
 }
 void main() {
     vec4 t = uHasTex != 0 ? texture2D(uTex, vUV) : vec4(1.0);
@@ -133,10 +178,10 @@ void main() {
 }
 )";
 
-const char *kShadowVS = R"(#version 120
-attribute vec3 aPos;
+const char *kShadowVS = R"(attribute vec3 aPos;
 attribute vec2 aUV;
-uniform mat4 uModel, uLightVP;
+uniform mat4 uModel;
+uniform mat4 uLightVP;
 uniform vec2 uUVOffset;
 varying vec2 vUV;
 void main() {
@@ -145,10 +190,10 @@ void main() {
 }
 )";
 
-const char *kShadowFS = R"(#version 120
-uniform sampler2D uTex;
+const char *kShadowFS = R"(uniform sampler2D uTex;
 uniform int uHasTex;
-uniform float uAlpha, uAlphaCut;
+uniform float uAlpha;
+uniform float uAlphaCut;
 varying vec2 vUV;
 void main() {
     float a = uAlpha * (uHasTex != 0 ? texture2D(uTex, vUV).a : 1.0);
@@ -158,8 +203,7 @@ void main() {
 )";
 
 // Screen quads: aPos is the unit quad, placed in framebuffer pixels.
-const char *kScreenVS = R"(#version 120
-attribute vec3 aPos;
+const char *kScreenVS = R"(attribute vec3 aPos;
 uniform vec4 uRect;      // x, y, w, h in pixels, y down
 uniform vec2 uViewport;
 uniform vec4 uUV;        // u0, v0, u1, v1
@@ -171,8 +215,7 @@ void main() {
 }
 )";
 
-const char *kScreenFS = R"(#version 120
-uniform sampler2D uTex;
+const char *kScreenFS = R"(uniform sampler2D uTex;
 uniform vec4 uColor;
 varying vec2 vUV;
 void main() {
@@ -180,11 +223,12 @@ void main() {
 }
 )";
 
-const char *kSkyFS = R"(#version 120
-uniform vec3 uTop, uHorizon;
-uniform float uHeight, uCurve;
+// vUV.y runs 0 at the top row to 1 at the bottom (the quad spans the screen).
+const char *kSkyFS = R"(uniform vec3 uTop, uHorizon;
+uniform float uCurve;
+varying vec2 vUV;
 void main() {
-    float t = pow(clamp(1.0 - gl_FragCoord.y / uHeight, 0.0, 1.0), uCurve);
+    float t = pow(clamp(vUV.y, 0.0, 1.0), uCurve);
     gl_FragColor = vec4(mix(uTop, uHorizon, t), 1.0);
 }
 )";
@@ -197,7 +241,8 @@ Vec3 rgb(uint32_t c) {
 
 unsigned compile(GLenum type, const char *src) {
     unsigned s = glCreateShader(type);
-    glShaderSource(s, 1, &src, nullptr);
+    const char *parts[] = {kShaderHeader, src};
+    glShaderSource(s, 2, parts, nullptr);
     glCompileShader(s);
     int ok = 0;
     glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
@@ -254,6 +299,7 @@ int GLRenderer::Program::at(const char *name) {
 
 GLRenderer::GLRenderer(int w, int h, const GLSettings &settings)
     : Renderer(w, h), settings_(settings) {
+    settings_.shadows = settings_.shadows && kShadowMapSupported;
     meshProg_.id = link(kMeshVS, kMeshFS);
     shadowProg_.id = link(kShadowVS, kShadowFS);
     screenProg_.id = link(kScreenVS, kScreenFS);
@@ -267,7 +313,7 @@ GLRenderer::GLRenderer(int w, int h, const GLSettings &settings)
     const uint32_t whitePx = 0xffffffffu;
     glGenTextures(1, &white_);
     glBindTexture(GL_TEXTURE_2D, white_);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &whitePx);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &whitePx);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -295,6 +341,8 @@ GLRenderer::~GLRenderer() {
 }
 
 void GLRenderer::createTargets() {
+    if (kDrawToBackbuffer) return;
+#ifndef __vita__
     int maxSamples = 0;
     glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
     const int samples = std::min(settings_.msaa, maxSamples);
@@ -342,6 +390,7 @@ void GLRenderer::createTargets() {
             throw std::runtime_error("GL shadow framebuffer incomplete");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
 }
 
 const GLRenderer::GpuMesh &GLRenderer::gpuMesh(const Mesh &m) {
@@ -371,12 +420,18 @@ unsigned GLRenderer::gpuTexture(const Texture &t) {
     if (!g.id) glGenTextures(1, &g.id);
     glBindTexture(GL_TEXTURE_2D, g.id);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, t.w, t.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t.px.data());
-    for (size_t l = 0; l < t.mips.size(); ++l)
-        glTexImage2D(GL_TEXTURE_2D, GLint(l + 1), GL_RGBA8, t.mips[l].w, t.mips[l].h, 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, t.mips[l].px.data());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, GLint(t.mips.size()));
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t.w, t.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, t.px.data());
     const bool mipped = !t.mips.empty();
+    if (kUploadMips) {
+        for (size_t l = 0; l < t.mips.size(); ++l)
+            glTexImage2D(GL_TEXTURE_2D, GLint(l + 1), GL_RGBA, t.mips[l].w, t.mips[l].h, 0,
+                         GL_RGBA, GL_UNSIGNED_BYTE, t.mips[l].px.data());
+#ifndef __vita__
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, GLint(t.mips.size()));
+#endif
+    } else if (mipped) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
     if (gSmoothTextures) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                         mipped ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
@@ -524,7 +579,6 @@ void GLRenderer::drawSky() {
     Vec3 top = rgb(kSkyTop), horizon = rgb(kSkyHorizon);
     glUniform3f(p.at("uTop"), top.x, top.y, top.z);
     glUniform3f(p.at("uHorizon"), horizon.x, horizon.y, horizon.z);
-    glUniform1f(p.at("uHeight"), float(height));
     glUniform1f(p.at("uCurve"), kSkyCurve);
     glBindBuffer(GL_ARRAY_BUFFER, quadVbo_);
     glEnableVertexAttribArray(kAttribPos);
@@ -643,7 +697,7 @@ void GLRenderer::flush() {
     bool shadowed = false;
     if (settings_.shadows) shadowed = renderShadowMap(lightVP);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, sceneFbo_);
+    glBindFramebuffer(GL_FRAMEBUFFER, kDrawToBackbuffer ? 0 : sceneFbo_);
     glViewport(0, 0, width, height);
     if (clearPending_) {
         glDepthMask(GL_TRUE);
@@ -704,6 +758,7 @@ void GLRenderer::flush() {
 }
 
 void GLRenderer::resolve() {
+    if (kDrawToBackbuffer) return;
     glBindFramebuffer(GL_READ_FRAMEBUFFER, sceneFbo_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFbo_);
     glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -712,7 +767,7 @@ void GLRenderer::resolve() {
 void GLRenderer::readPixels(std::vector<uint32_t> &out) {
     flush();
     resolve();
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFbo_);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, kDrawToBackbuffer ? 0 : resolveFbo_);
     std::vector<uint32_t> flipped(size_t(width) * height);
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, flipped.data());
@@ -725,6 +780,7 @@ void GLRenderer::readPixels(std::vector<uint32_t> &out) {
 
 void GLRenderer::present(int windowW, int windowH) {
     flush();
+    if (kDrawToBackbuffer) return;   // already on screen; the display swaps
     resolve();
     glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFbo_);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

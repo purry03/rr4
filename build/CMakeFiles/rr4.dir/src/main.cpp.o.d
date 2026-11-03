@@ -213,6 +213,27 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/c++/15/bits/ranges_algobase.h \
  /usr/include/c++/15/pstl/glue_memory_defs.h \
  /usr/include/c++/15/pstl/execution_defs.h \
+ /home/perry/Dev/rr4/src/display.hpp /home/perry/Dev/rr4/src/settings.hpp \
+ /usr/include/c++/15/filesystem /usr/include/c++/15/bits/fs_fwd.h \
+ /usr/include/c++/15/bits/chrono.h /usr/include/c++/15/ratio \
+ /usr/include/c++/15/limits /usr/include/c++/15/ctime \
+ /usr/include/c++/15/bits/parse_numbers.h \
+ /usr/include/c++/15/bits/fs_path.h /usr/include/c++/15/locale \
+ /usr/include/c++/15/bits/locale_facets_nonio.h \
+ /usr/include/x86_64-linux-gnu/c++/15/bits/time_members.h \
+ /usr/include/x86_64-linux-gnu/c++/15/bits/messages_members.h \
+ /usr/include/libintl.h /usr/include/c++/15/bits/codecvt.h \
+ /usr/include/c++/15/bits/locale_facets_nonio.tcc \
+ /usr/include/c++/15/bits/locale_conv.h /usr/include/c++/15/iomanip \
+ /usr/include/c++/15/bits/quoted_string.h /usr/include/c++/15/sstream \
+ /usr/include/c++/15/istream /usr/include/c++/15/ostream \
+ /usr/include/c++/15/bits/ostream.tcc \
+ /usr/include/c++/15/bits/istream.tcc \
+ /usr/include/c++/15/bits/sstream.tcc /usr/include/c++/15/codecvt \
+ /usr/include/c++/15/bits/fs_dir.h /usr/include/c++/15/bits/fs_ops.h \
+ /usr/include/c++/15/vector /usr/include/c++/15/bits/stl_vector.h \
+ /usr/include/c++/15/bits/stl_bvector.h \
+ /usr/include/c++/15/bits/vector.tcc /home/perry/Dev/rr4/src/input.hpp \
  /home/perry/Dev/rr4/src/car.hpp /home/perry/Dev/rr4/src/math.hpp \
  /usr/include/c++/15/cmath /usr/include/math.h \
  /usr/include/x86_64-linux-gnu/bits/math-vector.h \
@@ -225,8 +246,7 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
- /usr/include/c++/15/bits/specfun.h /usr/include/c++/15/limits \
- /usr/include/c++/15/tr1/gamma.tcc \
+ /usr/include/c++/15/bits/specfun.h /usr/include/c++/15/tr1/gamma.tcc \
  /usr/include/c++/15/tr1/special_function_util.h \
  /usr/include/c++/15/tr1/bessel_function.tcc \
  /usr/include/c++/15/tr1/beta_function.tcc \
@@ -245,10 +265,7 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/c++/15/bits/ranges_algo.h \
  /usr/include/c++/15/pstl/glue_algorithm_defs.h \
  /home/perry/Dev/rr4/src/renderer.hpp /usr/include/c++/15/atomic \
- /usr/include/c++/15/vector /usr/include/c++/15/bits/stl_vector.h \
- /usr/include/c++/15/bits/stl_bvector.h \
- /usr/include/c++/15/bits/vector.tcc /usr/include/c++/15/functional \
- /usr/include/c++/15/bits/std_function.h \
+ /usr/include/c++/15/functional /usr/include/c++/15/bits/std_function.h \
  /usr/include/c++/15/unordered_map \
  /usr/include/c++/15/bits/unordered_map.h \
  /usr/include/c++/15/bits/hashtable.h \
@@ -256,6 +273,7 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/c++/15/bits/enable_special_members.h \
  /usr/include/c++/15/bits/node_handle.h \
  /usr/include/c++/15/bits/erase_if.h /usr/include/c++/15/array \
+ /home/perry/Dev/rr4/src/menu.hpp /home/perry/Dev/rr4/src/spritefont.hpp \
  /home/perry/Dev/rr4/src/font.hpp /home/perry/Dev/rr4/src/hud.hpp \
  /home/perry/Dev/rr4/src/world.hpp /home/perry/Dev/rr4/src/colortank.hpp \
  /home/perry/Dev/rr4/src/garage.hpp /home/perry/Dev/rr4/src/ferris.hpp \
@@ -409,29 +427,11 @@ CMakeFiles/rr4.dir/src/main.cpp.o: /home/perry/Dev/rr4/src/main.cpp \
  /usr/include/SDL2/SDL_version.h /usr/include/SDL2/SDL_locale.h \
  /usr/include/SDL2/SDL_misc.h /usr/include/SDL2/SDL_image.h \
  /usr/include/SDL2/SDL.h /usr/include/c++/15/chrono \
- /usr/include/c++/15/bits/chrono.h /usr/include/c++/15/ratio \
- /usr/include/c++/15/ctime /usr/include/c++/15/bits/parse_numbers.h \
- /usr/include/c++/15/sstream /usr/include/c++/15/istream \
- /usr/include/c++/15/ostream /usr/include/c++/15/bits/ostream.tcc \
- /usr/include/c++/15/bits/istream.tcc \
- /usr/include/c++/15/bits/sstream.tcc \
- /usr/include/c++/15/bits/chrono_io.h /usr/include/c++/15/iomanip \
- /usr/include/c++/15/locale \
- /usr/include/c++/15/bits/locale_facets_nonio.h \
- /usr/include/x86_64-linux-gnu/c++/15/bits/time_members.h \
- /usr/include/x86_64-linux-gnu/c++/15/bits/messages_members.h \
- /usr/include/libintl.h /usr/include/c++/15/bits/codecvt.h \
- /usr/include/c++/15/bits/locale_facets_nonio.tcc \
- /usr/include/c++/15/bits/locale_conv.h \
- /usr/include/c++/15/bits/quoted_string.h /usr/include/c++/15/format \
+ /usr/include/c++/15/bits/chrono_io.h /usr/include/c++/15/format \
  /usr/include/c++/15/charconv /usr/include/c++/15/optional \
  /usr/include/c++/15/span /usr/include/c++/15/bits/monostate.h \
  /usr/include/c++/15/bits/formatfwd.h /usr/include/c++/15/bits/unicode.h \
- /usr/include/c++/15/bits/unicode-data.h /usr/include/c++/15/filesystem \
- /usr/include/c++/15/bits/fs_fwd.h /usr/include/c++/15/bits/fs_path.h \
- /usr/include/c++/15/codecvt /usr/include/c++/15/bits/fs_dir.h \
- /usr/include/c++/15/bits/fs_ops.h /home/perry/Dev/rr4/src/cinematic.hpp \
- /home/perry/Dev/rr4/src/gl_renderer.hpp /home/perry/Dev/rr4/src/menu.hpp \
- /home/perry/Dev/rr4/src/settings.hpp \
- /home/perry/Dev/rr4/src/spritefont.hpp \
+ /usr/include/c++/15/bits/unicode-data.h \
+ /home/perry/Dev/rr4/src/cinematic.hpp \
+ /home/perry/Dev/rr4/src/gl_renderer.hpp \
  /home/perry/Dev/rr4/src/savegame.hpp

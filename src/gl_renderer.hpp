@@ -13,6 +13,9 @@
 // pixels in shadow lose that light's diffuse and specular share.
 //
 // Needs a current OpenGL context (the SDL2 window or a hidden SDL2 window).
+// On the PS Vita it runs on vitaGL: it draws straight into the display
+// buffer (no scene FBO or resolve), lets the GPU build mipmaps, and has no
+// shadow map yet (sampler2DShadow is not supported by the GLSL translator).
 
 #include "renderer.hpp"
 

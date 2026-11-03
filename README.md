@@ -26,6 +26,32 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j8
 ```
 
+### PS Vita
+
+Needs [vitasdk](https://vitasdk.org) (`$VITASDK`, with its SDL2, SDL2_image and
+vitaGL packages) and, on the console, `ur0:data/libshacccg.suprx` (vitaGL
+compiles the GLSL shaders at start-up).
+
+```bash
+cmake -S . -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake \
+      -DCMAKE_BUILD_TYPE=Release
+cmake --build build-vita -j8          # build-vita/rr4.vpk (title ID RRUM00004)
+```
+
+Install the VPK with VitaShell. After that, a code-only change can be tested
+by copying `build-vita/eboot.bin` over `ux0:app/RRUM00004/eboot.bin`.
+
+- Rendering is `GLRenderer` on vitaGL at 960 x 544, drawn straight into the
+  display buffer with up to 4x MSAA (`src/display_vita.cpp`). No real-time
+  shadow map yet: the GLSL translator has no `sampler2DShadow`.
+- Pad: Cross / R / d-pad up accelerate, Square / L / d-pad down brake and
+  reverse, Circle igNitro, left stick or d-pad steer, Start pauses, Select
+  mutes. Menus: d-pad / stick, Cross confirms, Circle goes back. The same
+  layout works with any SDL game controller on the desktop.
+- Save, settings and `log.txt` (stdout/stderr) live in
+  `ux0:data/RedlineRumble4/`.
+- LiveArea images in `vita/sce_sys/` come from `tools/make_livearea.py`.
+
 ## Run
 
 ```bash
@@ -48,6 +74,7 @@ SETTINGS: resolution (the display's modes), windowed / fullscreen, vsync,
 anti-aliasing (off / 2x / 4x / 8x), shadows, draw distance (2 to 5 tiles
 around the camera; the original draws 2), smooth or pixelated textures, music
 and sound volume. They are kept in `rr4settings.txt` next to the executable
+(`ux0:data/RedlineRumble4/` on the Vita)
 (`key = value`, like the save). Sound and draw distance apply at once; the
 window and renderer are rebuilt when the settings screen closes.
 

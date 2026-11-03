@@ -53,7 +53,12 @@ cmake --build build -j16
 ./build/rr4 [--car N]
 ```
 
-New `.cpp` files must be added to `CMakeLists.txt`. Headless modes
+PS Vita: `cmake -S . -B build-vita -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake`
+then `cmake --build build-vita` (VPK in `build-vita/rr4.vpk`). Platform code is
+limited to `src/display_sdl.cpp` / `src/display_vita.cpp`, `#ifdef __vita__`
+blocks in `gl_renderer.cpp`, `settings.cpp`, `keyvalue.cpp` and `main.cpp`.
+
+New `.cpp` files must be added to `RR4_SOURCES` in `CMakeLists.txt`. Headless modes
 (`--auto`, `--trace`, `--cam-trace`, `--bench`, `--drive`, `--probe`) are listed
 in README.md; `tools/verify_physics.py` and `tools/verify_camera.py` check the
 car step and camera against independent models of the Lingo.
@@ -61,8 +66,9 @@ car step and camera against independent models of the Lingo.
 
 ## Code layout
 
-- `src/main.cpp`: SDL2 window/GL context and event loop, menu/game screens,
-  fixed-step loop, headless modes, autosave. `src/menu.*` + `src/cinematic.*`:
+- `src/main.cpp`: game loop, menu/game screens,
+  fixed-step loop, headless modes, autosave. `src/display_*.cpp`: the screen (SDL2
+  window / GL context, or vitaGL). `src/input.*`: keyboard + game controller. `src/menu.*` + `src/cinematic.*`:
   main menu over the live city (`World::updateAmbient` runs traffic/plane
   without a player; `World::newSession` resets gameplay systems for NEW GAME).
 - `src/car.*`: player car physics, parts, damage, igNitro, request flags
@@ -101,6 +107,8 @@ Do not edit `src/*.gen.cpp` or `assets/hud/*.png` by hand; regenerate:
 | `assets/hud/menu/*.png` | `tools/render_menu.py` |
 | `assets/hud/PanelN.png` (ids in `MESSAGES`) | `tools/render_panels.py` (uses `assets/Speedway BV.ttf`) |
 | `assets/sounds/*.wav` | `tools/extract_sounds.py` |
+| `assets/rr4_world.bin` textures (after editing `assets/textures/tex-N`) | `tools/pack_textures.py` |
+| `vita/sce_sys/*` (Vita bubble / LiveArea) | `tools/make_livearea.py` |
 
 ## Style
 

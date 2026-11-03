@@ -39,7 +39,7 @@ struct SaveGame {
     bool save(const std::filesystem::path &path) const;
 };
 
-// kSaveFileName in the directory of the running executable.
+// kSaveFileName in userDataDir().
 constexpr const char *kSaveFileName = "rr4save.txt";
 std::filesystem::path defaultSavePath();
 

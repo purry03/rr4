@@ -1,16 +1,20 @@
 #pragma once
-// Player settings, kept in rr4settings.txt next to the executable in the
+// Player settings, kept in rr4settings.txt in userDataDir() in the
 // same "key = value" format as the save (src/keyvalue.hpp).
 
 #include <filesystem>
 
 namespace rr4 {
 
+// A screen size offered in the settings menu.
+struct Resolution { int w, h; };
+
 struct Settings {
     static constexpr int kVersion = 1;
     static constexpr int kMinWidth = 800, kMinHeight = 480;    // the original stage
     static constexpr int kMaxVolume = 100;
     static constexpr int kMsaaLevels[] = {0, 2, 4, 8};
+    static constexpr int kVitaWidth = 960, kVitaHeight = 544, kVitaMaxMsaa = 4;
 
     int width = 1280, height = 800;
     bool fullscreen = false;

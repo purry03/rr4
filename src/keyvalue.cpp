@@ -43,10 +43,18 @@ bool writeFileAtomic(const std::filesystem::path &path, const std::string &text)
     return true;
 }
 
-std::filesystem::path executableDir() {
+std::filesystem::path userDataDir() {
+#ifdef __vita__
+    // app0: (the installed package) is read-only.
+    const std::filesystem::path dir = "ux0:data/RedlineRumble4";
+    std::error_code ec;
+    std::filesystem::create_directories(dir, ec);
+    return dir;
+#else
     std::error_code ec;
     std::filesystem::path exe = std::filesystem::read_symlink("/proc/self/exe", ec);
     return ec ? std::filesystem::current_path() : exe.parent_path();
+#endif
 }
 
 } // namespace rr4

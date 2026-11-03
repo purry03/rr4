@@ -20,8 +20,6 @@ struct MenuInput {
     bool confirm = false, back = false;
 };
 
-struct Resolution { int w, h; };
-
 class MainMenu {
 public:
     enum class Action {

@@ -297,6 +297,30 @@ src/colortank.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/colortank.cpp.s
 .PHONY : src/colortank.cpp.s
 
+src/display_sdl.o: src/display_sdl.cpp.o
+.PHONY : src/display_sdl.o
+
+# target to build an object file
+src/display_sdl.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/display_sdl.cpp.o
+.PHONY : src/display_sdl.cpp.o
+
+src/display_sdl.i: src/display_sdl.cpp.i
+.PHONY : src/display_sdl.i
+
+# target to preprocess a source file
+src/display_sdl.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/display_sdl.cpp.i
+.PHONY : src/display_sdl.cpp.i
+
+src/display_sdl.s: src/display_sdl.cpp.s
+.PHONY : src/display_sdl.s
+
+# target to generate assembly for a file
+src/display_sdl.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/display_sdl.cpp.s
+.PHONY : src/display_sdl.cpp.s
+
 src/ferris.o: src/ferris.cpp.o
 .PHONY : src/ferris.o
 
@@ -392,6 +416,30 @@ src/hud.s: src/hud.cpp.s
 src/hud.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/hud.cpp.s
 .PHONY : src/hud.cpp.s
+
+src/input.o: src/input.cpp.o
+.PHONY : src/input.o
+
+# target to build an object file
+src/input.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/input.cpp.o
+.PHONY : src/input.cpp.o
+
+src/input.i: src/input.cpp.i
+.PHONY : src/input.i
+
+# target to preprocess a source file
+src/input.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/input.cpp.i
+.PHONY : src/input.cpp.i
+
+src/input.s: src/input.cpp.s
+.PHONY : src/input.s
+
+# target to generate assembly for a file
+src/input.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rr4.dir/build.make CMakeFiles/rr4.dir/src/input.cpp.s
+.PHONY : src/input.cpp.s
 
 src/keyvalue.o: src/keyvalue.cpp.o
 .PHONY : src/keyvalue.o
@@ -807,6 +855,9 @@ help:
 	@echo "... src/colortank.o"
 	@echo "... src/colortank.i"
 	@echo "... src/colortank.s"
+	@echo "... src/display_sdl.o"
+	@echo "... src/display_sdl.i"
+	@echo "... src/display_sdl.s"
 	@echo "... src/ferris.o"
 	@echo "... src/ferris.i"
 	@echo "... src/ferris.s"
@@ -819,6 +870,9 @@ help:
 	@echo "... src/hud.o"
 	@echo "... src/hud.i"
 	@echo "... src/hud.s"
+	@echo "... src/input.o"
+	@echo "... src/input.i"
+	@echo "... src/input.s"
 	@echo "... src/keyvalue.o"
 	@echo "... src/keyvalue.i"
 	@echo "... src/keyvalue.s"

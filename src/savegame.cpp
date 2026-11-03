@@ -82,5 +82,5 @@ bool SaveGame::save(const std::filesystem::path &path) const {
     return writeFileAtomic(path, out.str());
 }
 
-std::filesystem::path defaultSavePath() { return executableDir() / kSaveFileName; }
+std::filesystem::path defaultSavePath() { return userDataDir() / kSaveFileName; }
 } // namespace rr4

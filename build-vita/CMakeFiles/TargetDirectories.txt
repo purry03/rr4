@@ -1,0 +1,6 @@
+/home/perry/Dev/rr4/build-vita/CMakeFiles/rr4.dir
+/home/perry/Dev/rr4/build-vita/CMakeFiles/rr4-velf.dir
+/home/perry/Dev/rr4/build-vita/CMakeFiles/eboot.bin-self.dir
+/home/perry/Dev/rr4/build-vita/CMakeFiles/rr4.vpk-vpk.dir
+/home/perry/Dev/rr4/build-vita/CMakeFiles/edit_cache.dir
+/home/perry/Dev/rr4/build-vita/CMakeFiles/rebuild_cache.dir

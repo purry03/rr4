@@ -15,7 +15,8 @@ bool readKeyValues(const std::filesystem::path &path, KeyValues &out);
 // Writes `text` to a temporary file and renames it over `path`, so a crash
 // never leaves a half-written file.
 bool writeFileAtomic(const std::filesystem::path &path, const std::string &text);
-// Directory of the running executable (the files live next to it).
-std::filesystem::path executableDir();
+// Where the save and settings files live: next to the executable on the
+// desktop, ux0:data/RedlineRumble4 on the PS Vita.
+std::filesystem::path userDataDir();
 
 } // namespace rr4

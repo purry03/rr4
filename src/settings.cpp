@@ -42,6 +42,13 @@ bool Settings::load(const std::filesystem::path &path) {
 }
 
 void Settings::clamp() {
+#ifdef __vita__
+    // One fixed screen; vitaGL multisamples up to 4x.
+    width = kVitaWidth;
+    height = kVitaHeight;
+    fullscreen = true;
+    msaa = std::min(msaa, kVitaMaxMsaa);
+#endif
     width = std::max(width, kMinWidth);
     height = std::max(height, kMinHeight);
     if (std::find(std::begin(kMsaaLevels), std::end(kMsaaLevels), msaa) == std::end(kMsaaLevels))
@@ -70,6 +77,6 @@ bool Settings::save(const std::filesystem::path &path) const {
     return writeFileAtomic(path, out.str());
 }
 
-std::filesystem::path defaultSettingsPath() { return executableDir() / kSettingsFileName; }
+std::filesystem::path defaultSettingsPath() { return userDataDir() / kSettingsFileName; }
 
 } // namespace rr4

@@ -3,6 +3,7 @@ rr4: \
   /usr/lib/gcc/x86_64-linux-gnu/15/../../../x86_64-linux-gnu/crti.o \
   /usr/lib/gcc/x86_64-linux-gnu/15/crtbeginS.o \
   CMakeFiles/rr4.dir/src/main.cpp.o \
+  CMakeFiles/rr4.dir/src/input.cpp.o \
   CMakeFiles/rr4.dir/src/renderer.cpp.o \
   CMakeFiles/rr4.dir/src/gl_renderer.cpp.o \
   CMakeFiles/rr4.dir/src/assets.cpp.o \
@@ -29,6 +30,7 @@ rr4: \
   CMakeFiles/rr4.dir/src/cinematic.cpp.o \
   CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o \
   CMakeFiles/rr4.dir/src/material_data.gen.cpp.o \
+  CMakeFiles/rr4.dir/src/display_sdl.cpp.o \
   /usr/lib/x86_64-linux-gnu/libGL.so \
   /usr/lib/x86_64-linux-gnu/libSDL2_image.so \
   /usr/lib/x86_64-linux-gnu/libSDL2.so \
@@ -124,6 +126,8 @@ rr4: \
 
 CMakeFiles/rr4.dir/src/main.cpp.o:
 
+CMakeFiles/rr4.dir/src/input.cpp.o:
+
 CMakeFiles/rr4.dir/src/renderer.cpp.o:
 
 CMakeFiles/rr4.dir/src/gl_renderer.cpp.o:
@@ -175,6 +179,8 @@ CMakeFiles/rr4.dir/src/cinematic.cpp.o:
 CMakeFiles/rr4.dir/src/stage_data.gen.cpp.o:
 
 CMakeFiles/rr4.dir/src/material_data.gen.cpp.o:
+
+CMakeFiles/rr4.dir/src/display_sdl.cpp.o:
 
 /usr/lib/x86_64-linux-gnu/libGL.so:
 

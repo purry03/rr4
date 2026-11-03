@@ -1,4 +1,6 @@
 #include "audio.hpp"
+#include "display.hpp"
+#include "input.hpp"
 #include "car.hpp"
 #include "font.hpp"
 #include "hud.hpp"
@@ -15,6 +17,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#ifdef __vita__
+#include <exception>
+#include <unistd.h>   // chdir
+#include "keyvalue.hpp"   // userDataDir
+#endif
 #include "cinematic.hpp"
 #include "gl_renderer.hpp"
 #include "menu.hpp"
@@ -167,49 +174,6 @@ bool saveFrame(Renderer &r, const fs::path &path) {
     return ok;
 }
 
-bool ensureVideo() {
-    if (SDL_WasInit(SDL_INIT_VIDEO)) return true;
-    if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
-        std::fprintf(stderr, "video: SDL init failed (%s)\n", SDL_GetError());
-        return false;
-    }
-    return true;
-}
-
-bool displayModeSupported(int w, int h) {
-    const int count = SDL_GetNumDisplayModes(0);
-    for (int i = 0; i < count; ++i) {
-        SDL_DisplayMode mode{};
-        if (SDL_GetDisplayMode(0, i, &mode) == 0 && mode.w == w && mode.h == h) return true;
-    }
-    return false;
-}
-
-// Window sizes to offer: the display's fullscreen modes (one per size, at
-// least the original 800 x 480 stage), smallest first.
-std::vector<Resolution> availableResolutions() {
-    std::vector<Resolution> out;
-    ensureVideo();
-    auto add = [&](int w, int h) {
-        if (w < Settings::kMinWidth || h < Settings::kMinHeight) return;
-        if (std::none_of(out.begin(), out.end(),
-                         [&](const Resolution &r) { return r.w == w && r.h == h; }))
-            out.push_back({w, h});
-    };
-    const int count = SDL_GetNumDisplayModes(0);
-    for (int i = 0; i < count; ++i) {
-        SDL_DisplayMode mode{};
-        if (SDL_GetDisplayMode(0, i, &mode) == 0) add(mode.w, mode.h);
-    }
-    SDL_DisplayMode desktop{};
-    if (SDL_GetDesktopDisplayMode(0, &desktop) == 0) add(desktop.w, desktop.h);
-    std::sort(out.begin(), out.end(), [](const Resolution &a, const Resolution &b) {
-        return a.w != b.w ? a.w < b.w : a.h < b.h;
-    });
-    if (out.empty()) out.push_back({kWidth, kHeight});
-    return out;
-}
-
 // Settings that need a new window or renderer.
 bool videoChanged(const Settings &a, const Settings &b) {
     return a.width != b.width || a.height != b.height || a.fullscreen != b.fullscreen ||
@@ -225,33 +189,6 @@ struct RenderOptions {
     GLSettings glSettings;
 };
 RenderOptions gRender;
-
-void setGLAttributes() {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-}
-
-struct Display {
-    SDL_Window *window = nullptr;
-    SDL_GLContext gl = nullptr;
-    SDL_Renderer *sdlRenderer = nullptr;   // software renderer presentation
-    SDL_Texture *screenTexture = nullptr;
-
-    explicit operator bool() const { return window != nullptr; }
-
-    void destroy() {
-        if (screenTexture) SDL_DestroyTexture(screenTexture);
-        if (sdlRenderer) SDL_DestroyRenderer(sdlRenderer);
-        if (gl) SDL_GL_DeleteContext(gl);
-        if (window) SDL_DestroyWindow(window);
-        screenTexture = nullptr;
-        sdlRenderer = nullptr;
-        gl = nullptr;
-        window = nullptr;
-    }
-};
 
 struct Backend {
     SDL_Window *window = nullptr;      // headless GL only
@@ -276,68 +213,10 @@ struct Backend {
     }
 };
 
-void createGameWindow(Display &display, const Settings &s, bool useGL) {
-    display.destroy();
-    ensureVideo();
-
-    int w = s.width, h = s.height;
-    // A fullscreen size the display cannot do falls back to the desktop.
-    if (s.fullscreen && !displayModeSupported(w, h)) {
-        SDL_DisplayMode desktop{};
-        if (SDL_GetDesktopDisplayMode(0, &desktop) == 0) {
-            w = desktop.w;
-            h = desktop.h;
-        }
-    }
-
-    Uint32 flags = SDL_WINDOW_SHOWN;
-    if (s.fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
-    if (useGL) {
-        setGLAttributes();
-        flags |= SDL_WINDOW_OPENGL;
-    }
-    display.window = SDL_CreateWindow("Redline Rumble 4", SDL_WINDOWPOS_CENTERED,
-                                      SDL_WINDOWPOS_CENTERED, w, h, flags);
-    if (!display.window) {
-        std::fprintf(stderr, "video: cannot create window (%s)\n", SDL_GetError());
-        return;
-    }
-
-    if (useGL) {
-        display.gl = SDL_GL_CreateContext(display.window);
-        if (!display.gl) {
-            std::fprintf(stderr, "gl: cannot create context (%s)\n", SDL_GetError());
-            display.destroy();
-            return;
-        }
-        SDL_GL_MakeCurrent(display.window, display.gl);
-        SDL_GL_SetSwapInterval(s.vsync ? 1 : 0);
-        return;
-    }
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, s.smoothTextures ? "linear" : "nearest");
-    Uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
-    if (s.vsync) rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
-    display.sdlRenderer = SDL_CreateRenderer(display.window, -1, rendererFlags);
-    if (!display.sdlRenderer)
-        display.sdlRenderer = SDL_CreateRenderer(display.window, -1, SDL_RENDERER_SOFTWARE);
-    if (!display.sdlRenderer) {
-        std::fprintf(stderr, "video: cannot create renderer (%s)\n", SDL_GetError());
-        display.destroy();
-        return;
-    }
-    display.screenTexture = SDL_CreateTexture(display.sdlRenderer, SDL_PIXELFORMAT_ABGR8888,
-                                              SDL_TEXTUREACCESS_STREAMING, s.width, s.height);
-    if (!display.screenTexture) {
-        std::fprintf(stderr, "video: cannot create screen texture (%s)\n", SDL_GetError());
-        display.destroy();
-        return;
-    }
-    SDL_SetTextureBlendMode(display.screenTexture, SDL_BLENDMODE_NONE);
-}
-
 Backend makeHeadlessBackend() {
     Backend b;
+#ifndef __vita__
+    // Desktop only: an offscreen GL context in a hidden window.
     if (gRender.gl) {
         if (!ensureVideo()) return b;
         setGLAttributes();
@@ -355,9 +234,10 @@ Backend makeHeadlessBackend() {
         }
         SDL_GL_MakeCurrent(b.window, b.context);
         b.renderer = std::make_unique<GLRenderer>(kWidth, kHeight, gRender.glSettings);
-    } else {
-        b.renderer = std::make_unique<SoftRenderer>(kWidth, kHeight);
+        return b;
     }
+#endif
+    b.renderer = std::make_unique<SoftRenderer>(kWidth, kHeight);
     return b;
 }
 
@@ -759,6 +639,28 @@ int runSlopeScan() {
 } // namespace
 
 int main(int argc, char **argv) {
+#ifdef __vita__
+    // No console: keep the log next to the save, and report what an uncaught
+    // exception (a shader that fails to compile) says before aborting.
+    const std::string logPath = (userDataDir() / "log.txt").string();
+    if (FILE *f = std::fopen(logPath.c_str(), "w")) std::fclose(f);
+    std::freopen(logPath.c_str(), "a", stdout);
+    std::freopen(logPath.c_str(), "a", stderr);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+    std::set_terminate([] {
+        try {
+            if (auto e = std::current_exception()) std::rethrow_exception(e);
+        } catch (const std::exception &e) {
+            std::fprintf(stderr, "fatal: %s\n", e.what());
+        } catch (...) {
+            std::fprintf(stderr, "fatal: unknown exception\n");
+        }
+        std::abort();
+    });
+    // Asset paths are relative ("assets/..."); the package is mounted at app0:.
+    chdir("app0:");
+#endif
     gSmoothTextures = std::getenv("RR4_NEAREST") == nullptr;
     int autoFrames = 0;
     int benchFrames = 0;
@@ -849,6 +751,7 @@ int main(int argc, char **argv) {
     const std::filesystem::path settingsPath = defaultSettingsPath();
     Settings settings;
     if (settings.load(settingsPath)) std::printf("settings: loaded %s\n", settingsPath.string().c_str());
+    settings.clamp();
     if (std::getenv("RR4_NEAREST")) settings.smoothTextures = false;
     if (cliNoShadows) settings.shadows = false;
     if (cliMsaa >= 0) settings.msaa = cliMsaa;
@@ -862,7 +765,7 @@ int main(int argc, char **argv) {
     // objects) goes first, while its context is still current.
     auto buildDisplay = [&] {
         renderer.reset();
-        createGameWindow(display, settings, useGL);
+        display.create(settings, useGL);
         gSmoothTextures = settings.smoothTextures;
         if (!display) return;
         if (useGL) {
@@ -955,48 +858,36 @@ int main(int argc, char **argv) {
     bool showDebug = false;
     const double step = 1.0 / 60.0;
     bool running = display && renderer;
+    Input input;
 
     while (running) {
         Renderer &r = *renderer;
-        SDL_Event ev;
-        while (SDL_PollEvent(&ev)) {
-            if (ev.type == SDL_QUIT) {
-                if (sessionActive) autosave();
-                running = false;
-            } else if (ev.type == SDL_KEYDOWN && !ev.key.repeat) {
-                const SDL_Keycode key = ev.key.keysym.sym;
-                if (key == SDLK_m) audio.toggleMute();
-                if (key == SDLK_F1) showDebug = !showDebug;
-                if (key == SDLK_F12) {
-                    char name[64];
-                    std::snprintf(name, sizeof(name), "shot_%03d.png", ++shotNumber);
-                    saveFrame(r, fs::path(shotDir) / name);
-                }
-                if (screen == Screen::Menu) {
-                    menuIn.up |= key == SDLK_UP || key == SDLK_w;
-                    menuIn.down |= key == SDLK_DOWN || key == SDLK_s;
-                    menuIn.left |= key == SDLK_LEFT || key == SDLK_a;
-                    menuIn.right |= key == SDLK_RIGHT || key == SDLK_d;
-                    menuIn.confirm |= key == SDLK_RETURN || key == SDLK_KP_ENTER || key == SDLK_SPACE;
-                    menuIn.back |= key == SDLK_ESCAPE;
-                } else if (key == SDLK_ESCAPE) {
-                    // Pause to the menu; the session resumes from RESUME.
-                    autosave();
-                    audio.stopAll();
-                    menu.open(true);
-                    screen = Screen::Menu;
-                }
-            }
+        const FrameInput frame = input.poll(screen == Screen::Menu);
+        if (frame.quit) {
+            if (sessionActive) autosave();
+            break;
         }
-        if (!running) break;
-
-        const Uint8 *keys = SDL_GetKeyboardState(nullptr);
-        CarInput in;
-        in.up = keys[SDL_SCANCODE_UP] != 0;
-        in.down = keys[SDL_SCANCODE_DOWN] != 0;
-        in.left = keys[SDL_SCANCODE_LEFT] != 0;
-        in.right = keys[SDL_SCANCODE_RIGHT] != 0;
-        in.boost = keys[SDL_SCANCODE_LSHIFT] != 0;
+        if (frame.toggleMute) audio.toggleMute();
+        if (frame.toggleDebug) showDebug = !showDebug;
+        if (frame.screenshot) {
+            char name[64];
+            std::snprintf(name, sizeof(name), "shot_%03d.png", ++shotNumber);
+            saveFrame(r, fs::path(shotDir) / name);
+        }
+        menuIn.up |= frame.menu.up;
+        menuIn.down |= frame.menu.down;
+        menuIn.left |= frame.menu.left;
+        menuIn.right |= frame.menu.right;
+        menuIn.confirm |= frame.menu.confirm;
+        menuIn.back |= frame.menu.back;
+        if (frame.pause && screen == Screen::Game) {
+            // Pause to the menu; the session resumes from RESUME.
+            autosave();
+            audio.stopAll();
+            menu.open(true);
+            screen = Screen::Menu;
+        }
+        const CarInput in = frame.car;
 
         const auto now = std::chrono::steady_clock::now();
         const double dt = std::chrono::duration<double>(now - previous).count();
@@ -1070,21 +961,7 @@ int main(int argc, char **argv) {
             if (showDebug) drawDebugHud(draw, world, car, fps);
         }
 
-        if (useGL) {
-            draw.flush();
-            int drawableW = 0, drawableH = 0;
-            SDL_GL_GetDrawableSize(display.window, &drawableW, &drawableH);
-            static_cast<GLRenderer &>(draw).present(drawableW, drawableH);
-            SDL_GL_SwapWindow(display.window);
-        } else {
-            auto &soft = static_cast<SoftRenderer &>(draw);
-            soft.flush();
-            SDL_UpdateTexture(display.screenTexture, nullptr, soft.color.data(),
-                              soft.width * int(sizeof(uint32_t)));
-            SDL_RenderClear(display.sdlRenderer);
-            SDL_RenderCopy(display.sdlRenderer, display.screenTexture, nullptr, nullptr);
-            SDL_RenderPresent(display.sdlRenderer);
-        }
+        display.present(draw);
     }
     return 0;
 }
